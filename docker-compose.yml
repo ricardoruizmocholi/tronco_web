@@ -1,0 +1,66 @@
+services:
+  backend:
+    build:
+      context: ./src/backend
+      dockerfile: ../../docker/Dockerfile.backend
+    container_name: troncodrilo_backend
+    volumes:
+      - ./src/backend:/var/www/html
+    environment:
+      - DB_HOST=db
+      - DB_DATABASE=troncodrilo
+      - DB_USERNAME=troncodrilo
+      - DB_PASSWORD=secret
+    depends_on:
+      - db
+    networks:
+      - troncodrilo
+
+  frontend:
+    build:
+      context: ./src/frontend
+      dockerfile: ../../docker/Dockerfile.frontend
+    container_name: troncodrilo_frontend
+    volumes:
+      - ./src/frontend:/app
+      - /app/node_modules
+    ports:
+      - "5175:5173"
+    networks:
+      - troncodrilo
+
+  db:
+    image: mysql:8
+    container_name: troncodrilo_db
+    environment:
+      - MYSQL_DATABASE=troncodrilo
+      - MYSQL_USER=troncodrilo
+      - MYSQL_PASSWORD=secret
+      - MYSQL_ROOT_PASSWORD=rootsecret
+    volumes:
+      - troncodrilo_db_data:/var/lib/mysql
+    ports:
+      - "3307:3306"
+    networks:
+      - troncodrilo
+  
+  nginx:
+    image: nginx:alpine
+    container_name: troncodrilo_nginx
+    ports:
+      - "80:80"
+    volumes:
+      - ./docker/nginx.conf:/etc/nginx/conf.d/default.conf
+      - ./src/backend:/var/www/html
+    depends_on:
+      - backend
+      - frontend
+    networks:
+      - troncodrilo
+
+networks:
+  troncodrilo:
+    driver: bridge
+
+volumes:
+  troncodrilo_db_data:
