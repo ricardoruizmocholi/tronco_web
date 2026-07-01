@@ -46,3 +46,23 @@
 - Validación de roles en middleware para rutas de admin
 - Backend recalcula precios antes de cualquier cobro con Stripe
 - Webhook de Stripe verificado con firma secreta
+
+## Identidad Visual
+
+### Paleta de colores
+- `--color-primary: #5BBB2A` — verde Troncodrilo (color del personaje)
+- `--color-secondary: #8B4A2A` — marrón tronco
+- `--color-bg: #FAFAF8` — fondo blanco roto
+- `--color-text: #1A1A1A` — negro trazo
+- `--color-dark: #1C1F1A` — fondo oscuro (navbar, footer)
+
+### Estilo visual
+- Referencia estructural: TOAST (toa.st) — grid limpio, espacio generoso, tipografía serif para títulos
+- Personalidad: ilustración flat/naïf, trazo bold, sin gradientes ni sombras complejas
+- Tipografía títulos: serif con carácter (valorar Space Grotesk o similar para combinar con la geometría del personaje)
+- Tipografía cuerpo: sans-serif limpia (Inter o sistema)
+
+### Assets del personaje
+- Favicon: `FaviconFullHD_troncodrilo.png` (personaje cuadrado con tronco)
+- Logo: `logo_troncodrilo.PNG` (personaje horizontal con tronco encima)
+- Copiar ambos a `src/frontend/public/` para que Vite los sirva
