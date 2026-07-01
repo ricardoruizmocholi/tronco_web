@@ -1,1 +1,10 @@
 @import "tailwindcss";
+@source "./**/*.{ts,tsx,html}";
+
+@theme {
+  --color-primary:   #5BBB2A;
+  --color-secondary: #8B4A2A;
+  --color-canvas:    #FAFAF8;
+  --color-ink:       #1A1A1A;
+  --color-dark:      #1C1F1A;
+}

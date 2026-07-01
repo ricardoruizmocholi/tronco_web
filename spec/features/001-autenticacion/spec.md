@@ -7,14 +7,14 @@ Registro e inicio de sesión de usuarios mediante Laravel Sanctum (SPA,
 basado en cookies). Distingue entre `user` y `admin`.
 
 ### Criterios de aceptación
-- [ ] Un visitante puede registrarse con nombre, email y contraseña
-- [ ] Un usuario registrado puede iniciar sesión y la sesión persiste (cookie httpOnly)
-- [ ] Un usuario puede cerrar sesión
-- [ ] Las contraseñas se almacenan con hash (bcrypt, gestionado por Laravel)
-- [ ] Rutas protegidas del frontend (ej. "mi perfil", "mis pedidos") redirigen a login si no hay sesión
-- [ ] Endpoints de admin devuelven 403 si el usuario autenticado no tiene `role = admin`
-- [ ] El primer usuario admin se crea vía seeder, no hay registro público de admins
-- [ ] Validación de email único y formato correcto, contraseña mínimo 8 caracteres
+- [x] Un visitante puede registrarse con nombre, email y contraseña
+- [x] Un usuario registrado puede iniciar sesión y la sesión persiste (cookie httpOnly)
+- [x] Un usuario puede cerrar sesión
+- [x] Las contraseñas se almacenan con hash (bcrypt, gestionado por Laravel)
+- [x] Rutas protegidas del frontend (ej. "mi perfil", "mis pedidos") redirigen a login si no hay sesión
+- [x] Endpoints de admin devuelven 403 si el usuario autenticado no tiene `role = admin`
+- [x] El primer usuario admin se crea vía seeder, no hay registro público de admins
+- [x] Validación de email único y formato correcto, contraseña mínimo 8 caracteres
 
 ### Fuera de alcance
 - Login social (Google, etc.)
@@ -48,15 +48,15 @@ mismo dominio raíz para las cookies.
 
 ## Tasks
 
-1. [ ] Migración: añadir columna `role` a `users`
-2. [ ] Instalar y configurar Sanctum (config, CORS, `SANCTUM_STATEFUL_DOMAINS`)
-3. [ ] Crear `RegisterRequest` y `LoginRequest`
-4. [ ] Crear `AuthController` con register/login/logout/user
-5. [ ] Crear middleware `EnsureUserIsAdmin`
-6. [ ] Seeder de usuario admin de prueba
-7. [ ] Tests Feature: registro exitoso, login exitoso, login fallido, acceso denegado a ruta admin sin rol
-8. [ ] Frontend: instalar React Router
-9. [ ] Frontend: páginas Login/Register con formularios y validación básica
-10. [ ] Frontend: `useAuth` hook + llamada a csrf-cookie
-11. [ ] Frontend: `ProtectedRoute` y `AdminRoute`
-12. [ ] Verificar los 8 criterios de aceptación
+1. [x] Migración: añadir columna `role` a `users`
+2. [x] Instalar y configurar Sanctum (config, CORS, `SANCTUM_STATEFUL_DOMAINS`)
+3. [x] Crear `RegisterRequest` y `LoginRequest`
+4. [x] Crear `AuthController` con register/login/logout/user
+5. [x] Crear middleware `EnsureUserIsAdmin`
+6. [x] Seeder de usuario admin de prueba
+7. [x] Tests Feature: registro exitoso, login exitoso, login fallido, acceso denegado a ruta admin sin rol
+8. [x] Frontend: instalar React Router
+9. [x] Frontend: páginas Login/Register con formularios y validación básica
+10. [x] Frontend: `useAuth` hook + llamada a csrf-cookie
+11. [x] Frontend: `ProtectedRoute` y `AdminRoute`
+12. [x] Verificar los 8 criterios de aceptación
