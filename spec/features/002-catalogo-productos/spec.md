@@ -7,13 +7,13 @@ Listado y ficha de producto del merchandising de Troncodrilo, con
 categorías y filtro. Gestión de productos restringida a admin.
 
 ### Criterios de aceptación
-- [ ] Cualquier visitante puede ver el listado de productos sin necesidad de login
-- [ ] El listado se puede filtrar por categoría
-- [ ] Cada producto tiene página de ficha con imagen, nombre, descripción, precio y stock disponible
-- [ ] Si `stock = 0`, se muestra "agotado" y no se puede añadir al carrito
-- [ ] Solo productos con `is_active = true` aparecen en el listado público
-- [ ] Un admin puede crear, editar y desactivar productos vía endpoints protegidos
-- [ ] Un producto puede opcionalmente estar asociado a un artista colaborador (`artist_id`)
+- [x] Cualquier visitante puede ver el listado de productos sin necesidad de login
+- [x] El listado se puede filtrar por categoría
+- [x] Cada producto tiene página de ficha con imagen, nombre, descripción, precio y stock disponible
+- [x] Si `stock = 0`, se muestra "agotado" y no se puede añadir al carrito
+- [x] Solo productos con `is_active = true` aparecen en el listado público
+- [x] Un admin puede crear, editar y desactivar productos vía endpoints protegidos
+- [x] Un producto puede opcionalmente estar asociado a un artista colaborador (`artist_id`)
 
 ### Fuera de alcance
 - Variantes de producto (tallas/colores) — fase post-MVP
@@ -45,13 +45,13 @@ Requiere `001-autenticacion` completa (para proteger endpoints de admin).
 
 ## Tasks
 
-1. [ ] Migraciones `categories` y `products`
-2. [ ] Modelos `Category` y `Product` con relaciones
-3. [ ] Seeder de categorías y productos demo de Troncodrilo
-4. [ ] `ProductController` (índice público, show, store/update/destroy admin)
-5. [ ] `ProductRequest` con reglas de validación
-6. [ ] Tests Feature: listado público, ficha de producto, creación bloqueada sin rol admin
-7. [ ] Frontend: página `/tienda` con grid + filtro
-8. [ ] Frontend: página de ficha de producto
-9. [ ] Frontend: panel admin de productos
-10. [ ] Verificar los 7 criterios de aceptación
+1. [x] Migraciones `categories` y `products`
+2. [x] Modelos `Category` y `Product` con relaciones
+3. [x] Seeder de categorías y productos demo de Troncodrilo
+4. [x] `ProductController` (índice público, show, store/update/destroy admin)
+5. [x] `ProductRequest` con reglas de validación
+6. [x] Tests Feature: listado público, ficha de producto, creación bloqueada sin rol admin
+7. [x] Frontend: página `/tienda` con grid + filtro
+8. [x] Frontend: página de ficha de producto
+9. [x] Frontend: panel admin de productos
+10. [x] Verificar los 7 criterios de aceptación

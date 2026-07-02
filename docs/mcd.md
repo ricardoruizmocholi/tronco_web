@@ -32,8 +32,17 @@
 | description | text | |
 | price | decimal(10,2) | ver nota sobre céntimos abajo |
 | stock | int | |
-| image_url | varchar | |
+| image_url | varchar | nullable — imagen legacy/fallback, se irá eliminando al migrar a product_images |
 | is_active | boolean | default true |
+| created_at / updated_at | timestamp | |
+
+### product_images
+| Campo | Tipo | Notas |
+|---|---|---|
+| id | bigint PK | |
+| product_id | bigint FK → products.id | cascade delete |
+| url | varchar | |
+| position | int | orden de visualización, 1 = principal, 2 = hover, 3+ = galería |
 | created_at / updated_at | timestamp | |
 
 ### artists
@@ -95,7 +104,7 @@
 - `users 1—1 artists` (opcional, un artista puede tener cuenta vinculada)
 - `users 1—1 fanfics` (estricta: constraint unique en `fanfics.user_id`)
 - `users 1—N fanfics.reviewed_by` (un admin revisa muchos fanfics)
-
+- `products 1—N product_images` — un producto tiene múltiples imágenes ordenadas por posición
 ## 3. Reglas de negocio derivadas del modelo
 
 1. Un fanfic solo existe si `user_id` no tiene ya otro → `UNIQUE` en migración.
