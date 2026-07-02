@@ -119,4 +119,11 @@ class ProductController extends Controller
 
         return response()->json(['message' => 'Imagen eliminada.']);
     }
+
+    // DELETE /api/admin/products/{product}/permanent
+    public function permanentDestroy(Product $product): JsonResponse
+    {
+        $product->delete();
+        return response()->json(['message' => 'Producto eliminado permanentemente.']);
+    }
 }

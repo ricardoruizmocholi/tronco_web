@@ -35,5 +35,5 @@ export function deleteArtistImage(artistId: number, imageId: number): Promise<vo
 }
 
 export function deleteArtist(id: number): Promise<void> {
-  return api.delete(`/api/admin/artists/${id}`).then(() => undefined)
+  return api.delete(`/api/admin/artists/${id}/permanent`).then(() => undefined)
 }

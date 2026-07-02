@@ -48,14 +48,16 @@ Route::middleware(['auth:sanctum', 'admin'])->prefix('admin')->group(function ()
     Route::put('/products/{product}',              [ProductController::class, 'update']);
     Route::patch('/products/{product}/toggle',     [ProductController::class, 'toggle']);
     Route::delete('/products/{product}',           [ProductController::class, 'destroy']);
-    Route::post('/products/{product}/images',          [ProductController::class, 'storeImage']);
-    Route::delete('/products/{product}/images/{image}', [ProductController::class, 'destroyImage']);
+    Route::post('/products/{product}/images',            [ProductController::class, 'storeImage']);
+    Route::delete('/products/{product}/images/{image}',  [ProductController::class, 'destroyImage']);
+    Route::delete('/products/{product}/permanent',       [ProductController::class, 'permanentDestroy']);
 
     Route::get('/artists',                              [ArtistController::class, 'adminIndex']);
     Route::post('/artists',                             [ArtistController::class, 'store']);
     Route::put('/artists/{artist}',                     [ArtistController::class, 'update']);
     Route::patch('/artists/{artist}/toggle',            [ArtistController::class, 'toggle']);
-    Route::delete('/artists/{artist}',                  [ArtistController::class, 'destroy']);
-    Route::post('/artists/{artist}/images',             [ArtistController::class, 'storeImage']);
-    Route::delete('/artists/{artist}/images/{image}',  [ArtistController::class, 'destroyImage']);
+    Route::delete('/artists/{artist}',                   [ArtistController::class, 'destroy']);
+    Route::delete('/artists/{artist}/permanent',         [ArtistController::class, 'permanentDestroy']);
+    Route::post('/artists/{artist}/images',              [ArtistController::class, 'storeImage']);
+    Route::delete('/artists/{artist}/images/{image}',   [ArtistController::class, 'destroyImage']);
 });

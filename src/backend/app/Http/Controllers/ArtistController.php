@@ -109,4 +109,11 @@ class ArtistController extends Controller
         $image->delete();
         return response()->json(['message' => 'Imagen eliminada.']);
     }
+
+    // DELETE /api/admin/artists/{artist}/permanent
+    public function permanentDestroy(Artist $artist): JsonResponse
+    {
+        $artist->delete();
+        return response()->json(['message' => 'Artista eliminado permanentemente.']);
+    }
 }

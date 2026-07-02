@@ -34,7 +34,7 @@ export function toggleProduct(id: number): Promise<Product> {
 }
 
 export function deleteProduct(id: number): Promise<void> {
-  return api.delete(`/api/admin/products/${id}`).then(() => undefined)
+  return api.delete(`/api/admin/products/${id}/permanent`).then(() => undefined)
 }
 
 export function addProductImage(productId: number, data: { url: string }): Promise<ProductImage> {

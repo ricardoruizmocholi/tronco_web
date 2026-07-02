@@ -19,7 +19,7 @@ class ImageUploadController extends Controller
         $extension = $file->getClientOriginalExtension();
         $filename  = Str::uuid() . '.' . $extension;
 
-        $file->storeAs('public/images', $filename);
+        $file->storeAs('images', $filename, disk: 'public');
 
         $url = config('app.url') . '/storage/images/' . $filename;
 
