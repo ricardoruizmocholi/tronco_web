@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\ArtistController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\OrderController;
@@ -24,6 +25,10 @@ Route::get('/products',        [ProductController::class, 'index']);
 Route::get('/products/{slug}', [ProductController::class, 'show']);
 Route::get('/categories',      [ProductController::class, 'categories']);
 
+// Artistas públicos
+Route::get('/artists',          [ArtistController::class, 'index']);
+Route::get('/artists/{artist}', [ArtistController::class, 'show']);
+
 // Checkout y pedidos (usuario autenticado)
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/checkout',          [CheckoutController::class, 'store']);
@@ -34,11 +39,21 @@ Route::middleware('auth:sanctum')->group(function () {
 // Webhook de Stripe — sin auth, Stripe firma el payload con STRIPE_WEBHOOK_SECRET
 Route::post('/stripe/webhook', [StripeWebhookController::class, 'handle']);
 
-// Gestión de productos (solo admin)
+// Gestión admin (productos + artistas)
 Route::middleware(['auth:sanctum', 'admin'])->prefix('admin')->group(function () {
     Route::get('/products',                        [ProductController::class, 'adminIndex']);
     Route::post('/products',                       [ProductController::class, 'store']);
     Route::put('/products/{product}',              [ProductController::class, 'update']);
     Route::patch('/products/{product}/toggle',     [ProductController::class, 'toggle']);
     Route::delete('/products/{product}',           [ProductController::class, 'destroy']);
+    Route::post('/products/{product}/images',          [ProductController::class, 'storeImage']);
+    Route::delete('/products/{product}/images/{image}', [ProductController::class, 'destroyImage']);
+
+    Route::get('/artists',                              [ArtistController::class, 'adminIndex']);
+    Route::post('/artists',                             [ArtistController::class, 'store']);
+    Route::put('/artists/{artist}',                     [ArtistController::class, 'update']);
+    Route::patch('/artists/{artist}/toggle',            [ArtistController::class, 'toggle']);
+    Route::delete('/artists/{artist}',                  [ArtistController::class, 'destroy']);
+    Route::post('/artists/{artist}/images',             [ArtistController::class, 'storeImage']);
+    Route::delete('/artists/{artist}/images/{image}',  [ArtistController::class, 'destroyImage']);
 });

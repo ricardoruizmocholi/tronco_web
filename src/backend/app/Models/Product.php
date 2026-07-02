@@ -42,6 +42,11 @@ class Product extends Model
         return $this->belongsTo(Category::class);
     }
 
+    public function artist(): BelongsTo
+    {
+        return $this->belongsTo(Artist::class);
+    }
+
     public function images(): HasMany
     {
         return $this->hasMany(ProductImage::class)->orderBy('position');
