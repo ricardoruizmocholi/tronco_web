@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { getProduct } from '../api/products'
+import { useCartStore } from '../store/cartStore'
 import type { Product, ProductImage } from '../types/product'
 
 const euros = new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' })
@@ -11,6 +12,9 @@ export default function ProductPage() {
   const [activeImg, setActiveImg]   = useState<ProductImage | null>(null)
   const [loading, setLoading]       = useState(true)
   const [notFound, setNotFound]     = useState(false)
+
+  // Hook llamado incondicionalmente — antes de cualquier early return
+  const addItem = useCartStore(s => s.addItem)
 
   useEffect(() => {
     if (!slug) return
@@ -46,6 +50,18 @@ export default function ProductPage() {
 
   const { name, description, price, stock, category, images } = product
   const isSoldOut = stock === 0
+
+  function handleAddToCart() {
+    addItem({
+      productId:    product.id,
+      name:         product.name,
+      slug:         product.slug,
+      price:        product.price,
+      stock:        product.stock,
+      image:        images.find(i => i.position === 1)?.url ?? null,
+      categorySlug: product.category?.slug ?? null,
+    })
+  }
 
   return (
     <div className="min-h-screen bg-canvas">
@@ -140,6 +156,7 @@ export default function ProductPage() {
 
             {/* Botón añadir al carrito */}
             <button
+              onClick={handleAddToCart}
               disabled={isSoldOut}
               className="mt-2 w-full py-3 rounded-lg font-semibold text-sm transition-colors
                 bg-primary text-white hover:bg-primary/90
