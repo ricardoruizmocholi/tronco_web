@@ -5,7 +5,7 @@ import type { Artist, ArtistFormData, ArtistImage } from '../../types/artist'
 
 interface Props {
   artist?:   Artist
-  onSave:    (data: ArtistFormData) => void
+  onSave:    (data: ArtistFormData, pendingImageUrls?: string[]) => void
   onCancel:  () => void
   saving:    boolean
 }
@@ -30,17 +30,16 @@ const EMPTY: ArtistFormData = {
 
 export default function ArtistForm({ artist, onSave, onCancel, saving }: Props) {
   const [form, setForm]           = useState<ArtistFormData>(EMPTY)
-  const [videoText, setVideoText] = useState('')   // textarea — una URL por línea
+  const [videoText, setVideoText] = useState('')
   const [error, setError]         = useState<string | null>(null)
 
-  // Campos para nueva imagen de galería
   const [newImgUrl, setNewImgUrl]         = useState('')
   const [newImgCaption, setNewImgCaption] = useState('')
   const [imgSaving, setImgSaving]         = useState(false)
   const [uploading, setUploading]         = useState(false)
   const [localImages, setLocalImages]     = useState<ArtistImage[]>([])
+  const [pendingImages, setPendingImages] = useState<string[]>([])
 
-  // Re-inicializa el formulario cuando cambia el artista seleccionado
   useEffect(() => {
     if (artist) {
       setForm({
@@ -59,6 +58,7 @@ export default function ArtistForm({ artist, onSave, onCancel, saving }: Props) 
       setVideoText('')
       setLocalImages([])
     }
+    setPendingImages([])
     setError(null)
   }, [artist])
 
@@ -73,41 +73,45 @@ export default function ArtistForm({ artist, onSave, onCancel, saving }: Props) 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (!form.name.trim()) { setError('El nombre es obligatorio.'); return }
-
-    const videoUrls = videoText
-      .split('\n')
-      .map(l => l.trim())
-      .filter(Boolean)
-
-    onSave({ ...form, video_urls: videoUrls })
-  }
-
-  async function handleAddImage() {
-    if (!artist || !newImgUrl.trim()) return
-    setImgSaving(true)
-    try {
-      const img = await addArtistImage(artist.id, { url: newImgUrl.trim(), caption: newImgCaption.trim() })
-      setLocalImages(prev => [...prev, img])
-      setNewImgUrl('')
-      setNewImgCaption('')
-    } finally {
-      setImgSaving(false)
-    }
+    const videoUrls = videoText.split('\n').map(l => l.trim()).filter(Boolean)
+    onSave({ ...form, video_urls: videoUrls }, pendingImages)
   }
 
   async function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
-    if (!artist || !file) return
+    if (!file) return
     setImgSaving(true)
     setUploading(true)
     try {
       const url = await uploadImage(file)
-      const img = await addArtistImage(artist.id, { url, caption: '' })
-      setLocalImages(prev => [...prev, img])
+      if (artist) {
+        const img = await addArtistImage(artist.id, { url, caption: '' })
+        setLocalImages(prev => [...prev, img])
+      } else {
+        setPendingImages(prev => [...prev, url])
+      }
     } finally {
       setImgSaving(false)
       setUploading(false)
       e.target.value = ''
+    }
+  }
+
+  async function handleAddImage() {
+    if (!newImgUrl.trim()) return
+    if (artist) {
+      setImgSaving(true)
+      try {
+        const img = await addArtistImage(artist.id, { url: newImgUrl.trim(), caption: newImgCaption.trim() })
+        setLocalImages(prev => [...prev, img])
+        setNewImgUrl('')
+        setNewImgCaption('')
+      } finally {
+        setImgSaving(false)
+      }
+    } else {
+      setPendingImages(prev => [...prev, newImgUrl.trim()])
+      setNewImgUrl('')
     }
   }
 
@@ -197,10 +201,42 @@ export default function ArtistForm({ artist, onSave, onCancel, saving }: Props) 
         </div>
       )}
 
-      {/* Galería de imágenes — solo en edición (el artista debe existir) */}
-      {artist && (
-        <div>
-          <label className={labelCls}>Galería de imágenes</label>
+      {/* Galería de imágenes — siempre visible */}
+      <div>
+        <label className={labelCls}>
+          Imágenes de galería
+          {!artist && pendingImages.length > 0 && (
+            <span className="ml-1 font-normal text-primary">({pendingImages.length} por añadir)</span>
+          )}
+        </label>
+
+        {/* Modo CREACIÓN: lista de URLs pendientes */}
+        {!artist && (
+          <div className="space-y-2 mb-3">
+            {pendingImages.length === 0 ? (
+              <p className="text-xs text-ink/30 italic">Se añadirán al crear el artista.</p>
+            ) : (
+              pendingImages.map((url, i) => (
+                <div key={i} className="flex items-center gap-3 p-2 rounded-lg border border-ink/10 bg-white">
+                  <div className="w-12 h-12 flex-shrink-0 rounded-md overflow-hidden bg-primary/10">
+                    <img src={url} alt="" className="w-full h-full object-cover" />
+                  </div>
+                  <p className="flex-1 text-xs text-ink/60 truncate min-w-0">{url}</p>
+                  <button
+                    type="button"
+                    onClick={() => setPendingImages(prev => prev.filter((_, j) => j !== i))}
+                    className="text-xs text-secondary hover:underline flex-shrink-0"
+                  >
+                    Quitar
+                  </button>
+                </div>
+              ))
+            )}
+          </div>
+        )}
+
+        {/* Modo EDICIÓN: lista de imágenes guardadas */}
+        {artist && (
           <div className="space-y-2 mb-3">
             {localImages.length === 0 && (
               <p className="text-xs text-ink/30 italic">Sin imágenes todavía.</p>
@@ -224,46 +260,48 @@ export default function ArtistForm({ artist, onSave, onCancel, saving }: Props) 
               </div>
             ))}
           </div>
+        )}
 
-          {/* Subir desde dispositivo */}
-          <label className="inline-flex items-center gap-2 mb-2 cursor-pointer text-xs
-            text-ink/50 hover:text-primary transition-colors">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-4 h-4">
-              <path strokeLinecap="round" strokeLinejoin="round"
-                d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12
-                   3m0 0l4.5 4.5M12 3v13.5" />
-            </svg>
-            {uploading ? 'Subiendo…' : 'Subir desde dispositivo'}
-            <input type="file" accept="image/*" className="sr-only"
-              onChange={handleFileUpload} disabled={imgSaving} />
-          </label>
+        {/* Subir desde dispositivo */}
+        <label className="inline-flex items-center gap-2 mb-2 cursor-pointer text-xs
+          text-ink/50 hover:text-primary transition-colors">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-4 h-4">
+            <path strokeLinecap="round" strokeLinejoin="round"
+              d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12
+                 3m0 0l4.5 4.5M12 3v13.5" />
+          </svg>
+          {uploading ? 'Subiendo…' : 'Subir desde dispositivo'}
+          <input type="file" accept="image/*" className="sr-only"
+            onChange={handleFileUpload} disabled={imgSaving} />
+        </label>
 
-          {/* Añadir imagen por URL */}
-          <div className="flex flex-col sm:flex-row gap-2 p-3 rounded-lg border border-dashed border-ink/20 bg-ink/[0.02]">
-            <input
-              className={`${inputCls} flex-1`}
-              value={newImgUrl}
-              onChange={e => setNewImgUrl(e.target.value)}
-              placeholder="URL de imagen"
-            />
+        {/* Añadir por URL */}
+        <div className="flex flex-col sm:flex-row gap-2 p-3 rounded-lg border border-dashed border-ink/20 bg-ink/[0.02]">
+          <input
+            className={`${inputCls} flex-1`}
+            value={newImgUrl}
+            onChange={e => setNewImgUrl(e.target.value)}
+            placeholder="URL de imagen"
+          />
+          {artist && (
             <input
               className={`${inputCls} flex-1`}
               value={newImgCaption}
               onChange={e => setNewImgCaption(e.target.value)}
               placeholder="Pie de foto (opcional)"
             />
-            <button
-              type="button"
-              onClick={handleAddImage}
-              disabled={imgSaving || !newImgUrl.trim()}
-              className="px-4 py-2 rounded-lg bg-primary text-white text-sm font-medium
-                hover:bg-primary/90 transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex-shrink-0"
-            >
-              {imgSaving ? '…' : '+ Añadir'}
-            </button>
-          </div>
+          )}
+          <button
+            type="button"
+            onClick={handleAddImage}
+            disabled={imgSaving || !newImgUrl.trim()}
+            className="px-4 py-2 rounded-lg bg-primary text-white text-sm font-medium
+              hover:bg-primary/90 transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex-shrink-0"
+          >
+            {imgSaving ? '…' : '+ Añadir'}
+          </button>
         </div>
-      )}
+      </div>
 
       {/* Acciones */}
       <div className="flex gap-3 pt-2">

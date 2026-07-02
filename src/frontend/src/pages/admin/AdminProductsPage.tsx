@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import {
+  addProductImage,
   createProduct,
   deleteProduct,
   getAdminProducts,
@@ -32,7 +33,7 @@ export default function AdminProductsPage() {
       .finally(() => setLoading(false))
   }, [])
 
-  async function handleSave(data: ProductFormData) {
+  async function handleSave(data: ProductFormData, pendingImageUrls: string[] = []) {
     setSaving(true)
     setError(null)
     try {
@@ -41,6 +42,9 @@ export default function AdminProductsPage() {
         setProducts(ps => ps.map(p => (p.id === updated.id ? updated : p)))
       } else {
         const created = await createProduct(data)
+        for (const url of pendingImageUrls) {
+          await addProductImage(created.id, { url })
+        }
         setProducts(ps => [...ps, created].sort((a, b) => a.name.localeCompare(b.name)))
       }
       setFormMode(null)

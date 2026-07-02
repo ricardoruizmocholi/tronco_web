@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import {
-  createArtist, deleteArtist, getAdminArtists, toggleArtist, updateArtist,
+  addArtistImage, createArtist, deleteArtist, getAdminArtists, toggleArtist, updateArtist,
 } from '../../api/artists'
 import ArtistForm from '../../components/admin/ArtistForm'
 import type { Artist, ArtistFormData } from '../../types/artist'
@@ -20,7 +20,7 @@ export default function AdminArtistsPage() {
       .finally(() => setLoading(false))
   }, [])
 
-  async function handleSave(data: ArtistFormData) {
+  async function handleSave(data: ArtistFormData, pendingImageUrls: string[] = []) {
     setSaving(true)
     setError(null)
     try {
@@ -29,6 +29,9 @@ export default function AdminArtistsPage() {
         setArtists(prev => prev.map(a => a.id === updated.id ? updated : a))
       } else {
         const created = await createArtist(data)
+        for (const url of pendingImageUrls) {
+          await addArtistImage(created.id, { url, caption: '' })
+        }
         setArtists(prev => [created, ...prev])
       }
       setFormMode(null)
