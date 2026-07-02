@@ -8,11 +8,11 @@ oficialmente con Troncodrilo, con su perfil y, si aplica, sus
 productos asociados en la tienda.
 
 ### Criterios de aceptación
-- [ ] Cualquier visitante puede ver el listado de artistas colaboradores activos
-- [ ] Cada artista tiene una página de perfil con nombre, bio, avatar y enlaces a redes sociales
-- [ ] Si un artista tiene productos asociados, se muestran en su perfil
-- [ ] Solo artistas con `is_active = true` aparecen en el listado público
-- [ ] Un admin puede crear, editar y desactivar artistas
+- [x] Cualquier visitante puede ver el listado de artistas colaboradores activos
+- [x] Cada artista tiene una página de perfil con nombre, bio, avatar y enlaces a redes sociales
+- [x] Si un artista tiene productos asociados, se muestran en su perfil
+- [x] Solo artistas con `is_active = true` aparecen en el listado público
+- [x] Un admin puede crear, editar y desactivar artistas
 
 ### Fuera de alcance
 - Dashboard propio para que el artista gestione su perfil sin pasar por admin (post-MVP)
