@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { initiateCheckout } from '../api/orders'
 import { getProducts } from '../api/products'
 import { useCartStore } from '../store/cartStore'
 import type { Product } from '../types/product'
@@ -23,6 +24,23 @@ export default function CartDrawer() {
   } = useCartStore()
 
   const [recommendations, setRecommendations] = useState<Product[]>([])
+  const [paying, setPaying]   = useState(false)
+  const [payError, setPayError] = useState<string | null>(null)
+
+  async function handlePay() {
+    setPaying(true)
+    setPayError(null)
+    try {
+      const checkoutItems = items.map(i => ({ product_id: i.productId, quantity: i.quantity }))
+      const { checkout_url } = await initiateCheckout(checkoutItems)
+      window.location.href = checkout_url
+    } catch (err: unknown) {
+      const axiosErr = err as { response?: { data?: { message?: string; errors?: string[] } } }
+      const msg = axiosErr?.response?.data?.message ?? 'Error al iniciar el pago. Inténtalo de nuevo.'
+      setPayError(msg)
+      setPaying(false)
+    }
+  }
 
   // Bloquea scroll del body mientras el drawer está abierto
   useEffect(() => {
@@ -221,10 +239,19 @@ export default function CartDrawer() {
               </span>
             </div>
             <p className="text-xs text-ink/40">Gastos de envío calculados en el checkout.</p>
-            <button disabled
-              className="w-full py-3 rounded-lg bg-primary/30 text-white/70 font-semibold
-                text-sm cursor-not-allowed select-none">
-              Ir a pagar — disponible próximamente
+            {payError && (
+              <p className="text-xs text-secondary bg-secondary/10 rounded-lg px-3 py-2">
+                {payError}
+              </p>
+            )}
+            <button
+              onClick={handlePay}
+              disabled={paying}
+              className="w-full py-3 rounded-lg bg-primary text-white font-semibold text-sm
+                hover:bg-primary/90 transition-colors
+                disabled:bg-primary/50 disabled:cursor-not-allowed"
+            >
+              {paying ? 'Redirigiendo…' : 'Ir a pagar'}
             </button>
             <button onClick={closeCart}
               className="w-full py-2.5 rounded-lg border border-ink/20 text-ink text-sm

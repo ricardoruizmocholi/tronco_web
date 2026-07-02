@@ -9,6 +9,9 @@ import RegisterPage from './pages/RegisterPage'
 import StorePage from './pages/StorePage'
 import ProductPage from './pages/ProductPage'
 import AdminProductsPage from './pages/admin/AdminProductsPage'
+import CheckoutSuccessPage from './pages/checkout/CheckoutSuccessPage'
+import CheckoutCancelPage from './pages/checkout/CheckoutCancelPage'
+import OrdersPage from './pages/OrdersPage'
 
 const Placeholder = ({ label }: { label: string }) => (
   <div className="py-20 text-center text-ink/50 text-sm">{label} — pendiente</div>
@@ -30,8 +33,10 @@ function App() {
             <Route path="/producto/:slug"  element={<ProductPage />} />
 
             <Route element={<ProtectedRoute />}>
-              <Route path="/perfil"  element={<Placeholder label="Mi perfil" />} />
-              <Route path="/pedidos" element={<Placeholder label="Mis pedidos" />} />
+              <Route path="/perfil"              element={<Placeholder label="Mi perfil" />} />
+              <Route path="/mis-pedidos"         element={<OrdersPage />} />
+              <Route path="/checkout/exito"      element={<CheckoutSuccessPage />} />
+              <Route path="/checkout/cancelado"  element={<CheckoutCancelPage />} />
             </Route>
 
             <Route element={<AdminRoute />}>
