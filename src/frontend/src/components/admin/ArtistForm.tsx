@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { addArtistImage, deleteArtistImage } from '../../api/artists'
+import { uploadImage } from '../../api/upload'
 import type { Artist, ArtistFormData, ArtistImage } from '../../types/artist'
 
 interface Props {
@@ -36,6 +37,7 @@ export default function ArtistForm({ artist, onSave, onCancel, saving }: Props) 
   const [newImgUrl, setNewImgUrl]         = useState('')
   const [newImgCaption, setNewImgCaption] = useState('')
   const [imgSaving, setImgSaving]         = useState(false)
+  const [uploading, setUploading]         = useState(false)
   const [localImages, setLocalImages]     = useState<ArtistImage[]>([])
 
   // Re-inicializa el formulario cuando cambia el artista seleccionado
@@ -90,6 +92,22 @@ export default function ArtistForm({ artist, onSave, onCancel, saving }: Props) 
       setNewImgCaption('')
     } finally {
       setImgSaving(false)
+    }
+  }
+
+  async function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!artist || !file) return
+    setImgSaving(true)
+    setUploading(true)
+    try {
+      const url = await uploadImage(file)
+      const img = await addArtistImage(artist.id, { url, caption: '' })
+      setLocalImages(prev => [...prev, img])
+    } finally {
+      setImgSaving(false)
+      setUploading(false)
+      e.target.value = ''
     }
   }
 
@@ -207,7 +225,20 @@ export default function ArtistForm({ artist, onSave, onCancel, saving }: Props) 
             ))}
           </div>
 
-          {/* Añadir imagen */}
+          {/* Subir desde dispositivo */}
+          <label className="inline-flex items-center gap-2 mb-2 cursor-pointer text-xs
+            text-ink/50 hover:text-primary transition-colors">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-4 h-4">
+              <path strokeLinecap="round" strokeLinejoin="round"
+                d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12
+                   3m0 0l4.5 4.5M12 3v13.5" />
+            </svg>
+            {uploading ? 'Subiendo…' : 'Subir desde dispositivo'}
+            <input type="file" accept="image/*" className="sr-only"
+              onChange={handleFileUpload} disabled={imgSaving} />
+          </label>
+
+          {/* Añadir imagen por URL */}
           <div className="flex flex-col sm:flex-row gap-2 p-3 rounded-lg border border-dashed border-ink/20 bg-ink/[0.02]">
             <input
               className={`${inputCls} flex-1`}

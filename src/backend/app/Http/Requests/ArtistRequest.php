@@ -8,6 +8,14 @@ class ArtistRequest extends FormRequest
 {
     public function authorize(): bool { return true; }
 
+    protected function prepareForValidation(): void
+    {
+        $this->merge([
+            'avatar_url'  => $this->avatar_url  ?: null,
+            'website_url' => $this->website_url ?: null,
+        ]);
+    }
+
     public function rules(): array
     {
         return [

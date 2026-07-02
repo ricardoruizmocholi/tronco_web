@@ -3,6 +3,7 @@
 use App\Http\Controllers\ArtistController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CheckoutController;
+use App\Http\Controllers\ImageUploadController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\StripeWebhookController;
@@ -41,6 +42,7 @@ Route::post('/stripe/webhook', [StripeWebhookController::class, 'handle']);
 
 // Gestión admin (productos + artistas)
 Route::middleware(['auth:sanctum', 'admin'])->prefix('admin')->group(function () {
+    Route::post('/upload-image',                   [ImageUploadController::class, 'store']);
     Route::get('/products',                        [ProductController::class, 'adminIndex']);
     Route::post('/products',                       [ProductController::class, 'store']);
     Route::put('/products/{product}',              [ProductController::class, 'update']);

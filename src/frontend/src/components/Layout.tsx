@@ -72,7 +72,7 @@ export default function Layout() {
             {user ? (
               <div className="flex items-center gap-3">
                 {user.role === 'admin' && (
-                  <NavLink to="/admin/productos" className={navCls}>
+                  <NavLink to="/admin" className={navCls}>
                     Admin
                   </NavLink>
                 )}

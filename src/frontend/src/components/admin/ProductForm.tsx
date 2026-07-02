@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { addProductImage, deleteProductImage } from '../../api/products'
+import { uploadImage } from '../../api/upload'
 import type { Category, Product, ProductFormData, ProductImage } from '../../types/product'
 
 interface Props {
@@ -47,6 +48,7 @@ export default function ProductForm({ product, categories, onSave, onCancel, sav
   const [localImages, setLocalImages]     = useState<ProductImage[]>(product?.images ?? [])
   const [newImgUrl, setNewImgUrl]         = useState('')
   const [imgSaving, setImgSaving]         = useState(false)
+  const [uploading, setUploading]         = useState(false)
   const [imgError, setImgError]           = useState<string | null>(null)
 
   // Re-inicializar si cambia el producto seleccionado
@@ -86,6 +88,25 @@ export default function ProductForm({ product, categories, onSave, onCancel, sav
       category_id: form.category_id ? parseInt(form.category_id, 10) : null,
       is_active:   form.is_active,
     })
+  }
+
+  async function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!product || !file) return
+    setImgSaving(true)
+    setUploading(true)
+    setImgError(null)
+    try {
+      const url = await uploadImage(file)
+      const img = await addProductImage(product.id, { url })
+      setLocalImages(prev => [...prev, img])
+    } catch {
+      setImgError('No se pudo subir la imagen.')
+    } finally {
+      setImgSaving(false)
+      setUploading(false)
+      e.target.value = ''
+    }
   }
 
   async function handleAddImage() {
@@ -233,13 +254,27 @@ export default function ProductForm({ product, categories, onSave, onCancel, sav
               </div>
             ))}
           </div>
+          {/* Subir desde dispositivo */}
+          <label className="inline-flex items-center gap-2 mb-2 cursor-pointer text-xs
+            text-ink/50 hover:text-primary transition-colors">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-4 h-4">
+              <path strokeLinecap="round" strokeLinejoin="round"
+                d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12
+                   3m0 0l4.5 4.5M12 3v13.5" />
+            </svg>
+            {uploading ? 'Subiendo…' : 'Subir desde dispositivo'}
+            <input type="file" accept="image/*" className="sr-only"
+              onChange={handleFileUpload} disabled={imgSaving} />
+          </label>
+
+          {/* Añadir por URL */}
           <div className="flex gap-2">
             <input
               className="flex-1 rounded-lg border border-ink/20 px-3 py-2 text-sm text-ink
                 focus:outline-none focus:ring-2 focus:ring-primary/40"
               value={newImgUrl}
               onChange={e => setNewImgUrl(e.target.value)}
-              placeholder="URL de imagen"
+              placeholder="O pega una URL de imagen"
             />
             <button
               type="button"
