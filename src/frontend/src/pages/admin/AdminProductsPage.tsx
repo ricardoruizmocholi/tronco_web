@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import {
   createProduct,
+  deleteProduct,
   getAdminProducts,
   getCategories,
   toggleProduct,
@@ -56,6 +57,16 @@ export default function AdminProductsPage() {
       setProducts(ps => ps.map(p => (p.id === updated.id ? updated : p)))
     } catch {
       setError('No se pudo cambiar el estado del producto.')
+    }
+  }
+
+  async function handleDelete(product: Product) {
+    if (!window.confirm(`¿Eliminar "${product.name}" permanentemente? Esta acción no se puede deshacer.`)) return
+    try {
+      await deleteProduct(product.id)
+      setProducts(ps => ps.filter(p => p.id !== product.id))
+    } catch {
+      setError('No se pudo eliminar el producto.')
     }
   }
 
@@ -166,6 +177,13 @@ export default function AdminProductsPage() {
                           }`}
                         >
                           {product.is_active ? 'Desactivar' : 'Activar'}
+                        </button>
+                        <button
+                          onClick={() => handleDelete(product)}
+                          className="text-xs px-3 py-1 rounded border border-secondary/40
+                            text-secondary hover:bg-secondary/10 transition-colors"
+                        >
+                          Eliminar
                         </button>
                       </div>
                     </td>

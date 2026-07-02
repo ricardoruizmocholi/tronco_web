@@ -32,3 +32,15 @@ export function updateProduct(id: number, data: ProductFormData): Promise<Produc
 export function toggleProduct(id: number): Promise<Product> {
   return api.patch<Product>(`/api/admin/products/${id}/toggle`).then(r => r.data)
 }
+
+export function deleteProduct(id: number): Promise<void> {
+  return api.delete(`/api/admin/products/${id}`).then(() => undefined)
+}
+
+export function addProductImage(productId: number, data: { url: string }): Promise<ProductImage> {
+  return api.post<ProductImage>(`/api/admin/products/${productId}/images`, data).then(r => r.data)
+}
+
+export function deleteProductImage(productId: number, imageId: number): Promise<void> {
+  return api.delete(`/api/admin/products/${productId}/images/${imageId}`).then(() => undefined)
+}

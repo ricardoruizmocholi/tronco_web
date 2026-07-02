@@ -5,7 +5,9 @@ namespace App\Http\Controllers;
 use App\Http\Requests\ProductRequest;
 use App\Models\Category;
 use App\Models\Product;
+use App\Models\ProductImage;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
 class ProductController extends Controller
@@ -89,5 +91,32 @@ class ProductController extends Controller
         $product->update(['is_active' => !$product->is_active]);
 
         return response()->json($product->load(['category', 'images']));
+    }
+
+    // POST /api/admin/products/{product}/images
+    public function storeImage(Request $request, Product $product): JsonResponse
+    {
+        $request->validate(['url' => 'required|url|max:2048']);
+
+        $position = ($product->images()->max('position') ?? 0) + 1;
+
+        $image = $product->images()->create([
+            'url'      => $request->url,
+            'position' => $request->input('position', $position),
+        ]);
+
+        return response()->json($image, 201);
+    }
+
+    // DELETE /api/admin/products/{product}/images/{image}
+    public function destroyImage(Product $product, ProductImage $image): JsonResponse
+    {
+        if ($image->product_id !== $product->id) {
+            return response()->json(['message' => 'Forbidden.'], 403);
+        }
+
+        $image->delete();
+
+        return response()->json(['message' => 'Imagen eliminada.']);
     }
 }
