@@ -62,6 +62,6 @@ Requiere `001-autenticacion` y `002-catalogo-productos` completas
 4. [x] `ArtistRequest` con validación
 5. [x] Seeder de artistas demo
 6. [x] Tests Feature: listado público, creación bloqueada sin rol admin
-7. [ ] Frontend: página `/artistas` y perfil de artista
-8. [ ] Frontend: panel admin de artistas
-9. [ ] Verificar los criterios de aceptación
+7. [x] Frontend: página `/artistas` y perfil de artista
+8. [x] Frontend: panel admin de artistas
+9. [x] Verificar los criterios de aceptación
