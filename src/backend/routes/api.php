@@ -8,6 +8,7 @@ use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\ImageUploadController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\ProductController;
+use App\Http\Controllers\ShippingRateController;
 use App\Http\Controllers\StripeWebhookController;
 use Illuminate\Support\Facades\Route;
 
@@ -41,6 +42,9 @@ Route::middleware('auth:sanctum')->group(function () {
 
 // Webhook de Stripe — sin auth, Stripe firma el payload con STRIPE_WEBHOOK_SECRET
 Route::post('/stripe/webhook', [StripeWebhookController::class, 'handle']);
+
+// Tarifas de envío — público
+Route::get('/shipping-rates', [ShippingRateController::class, 'publicIndex']);
 
 // Fanfics — globo público
 Route::get('/fanfics', [FanficController::class, 'publicIndex']);
@@ -81,4 +85,9 @@ Route::middleware(['auth:sanctum', 'admin'])->prefix('admin')->group(function ()
     Route::patch('/fanfics/{fanfic}/block-user',        [AdminFanficController::class, 'blockUser']);
     Route::get('/users/blocked',                        [AdminFanficController::class, 'blockedUsers']);
     Route::patch('/users/{user}/unblock',               [AdminFanficController::class, 'unblockUser']);
+
+    Route::get('/shipping-rates',             [ShippingRateController::class, 'index']);
+    Route::post('/shipping-rates',            [ShippingRateController::class, 'store']);
+    Route::put('/shipping-rates/{rate}',      [ShippingRateController::class, 'update']);
+    Route::delete('/shipping-rates/{rate}',   [ShippingRateController::class, 'destroy']);
 });

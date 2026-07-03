@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Order;
 use App\Models\Product;
+use App\Models\ShippingRate;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -12,6 +13,26 @@ use Stripe\Stripe;
 
 class CheckoutController extends Controller
 {
+    // Países soportados por Stripe para shipping_address_collection
+    private const SHIPPING_COUNTRIES = [
+        'AC','AD','AE','AG','AI','AL','AM','AO','AR','AT','AU','AW','AZ',
+        'BA','BB','BD','BE','BF','BG','BH','BI','BJ','BM','BN','BO','BR',
+        'BS','BT','BW','BY','BZ','CA','CD','CF','CG','CH','CI','CK','CL',
+        'CM','CN','CO','CR','CV','CY','CZ','DE','DJ','DK','DM','DO','DZ',
+        'EC','EE','EG','ES','ET','FI','FJ','FK','FO','FR','GA','GB','GD',
+        'GE','GH','GI','GL','GM','GN','GQ','GR','GT','GW','GY','HK','HN',
+        'HR','HT','HU','ID','IE','IL','IN','IQ','IS','IT','JM','JO','JP',
+        'KE','KG','KH','KM','KN','KR','KW','KY','KZ','LA','LB','LC','LI',
+        'LK','LR','LS','LT','LU','LV','LY','MA','MC','MD','ME','MG','MK',
+        'ML','MM','MN','MO','MR','MS','MT','MU','MV','MW','MX','MY','MZ',
+        'NA','NE','NG','NI','NL','NO','NP','NR','NU','NZ','OM','PA','PE',
+        'PG','PH','PK','PL','PN','PS','PT','PW','PY','QA','RO','RS','RU',
+        'RW','SA','SB','SC','SE','SG','SH','SI','SK','SL','SM','SN','SO',
+        'SR','ST','SV','SZ','TC','TD','TG','TH','TJ','TL','TM','TN','TO',
+        'TR','TT','TV','TW','TZ','UA','UG','US','UY','UZ','VC','VE','VG',
+        'VN','VU','WS','YE','ZA','ZM','ZW',
+    ];
+
     public function store(Request $request): JsonResponse
     {
         $request->validate([
@@ -64,7 +85,7 @@ class CheckoutController extends Controller
             $lineItems[] = [
                 'price_data' => [
                     'currency'     => 'eur',
-                    'unit_amount'  => $product->price, // ya en céntimos
+                    'unit_amount'  => $product->price,
                     'product_data' => [
                         'name'   => $product->name,
                         'images' => $product->image_url ? [$product->image_url] : [],
@@ -74,11 +95,20 @@ class CheckoutController extends Controller
             ];
         }
 
+        // Tarifas activas: estimación conservadora (la más alta) y países permitidos
+        $activeRates      = ShippingRate::active()->get();
+        $hasInternational = $activeRates->whereNull('country_code')->isNotEmpty();
+        $allowedCountries = $hasInternational
+            ? self::SHIPPING_COUNTRIES
+            : ($activeRates->pluck('country_code')->filter()->sort()->values()->toArray() ?: ['ES']);
+        $estimatedShipping = (int) ($activeRates->max('rate') ?? 0);
+
         // Crea el Order y sus OrderItems en una transacción
-        $order = DB::transaction(function () use ($user, $incoming, $products, $total) {
+        $order = DB::transaction(function () use ($user, $incoming, $products, $total, $estimatedShipping) {
             $order = Order::create([
-                'user_id' => $user->id,
-                'total'   => $total,
+                'user_id'       => $user->id,
+                'total'         => $total,
+                'shipping_cost' => $estimatedShipping,
             ]);
 
             foreach ($incoming as $line) {
@@ -99,13 +129,14 @@ class CheckoutController extends Controller
         $baseUrl = rtrim(config('app.frontend_url'), '/');
 
         $session = StripeSession::create([
-            'payment_method_types' => ['card'],
-            'line_items'           => $lineItems,
-            'mode'                 => 'payment',
-            'success_url'          => "{$baseUrl}/checkout/exito?order={$order->id}",
-            'cancel_url'           => "{$baseUrl}/checkout/cancelado?order={$order->id}",
-            'metadata'             => ['order_id' => $order->id],
-            'client_reference_id'  => (string) $order->id,
+            'payment_method_types'        => ['card'],
+            'line_items'                  => $lineItems,
+            'mode'                        => 'payment',
+            'shipping_address_collection' => ['allowed_countries' => $allowedCountries],
+            'success_url'                 => "{$baseUrl}/checkout/exito?order={$order->id}",
+            'cancel_url'                  => "{$baseUrl}/checkout/cancelado?order={$order->id}",
+            'metadata'                    => ['order_id' => $order->id],
+            'client_reference_id'         => (string) $order->id,
         ]);
 
         // Guarda el session_id para identificar el pedido en el webhook

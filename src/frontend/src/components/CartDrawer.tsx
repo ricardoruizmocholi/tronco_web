@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { initiateCheckout } from '../api/orders'
 import { getProducts } from '../api/products'
+import { getPublicShippingRates, type ShippingRate as ShippingRateType } from '../api/shipping'
 import { useCartStore } from '../store/cartStore'
 import type { Product } from '../types/product'
 
@@ -23,9 +24,10 @@ export default function CartDrawer() {
     getSubtotal, getTotalItems,
   } = useCartStore()
 
-  const [recommendations, setRecommendations] = useState<Product[]>([])
-  const [paying, setPaying]   = useState(false)
-  const [payError, setPayError] = useState<string | null>(null)
+  const [recommendations, setRecommendations]   = useState<Product[]>([])
+  const [shippingRates, setShippingRates]       = useState<ShippingRateType[]>([])
+  const [paying, setPaying]                     = useState(false)
+  const [payError, setPayError]                 = useState<string | null>(null)
 
   async function handlePay() {
     setPaying(true)
@@ -46,6 +48,12 @@ export default function CartDrawer() {
   useEffect(() => {
     document.body.style.overflow = isOpen ? 'hidden' : ''
     return () => { document.body.style.overflow = '' }
+  }, [isOpen])
+
+  // Fetch tarifas de envío al abrir el drawer
+  useEffect(() => {
+    if (!isOpen) return
+    getPublicShippingRates().then(setShippingRates).catch(() => {})
   }, [isOpen])
 
   // Fetch recomendaciones al abrir (primera categoría de los items del carrito)
@@ -238,7 +246,27 @@ export default function CartDrawer() {
                 {euros.format(getSubtotal() / 100)}
               </span>
             </div>
-            <p className="text-xs text-ink/40">Gastos de envío calculados en el checkout.</p>
+            {shippingRates.length > 0 && (
+              <div className="space-y-1.5 py-2 border-t border-ink/5">
+                <p className="text-[11px] font-semibold text-ink/40 uppercase tracking-widest">
+                  Envío estimado
+                </p>
+                {shippingRates.map(r => (
+                  <div key={r.id} className="flex items-center justify-between text-xs text-ink/60">
+                    <span>{r.name}</span>
+                    <span className="font-medium text-ink">
+                      {r.free_above !== null && getSubtotal() >= r.free_above
+                        ? <span className="text-primary">Gratis</span>
+                        : euros.format(r.rate / 100)
+                      }
+                    </span>
+                  </div>
+                ))}
+                <p className="text-[10px] text-ink/30 leading-relaxed">
+                  El coste final de envío se calculará según tu país en el checkout.
+                </p>
+              </div>
+            )}
             {payError && (
               <p className="text-xs text-secondary bg-secondary/10 rounded-lg px-3 py-2">
                 {payError}

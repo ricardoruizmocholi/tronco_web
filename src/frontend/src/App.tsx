@@ -12,6 +12,7 @@ import AdminDashboardPage from './pages/admin/AdminDashboardPage'
 import AdminProductsPage from './pages/admin/AdminProductsPage'
 import AdminArtistsPage from './pages/admin/AdminArtistsPage'
 import AdminFanficsPage from './pages/admin/AdminFanficsPage'
+import AdminShippingPage from './pages/admin/AdminShippingPage'
 import ArtistsPage from './pages/ArtistsPage'
 import BolaTroncodriloPage from './pages/BolaTroncodriloPage'
 import MiFanficPage from './pages/MiFanficPage'
@@ -55,6 +56,7 @@ function App() {
               <Route path="/admin/productos" element={<AdminProductsPage />} />
               <Route path="/admin/artistas" element={<AdminArtistsPage />} />
               <Route path="/admin/fanfics"  element={<AdminFanficsPage />} />
+              <Route path="/admin/envios"   element={<AdminShippingPage />} />
             </Route>
 
             <Route path="*" element={<Navigate to="/" replace />} />
