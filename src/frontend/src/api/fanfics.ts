@@ -1,8 +1,12 @@
 import api from '../lib/axios'
-import type { Fanfic, FanficFormData, FanficStatus } from '../types/fanfic'
+import type { BlockedUser, Fanfic, FanficFormData, FanficStatus } from '../types/fanfic'
 
-export function getFanfics(): Promise<Fanfic[]> {
-  return api.get<Fanfic[]>('/api/fanfics').then(r => r.data)
+export function getFanfics(cursor?: string): Promise<{
+  data: Fanfic[]
+  next_page_url: string | null
+}> {
+  const params = cursor ? `?cursor=${cursor}` : ''
+  return api.get(`/api/fanfics${params}`).then(r => r.data)
 }
 
 export function getMyFanfic(): Promise<Fanfic> {
@@ -17,9 +21,20 @@ export function updateFanfic(id: number, data: FanficFormData): Promise<Fanfic> 
   return api.put<Fanfic>(`/api/fanfics/${id}`, data).then(r => r.data)
 }
 
-// Admin
-export function getAdminFanfics(status: FanficStatus = 'pending'): Promise<Fanfic[]> {
-  return api.get<Fanfic[]>(`/api/admin/fanfics?status=${status}`).then(r => r.data)
+// ── Admin ────────────────────────────────────────────────────────────────────
+
+export interface AdminFanficsParams {
+  status?:   FanficStatus
+  search?:   string
+  featured?: boolean
+}
+
+export function getAdminFanfics(params: AdminFanficsParams = {}): Promise<Fanfic[]> {
+  const q = new URLSearchParams()
+  if (params.status)            q.set('status',   params.status)
+  if (params.search)            q.set('search',   params.search)
+  if (params.featured === true) q.set('featured', 'true')
+  return api.get<Fanfic[]>(`/api/admin/fanfics?${q}`).then(r => r.data)
 }
 
 export function approveFanfic(id: number): Promise<Fanfic> {
@@ -28,4 +43,24 @@ export function approveFanfic(id: number): Promise<Fanfic> {
 
 export function rejectFanfic(id: number, rejection_reason?: string): Promise<Fanfic> {
   return api.patch<Fanfic>(`/api/admin/fanfics/${id}/reject`, { rejection_reason }).then(r => r.data)
+}
+
+export function featureFanfic(id: number): Promise<Fanfic> {
+  return api.patch<Fanfic>(`/api/admin/fanfics/${id}/feature`).then(r => r.data)
+}
+
+export function unfeatureFanfic(id: number): Promise<Fanfic> {
+  return api.patch<Fanfic>(`/api/admin/fanfics/${id}/unfeature`).then(r => r.data)
+}
+
+export function blockFanficUser(fanficId: number): Promise<{ message: string }> {
+  return api.patch(`/api/admin/fanfics/${fanficId}/block-user`).then(r => r.data)
+}
+
+export function getBlockedUsers(): Promise<BlockedUser[]> {
+  return api.get<BlockedUser[]>('/api/admin/users/blocked').then(r => r.data)
+}
+
+export function unblockUser(userId: number): Promise<{ message: string }> {
+  return api.patch(`/api/admin/users/${userId}/unblock`).then(r => r.data)
 }

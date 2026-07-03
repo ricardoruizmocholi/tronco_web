@@ -47,14 +47,14 @@ Route::get('/fanfics', [FanficController::class, 'publicIndex']);
 
 // Fanfics — usuario autenticado
 Route::middleware('auth:sanctum')->group(function () {
-    Route::get('/fanfics/mine',     [FanficController::class, 'mine']);
-    Route::post('/fanfics',         [FanficController::class, 'store']);
-    Route::put('/fanfics/{fanfic}', [FanficController::class, 'update']);
+    Route::post('/upload-image',     [ImageUploadController::class, 'store']);
+    Route::get('/fanfics/mine',      [FanficController::class, 'mine']);
+    Route::post('/fanfics',          [FanficController::class, 'store']);
+    Route::put('/fanfics/{fanfic}',  [FanficController::class, 'update']);
 });
 
 // Gestión admin (productos + artistas + fanfics)
 Route::middleware(['auth:sanctum', 'admin'])->prefix('admin')->group(function () {
-    Route::post('/upload-image',                   [ImageUploadController::class, 'store']);
     Route::get('/products',                        [ProductController::class, 'adminIndex']);
     Route::post('/products',                       [ProductController::class, 'store']);
     Route::put('/products/{product}',              [ProductController::class, 'update']);
@@ -73,7 +73,12 @@ Route::middleware(['auth:sanctum', 'admin'])->prefix('admin')->group(function ()
     Route::post('/artists/{artist}/images',              [ArtistController::class, 'storeImage']);
     Route::delete('/artists/{artist}/images/{image}',   [ArtistController::class, 'destroyImage']);
 
-    Route::get('/fanfics',                          [AdminFanficController::class, 'index']);
-    Route::patch('/fanfics/{fanfic}/approve',        [AdminFanficController::class, 'approve']);
-    Route::patch('/fanfics/{fanfic}/reject',         [AdminFanficController::class, 'reject']);
+    Route::get('/fanfics',                              [AdminFanficController::class, 'index']);
+    Route::patch('/fanfics/{fanfic}/approve',           [AdminFanficController::class, 'approve']);
+    Route::patch('/fanfics/{fanfic}/reject',            [AdminFanficController::class, 'reject']);
+    Route::patch('/fanfics/{fanfic}/feature',           [AdminFanficController::class, 'feature']);
+    Route::patch('/fanfics/{fanfic}/unfeature',         [AdminFanficController::class, 'unfeature']);
+    Route::patch('/fanfics/{fanfic}/block-user',        [AdminFanficController::class, 'blockUser']);
+    Route::get('/users/blocked',                        [AdminFanficController::class, 'blockedUsers']);
+    Route::patch('/users/{user}/unblock',               [AdminFanficController::class, 'unblockUser']);
 });

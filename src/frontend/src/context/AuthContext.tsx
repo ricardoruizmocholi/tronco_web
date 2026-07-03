@@ -2,10 +2,11 @@ import { createContext, useContext, useEffect, useState } from 'react'
 import api from '../lib/axios'
 
 export interface AuthUser {
-  id:    number
-  name:  string
-  email: string
-  role:  'user' | 'admin'
+  id:         number
+  name:       string
+  email:      string
+  role:       'user' | 'admin'
+  is_blocked: boolean
 }
 
 interface AuthContextValue {

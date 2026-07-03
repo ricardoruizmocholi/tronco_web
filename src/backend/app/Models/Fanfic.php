@@ -10,10 +10,12 @@ class Fanfic extends Model
 {
     protected $fillable = [
         'user_id',
-        'title',
-        'content',
+        'image_url',
+        'caption',
+        'city_name',
         'latitude',
         'longitude',
+        'is_featured',
         'status',
         'rejection_reason',
         'reviewed_by',
@@ -29,6 +31,7 @@ class Fanfic extends Model
         return [
             'latitude'    => 'float',
             'longitude'   => 'float',
+            'is_featured' => 'bool',
             'reviewed_at' => 'datetime',
         ];
     }
@@ -60,5 +63,10 @@ class Fanfic extends Model
     public function scopeRejected(Builder $query): void
     {
         $query->where('status', 'rejected');
+    }
+
+    public function scopeFeatured(Builder $query): void
+    {
+        $query->where('is_featured', true);
     }
 }

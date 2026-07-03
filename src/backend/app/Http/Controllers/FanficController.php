@@ -6,18 +6,21 @@ use App\Http\Requests\FanficRequest;
 use App\Models\Fanfic;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Pagination\CursorPaginator;
 
 class FanficController extends Controller
 {
     // GET /api/fanfics — público, solo aprobados para el globo
-    public function publicIndex(): JsonResponse
+    public function publicIndex(): CursorPaginator
     {
-        $fanfics = Fanfic::approved()
+        return Fanfic::approved()
             ->with('author:id,name')
-            ->select(['id', 'user_id', 'title', 'content', 'latitude', 'longitude'])
-            ->get();
-
-        return response()->json($fanfics);
+            ->select(['id', 'user_id', 'image_url', 'caption', 'city_name',
+                      'latitude', 'longitude', 'is_featured', 'created_at'])
+            ->orderByDesc('is_featured')
+            ->orderByDesc('created_at')
+            ->orderByDesc('id')
+            ->cursorPaginate(20);
     }
 
     // GET /api/fanfics/mine — fanfic del usuario autenticado
@@ -32,10 +35,18 @@ class FanficController extends Controller
         return response()->json($fanfic);
     }
 
-    // POST /api/fanfics — crear (falla si ya tiene uno)
+    // POST /api/fanfics — crear (falla si bloqueado o ya tiene uno)
     public function store(FanficRequest $request): JsonResponse
     {
-        if ($request->user()->fanfic()->exists()) {
+        $user = $request->user();
+
+        if ($user->is_blocked) {
+            return response()->json([
+                'message' => 'Tu cuenta no puede subir contenido. Contacta con el administrador.',
+            ], 403);
+        }
+
+        if ($user->fanfic()->exists()) {
             return response()->json([
                 'message' => 'Ya tienes un fanfic enviado. Puedes editarlo desde /mi-fanfic.',
             ], 409);
@@ -43,7 +54,7 @@ class FanficController extends Controller
 
         $fanfic = Fanfic::create([
             ...$request->validated(),
-            'user_id' => $request->user()->id,
+            'user_id' => $user->id,
             'status'  => 'pending',
         ]);
 
@@ -55,14 +66,21 @@ class FanficController extends Controller
     {
         $this->authorize('update', $fanfic);
 
+        $data = $request->validated();
+
+        // Conservar image_url existente si no se envía una nueva
+        if (! $request->filled('image_url')) {
+            unset($data['image_url']);
+        }
+
         $fanfic->update([
-            ...$request->validated(),
+            ...$data,
             'status'           => 'pending',
             'rejection_reason' => null,
             'reviewed_by'      => null,
             'reviewed_at'      => null,
         ]);
 
-        return response()->json($fanfic);
+        return response()->json($fanfic->fresh());
     }
 }

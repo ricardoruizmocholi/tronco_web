@@ -1,25 +1,39 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import Globe from 'react-globe.gl'
+import Supercluster from 'supercluster'
 import { getFanfics } from '../api/fanfics'
 import type { Fanfic } from '../types/fanfic'
 
 const GLOBE_IMG = '//unpkg.com/three-globe/example/img/earth-dark.jpg'
 
+type GeoFeature = {
+  type: 'Feature'
+  geometry: { type: 'Point'; coordinates: [number, number] }
+  properties: {
+    fanfic?:      Fanfic
+    cluster?:     boolean
+    point_count?: number
+    cluster_id?:  number
+  }
+}
+
+// altitude 2.5 (muy lejos) → zoom 0 | altitude 0.1 (ciudades) → zoom ~9
+function altitudeToZoom(alt: number): number {
+  return Math.min(16, Math.max(0, Math.round(Math.log(2.5 / alt) * 3.5)))
+}
+
 export default function BolaTroncodriloPage() {
-  const containerRef            = useRef<HTMLDivElement>(null)
-  const [size, setSize]         = useState({ w: 0, h: 0 })
-  const [fanfics, setFanfics]   = useState<Fanfic[]>([])
-  const [selected, setSelected] = useState<Fanfic | null>(null)
-  const [loading, setLoading]   = useState(true)
+  const containerRef                  = useRef<HTMLDivElement>(null)
+  const globeRef                      = useRef<any>(null)  // react-globe.gl instance — no typed export
+  const [size, setSize]               = useState({ w: 0, h: 0 })
+  const [fanfics, setFanfics]         = useState<Fanfic[]>([])
+  const [nextCursor, setNextCursor]   = useState<string | null>(null)
+  const [loading, setLoading]         = useState(true)
+  const [loadingMore, setLoadingMore] = useState(false)
+  const [altitude, setAltitude]       = useState(2.5)
+  const [selected, setSelected]       = useState<Fanfic | null>(null)
 
-  useEffect(() => {
-    getFanfics()
-      .then(setFanfics)
-      .finally(() => setLoading(false))
-  }, [])
-
-  // Dimensiones exactas para el canvas WebGL — ResizeObserver evita que el globo
-  // colapse cuando el panel lateral reduce el espacio disponible
+  // ── Dimensiones del contenedor ─────────────────────────────────────────────
   useEffect(() => {
     const el = containerRef.current
     if (!el) return
@@ -30,9 +44,104 @@ export default function BolaTroncodriloPage() {
     return () => obs.disconnect()
   }, [])
 
-  const handlePointClick = useCallback((point: object) => {
-    setSelected(point as Fanfic)
+  // ── Carga inicial ──────────────────────────────────────────────────────────
+  useEffect(() => {
+    getFanfics().then(page => {
+      setFanfics(page.data)
+      const url = page.next_page_url
+      setNextCursor(url ? new URL(url).searchParams.get('cursor') : null)
+    }).finally(() => setLoading(false))
   }, [])
+
+  // ── Carga progresiva ───────────────────────────────────────────────────────
+  async function loadMore() {
+    if (!nextCursor || loadingMore) return
+    setLoadingMore(true)
+    try {
+      const page = await getFanfics(nextCursor)
+      setFanfics(prev => [...prev, ...page.data])
+      const url = page.next_page_url
+      setNextCursor(url ? new URL(url).searchParams.get('cursor') : null)
+    } finally {
+      setLoadingMore(false)
+    }
+  }
+
+  // ── Zoom listener via OrbitControls ───────────────────────────────────────
+  // Se re-adjunta cuando size.w cambia porque el globo puede haberse remontado
+  useEffect(() => {
+    const controls = globeRef.current?.controls()
+    if (!controls) return
+    const onMove = () => {
+      const pov = globeRef.current?.pointOfView()
+      if (pov?.altitude !== undefined) setAltitude(pov.altitude)
+    }
+    controls.addEventListener('change', onMove)
+    return () => controls.removeEventListener('change', onMove)
+  }, [size.w])
+
+  // ── Supercluster ───────────────────────────────────────────────────────────
+  const clusterIndex = useMemo(() => {
+    const sc = new Supercluster<{ fanfic: Fanfic }>({ radius: 60, maxZoom: 16 })
+    sc.load(fanfics.map(f => ({
+      type:       'Feature' as const,
+      geometry:   { type: 'Point' as const, coordinates: [f.longitude, f.latitude] as [number, number] },
+      properties: { fanfic: f },
+    })))
+    return sc
+  }, [fanfics])
+
+  const clusters = useMemo<GeoFeature[]>(() => {
+    const zoom = altitudeToZoom(altitude)
+    return clusterIndex.getClusters([-180, -90, 180, 90], zoom) as GeoFeature[]
+  }, [clusterIndex, altitude])
+
+  // ── Elementos HTML del globo ───────────────────────────────────────────────
+  // altitude en deps: click de cluster necesita el valor actual para calcular zoom in
+  const makeHtmlElement = useCallback((d: object): HTMLElement => {
+    const feature = d as GeoFeature
+    const el = document.createElement('div')
+
+    if (feature.properties.cluster) {
+      const count = feature.properties.point_count ?? 0
+      el.innerHTML = `
+        <div style="
+          width:44px;height:44px;border-radius:50%;
+          background:#5BBB2A;border:2px solid white;
+          display:flex;align-items:center;justify-content:center;
+          color:white;font-weight:700;font-size:13px;
+          box-shadow:0 2px 10px rgba(0,0,0,0.4);cursor:pointer;
+          user-select:none;
+        ">${count > 99 ? '99+' : count}</div>
+      `
+      el.addEventListener('click', e => {
+        e.stopPropagation()
+        const [lng, lat] = feature.geometry.coordinates
+        globeRef.current?.pointOfView({ lat, lng, altitude: altitude * 0.35 }, 600)
+      })
+    } else {
+      const fanfic = feature.properties.fanfic!
+      const sz     = fanfic.is_featured ? 52 : 38
+      const border = fanfic.is_featured ? '3px solid #5BBB2A' : '2px solid white'
+      el.innerHTML = `
+        <div style="
+          width:${sz}px;height:${sz}px;border-radius:50%;
+          overflow:hidden;border:${border};
+          box-shadow:0 2px 10px rgba(0,0,0,0.5);cursor:pointer;
+          transition:transform 0.15s;
+        ">
+          <img src="${fanfic.image_url}"
+            style="width:100%;height:100%;object-fit:cover;"
+            loading="lazy" />
+        </div>
+      `
+      const inner = el.querySelector<HTMLElement>('div')!
+      inner.addEventListener('mouseenter', () => { inner.style.transform = 'scale(1.15)' })
+      inner.addEventListener('mouseleave', () => { inner.style.transform = 'scale(1)' })
+      el.addEventListener('click', e => { e.stopPropagation(); setSelected(fanfic) })
+    }
+    return el
+  }, [altitude])
 
   return (
     <div
@@ -43,38 +152,51 @@ export default function BolaTroncodriloPage() {
       {/* ── Globo 3D ── */}
       {size.w > 0 && (
         <Globe
+          ref={globeRef}
           width={size.w}
           height={size.h}
           globeImageUrl={GLOBE_IMG}
           backgroundColor="#1C1F1A"
           atmosphereColor="#5BBB2A"
           atmosphereAltitude={0.15}
-          pointsData={fanfics}
-          pointLat={(d) => (d as Fanfic).latitude}
-          pointLng={(d) => (d as Fanfic).longitude}
-          pointColor={() => '#5BBB2A'}
-          pointRadius={0.5}
-          pointAltitude={0.01}
-          pointResolution={6}
-          onPointClick={handlePointClick}
+          htmlElementsData={clusters}
+          htmlLat={d => (d as GeoFeature).geometry.coordinates[1]}
+          htmlLng={d => (d as GeoFeature).geometry.coordinates[0]}
+          htmlElement={makeHtmlElement}
           onGlobeClick={() => setSelected(null)}
         />
       )}
 
-      {/* ── Spinner de carga ── */}
+      {/* ── Spinner carga inicial ── */}
       {loading && (
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
           <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
         </div>
       )}
 
-      {/* ── Leyenda inferior ── */}
+      {/* ── Leyenda + Cargar más ── */}
       {!loading && (
-        <div className="absolute bottom-6 left-6 bg-dark/70 backdrop-blur-sm rounded-xl
-          px-4 py-2.5 text-white/50 text-xs pointer-events-none select-none">
-          {fanfics.length > 0
-            ? `${fanfics.length} fanfic${fanfics.length !== 1 ? 's' : ''} en el mapa · Haz clic en un punto`
-            : 'Aún no hay fanfics aprobados'}
+        <div className="absolute bottom-6 left-6 flex flex-col items-start gap-2">
+          <div className="bg-dark/70 backdrop-blur-sm rounded-xl px-4 py-2.5
+            text-white/50 text-xs pointer-events-none select-none">
+            {fanfics.length} imagen{fanfics.length !== 1 ? 'es' : ''} en el mapa
+            {nextCursor && ' · carga parcial'}
+          </div>
+          {nextCursor && (
+            <button
+              onClick={loadMore}
+              disabled={loadingMore}
+              className="bg-dark/80 backdrop-blur-sm text-white/80 text-xs px-4 py-2
+                rounded-xl hover:bg-dark/90 transition-colors disabled:opacity-50
+                flex items-center gap-2"
+            >
+              {loadingMore
+                ? <><div className="w-3 h-3 border border-white/50 border-t-transparent
+                      rounded-full animate-spin" /> Cargando...</>
+                : 'Cargar más imágenes'
+              }
+            </button>
+          )}
         </div>
       )}
 
@@ -83,42 +205,57 @@ export default function BolaTroncodriloPage() {
         <div className="absolute inset-y-0 right-0 w-full sm:w-96 flex flex-col
           bg-dark/95 backdrop-blur-sm border-l border-white/10 shadow-2xl z-10">
 
-          {/* Cabecera */}
-          <div className="flex items-start justify-between gap-3 p-5 border-b border-white/10">
-            <h2 className="text-white font-semibold leading-snug line-clamp-3">
-              {selected.title}
-            </h2>
+          {/* Imagen */}
+          <div className="relative flex-shrink-0">
+            <img
+              src={selected.image_url}
+              alt={selected.city_name}
+              className="w-full h-56 object-cover"
+            />
+            {selected.is_featured && (
+              <span className="absolute top-3 left-3 bg-primary text-white text-xs
+                font-medium px-2.5 py-1 rounded-full flex items-center gap-1.5">
+                <svg viewBox="0 0 24 24" fill="currentColor" className="w-3 h-3">
+                  <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                </svg>
+                Destacado
+              </span>
+            )}
             <button
               onClick={() => setSelected(null)}
               aria-label="Cerrar panel"
-              className="flex-shrink-0 mt-0.5 text-white/40 hover:text-white transition-colors"
+              className="absolute top-3 right-3 w-8 h-8 bg-dark/60 backdrop-blur-sm
+                rounded-full flex items-center justify-center text-white/70
+                hover:text-white hover:bg-dark/80 transition-colors"
             >
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
-                className="w-5 h-5">
+                strokeWidth="2" strokeLinecap="round" className="w-4 h-4">
                 <path d="M6 18L18 6M6 6l12 12" />
               </svg>
             </button>
           </div>
 
-          {/* Autor */}
-          <div className="px-5 pt-4 pb-1">
-            <span className="inline-flex items-center gap-1.5 text-primary text-sm font-medium">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
-                className="w-4 h-4">
-                <circle cx="12" cy="7" r="4" />
-                <path d="M5.5 21a8.38 8.38 0 0113 0" />
-              </svg>
-              {selected.author?.name ?? 'Anónimo'}
-            </span>
-          </div>
-
-          {/* Contenido */}
-          <div className="flex-1 overflow-y-auto px-5 py-4">
-            <p className="text-white/75 text-sm leading-relaxed whitespace-pre-wrap">
-              {selected.content}
-            </p>
+          {/* Info */}
+          <div className="flex-1 overflow-y-auto p-5 space-y-3">
+            <div>
+              <p className="text-white font-semibold text-lg leading-tight">
+                {selected.city_name}
+              </p>
+              <p className="text-primary text-sm mt-1 flex items-center gap-1.5">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                  strokeWidth="2" strokeLinecap="round" className="w-3.5 h-3.5">
+                  <circle cx="12" cy="7" r="4" />
+                  <path d="M5.5 21a8.38 8.38 0 0113 0" />
+                </svg>
+                {selected.author?.name ?? 'Anónimo'}
+              </p>
+            </div>
+            {selected.caption && (
+              <p className="text-white/70 text-sm leading-relaxed italic
+                border-l-2 border-primary/40 pl-3">
+                {selected.caption}
+              </p>
+            )}
           </div>
 
           {/* Coordenadas */}

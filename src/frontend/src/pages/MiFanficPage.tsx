@@ -1,23 +1,39 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { createFanfic, getMyFanfic, updateFanfic } from '../api/fanfics'
+import { uploadImage } from '../api/upload'
+import { useAuthContext } from '../context/AuthContext'
 import type { Fanfic, FanficFormData, FanficStatus } from '../types/fanfic'
 
+interface NominatimResult {
+  display_name: string
+  lat: string
+  lon: string
+}
+
 const STATUS_UI: Record<FanficStatus, { label: string; dot: string; bg: string; text: string }> = {
-  pending:  { label: 'En revisión',  dot: 'bg-amber-400',  bg: 'bg-amber-500/10',   text: 'text-amber-500' },
-  approved: { label: 'Aprobado',     dot: 'bg-primary',    bg: 'bg-primary/10',     text: 'text-primary'   },
-  rejected: { label: 'Rechazado',    dot: 'bg-secondary',  bg: 'bg-secondary/10',   text: 'text-secondary' },
+  pending:  { label: 'En revisión', dot: 'bg-amber-400', bg: 'bg-amber-500/10', text: 'text-amber-500' },
+  approved: { label: 'Aprobado',    dot: 'bg-primary',   bg: 'bg-primary/10',   text: 'text-primary'   },
+  rejected: { label: 'Rechazado',   dot: 'bg-secondary', bg: 'bg-secondary/10', text: 'text-secondary' },
 }
 
 export default function MiFanficPage() {
-  const [fanfic, setFanfic]   = useState<Fanfic | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [saving, setSaving]   = useState(false)
-  const [error, setError]     = useState<string | null>(null)
-  const [success, setSuccess] = useState(false)
+  const { user }                              = useAuthContext()
+  const [fanfic, setFanfic]                   = useState<Fanfic | null>(null)
+  const [loading, setLoading]                 = useState(true)
+  const [saving, setSaving]                   = useState(false)
+  const [uploading, setUploading]             = useState(false)
+  const [error, setError]                     = useState<string | null>(null)
+  const [success, setSuccess]                 = useState(false)
+  const [cityQuery, setCityQuery]             = useState('')
+  const [citySuggestions, setCitySuggestions] = useState<NominatimResult[]>([])
+  const [searchingCity, setSearchingCity]     = useState(false)
+  const debounceRef                           = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const fileInputRef                          = useRef<HTMLInputElement>(null)
 
   const [form, setForm] = useState<FanficFormData>({
-    title:     '',
-    content:   '',
+    image_url: '',
+    caption:   '',
+    city_name: '',
     latitude:  40.4168,
     longitude: -3.7038,
   })
@@ -26,14 +42,70 @@ export default function MiFanficPage() {
     getMyFanfic()
       .then(f => {
         setFanfic(f)
-        setForm({ title: f.title, content: f.content, latitude: f.latitude, longitude: f.longitude })
+        setCityQuery(f.city_name)
+        setForm({
+          image_url: f.image_url,
+          caption:   f.caption ?? '',
+          city_name: f.city_name,
+          latitude:  f.latitude,
+          longitude: f.longitude,
+        })
       })
-      .catch(() => { /* 404 = aún no tiene fanfic, muestra el formulario vacío */ })
+      .catch(() => {})
       .finally(() => setLoading(false))
   }, [])
 
+  // Debounce Nominatim — respeta el límite de uso de la API pública (1 req/s)
+  useEffect(() => {
+    if (debounceRef.current) clearTimeout(debounceRef.current)
+    if (cityQuery.length < 3) { setCitySuggestions([]); return }
+    debounceRef.current = setTimeout(async () => {
+      setSearchingCity(true)
+      try {
+        const res = await fetch(
+          `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(cityQuery)}&format=json&limit=5`,
+          { headers: { 'Accept-Language': 'es', 'User-Agent': 'TroncodriloApp/1.0' } }
+        )
+        setCitySuggestions(await res.json())
+      } catch {
+        setCitySuggestions([])
+      } finally {
+        setSearchingCity(false)
+      }
+    }, 400)
+  }, [cityQuery])
+
+  async function handleImageChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setUploading(true)
+    setError(null)
+    try {
+      const url = await uploadImage(file)
+      setForm(f => ({ ...f, image_url: url }))
+    } catch {
+      setError('Error al subir la imagen. Inténtalo de nuevo.')
+    } finally {
+      setUploading(false)
+    }
+  }
+
+  function selectCity(result: NominatimResult) {
+    const name = result.display_name.split(',')[0].trim()
+    setCityQuery(result.display_name)
+    setCitySuggestions([])
+    setForm(f => ({
+      ...f,
+      city_name: name,
+      latitude:  parseFloat(result.lat),
+      longitude: parseFloat(result.lon),
+    }))
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
+    if (!form.image_url) { setError('Debes subir una imagen.'); return }
+    if (!form.city_name) { setError('Debes seleccionar una ciudad.'); return }
     setSaving(true)
     setError(null)
     setSuccess(false)
@@ -45,7 +117,7 @@ export default function MiFanficPage() {
       setSuccess(true)
     } catch (err: unknown) {
       const msg = (err as { response?: { data?: { message?: string } } })
-        .response?.data?.message ?? 'Error al guardar el fanfic.'
+        .response?.data?.message ?? 'Error al guardar.'
       setError(msg)
     } finally {
       setSaving(false)
@@ -58,7 +130,18 @@ export default function MiFanficPage() {
     </div>
   )
 
-  const status = fanfic?.status as FanficStatus | undefined
+  if (user?.is_blocked) return (
+    <div className="max-w-2xl mx-auto px-4 py-12">
+      <div className="bg-secondary/10 border border-secondary/20 rounded-2xl p-8 text-center">
+        <p className="text-secondary font-medium mb-1">Cuenta bloqueada</p>
+        <p className="text-secondary/70 text-sm">
+          Tu cuenta no puede subir contenido. Contacta con el administrador.
+        </p>
+      </div>
+    </div>
+  )
+
+  const status   = fanfic?.status as FanficStatus | undefined
   const statusUI = status ? STATUS_UI[status] : null
 
   return (
@@ -66,8 +149,8 @@ export default function MiFanficPage() {
       <h1 className="text-2xl font-bold text-ink mb-2">Mi fanfic</h1>
       <p className="text-ink/50 text-sm mb-8">
         {fanfic
-          ? 'Edita tu historia. Al guardar vuelve a revisión.'
-          : 'Escribe tu historia de Troncodrilo y elige dónde sucede en el mapa.'}
+          ? 'Edita tu imagen. Al guardar vuelve a revisión.'
+          : 'Sube una imagen geolocalizda de Troncodrilo.'}
       </p>
 
       {/* Badge de estado */}
@@ -87,80 +170,131 @@ export default function MiFanficPage() {
       )}
 
       <form onSubmit={handleSubmit} className="space-y-6">
-        {/* Título */}
-        <div>
-          <label className="block text-sm font-medium text-ink mb-1.5">Título</label>
-          <input
-            type="text"
-            value={form.title}
-            onChange={e => setForm(f => ({ ...f, title: e.target.value }))}
-            required
-            maxLength={255}
-            placeholder="Un título épico para tu fanfic"
-            className="w-full rounded-xl border border-ink/15 bg-white px-4 py-2.5 text-sm text-ink
-              focus:outline-none focus:ring-2 focus:ring-primary/40"
-          />
-        </div>
 
-        {/* Historia */}
+        {/* ── Imagen ── */}
         <div>
-          <label className="block text-sm font-medium text-ink mb-1.5">Historia</label>
-          <textarea
-            value={form.content}
-            onChange={e => setForm(f => ({ ...f, content: e.target.value }))}
-            required
-            rows={10}
-            placeholder="Érase una vez Troncodrilo..."
-            className="w-full rounded-xl border border-ink/15 bg-white px-4 py-2.5 text-sm text-ink
-              focus:outline-none focus:ring-2 focus:ring-primary/40 resize-y"
-          />
-        </div>
-
-        {/* Ubicación */}
-        <fieldset className="border border-ink/10 rounded-2xl p-5 space-y-4">
-          <legend className="text-sm font-medium text-ink px-1">Ubicación en el mapa</legend>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs text-ink/50 mb-1">Latitud (−90 a 90)</label>
-              <input
-                type="number"
-                step="any"
-                min={-90}
-                max={90}
-                value={form.latitude}
-                onChange={e => setForm(f => ({ ...f, latitude: parseFloat(e.target.value) }))}
-                required
-                className="w-full rounded-xl border border-ink/15 bg-white px-3 py-2 text-sm
-                  font-mono text-ink focus:outline-none focus:ring-2 focus:ring-primary/40"
+          <label className="block text-sm font-medium text-ink mb-1.5">Imagen</label>
+          <div
+            onClick={() => fileInputRef.current?.click()}
+            className="relative cursor-pointer rounded-2xl border-2 border-dashed border-ink/15
+              hover:border-primary/40 transition-colors overflow-hidden bg-ink/[0.02]
+              flex items-center justify-center"
+            style={{ minHeight: 200 }}
+          >
+            {form.image_url ? (
+              <img
+                src={form.image_url}
+                alt="Preview"
+                className="w-full object-cover max-h-72 rounded-2xl"
               />
-            </div>
-            <div>
-              <label className="block text-xs text-ink/50 mb-1">Longitud (−180 a 180)</label>
-              <input
-                type="number"
-                step="any"
-                min={-180}
-                max={180}
-                value={form.longitude}
-                onChange={e => setForm(f => ({ ...f, longitude: parseFloat(e.target.value) }))}
-                required
-                className="w-full rounded-xl border border-ink/15 bg-white px-3 py-2 text-sm
-                  font-mono text-ink focus:outline-none focus:ring-2 focus:ring-primary/40"
-              />
-            </div>
+            ) : (
+              <div className="text-center p-8 pointer-events-none">
+                {uploading
+                  ? <div className="w-8 h-8 border-2 border-primary border-t-transparent
+                      rounded-full animate-spin mx-auto" />
+                  : <>
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"
+                        className="w-10 h-10 text-ink/20 mx-auto mb-3">
+                        <path strokeLinecap="round" strokeLinejoin="round"
+                          d="M12 16.5V9.75m0 0 3 3m-3-3-3 3M6.75 19.5a4.5 4.5 0 01-1.41-8.775
+                             5.25 5.25 0 0110.338-2.32 5.75 5.75 0 011.076 11.095H6.75z" />
+                      </svg>
+                      <p className="text-sm text-ink/40">Haz clic para subir una imagen</p>
+                      <p className="text-xs text-ink/25 mt-1">JPG, PNG o WebP · máx. 10 MB</p>
+                    </>
+                }
+              </div>
+            )}
+            {form.image_url && uploading && (
+              <div className="absolute inset-0 bg-white/60 flex items-center justify-center">
+                <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+              </div>
+            )}
           </div>
-          <p className="text-xs text-ink/40">
-            Introduce las coordenadas donde ocurre tu historia. Puedes buscarlas en Google Maps
-            (clic derecho → &ldquo;¿Qué hay aquí?&rdquo;).
-          </p>
-        </fieldset>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={handleImageChange}
+          />
+          {form.image_url && (
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              className="mt-2 text-xs text-ink/40 hover:text-ink transition-colors"
+            >
+              Cambiar imagen
+            </button>
+          )}
+        </div>
+
+        {/* ── Ciudad con geocoding Nominatim ── */}
+        <div className="relative">
+          <label className="block text-sm font-medium text-ink mb-1.5">Ciudad</label>
+          <div className="relative">
+            <input
+              type="text"
+              value={cityQuery}
+              onChange={e => { setCityQuery(e.target.value); setForm(f => ({ ...f, city_name: '' })) }}
+              required
+              placeholder="Ej: Madrid, Tokyo, Buenos Aires..."
+              className="w-full rounded-xl border border-ink/15 bg-white px-4 py-2.5 text-sm
+                text-ink focus:outline-none focus:ring-2 focus:ring-primary/40 pr-8"
+            />
+            {searchingCity && (
+              <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+              </div>
+            )}
+          </div>
+          {citySuggestions.length > 0 && (
+            <ul className="absolute z-20 mt-1 w-full bg-white border border-ink/10 rounded-xl
+              shadow-lg overflow-hidden divide-y divide-ink/5">
+              {citySuggestions.map((r, i) => (
+                <li key={i}>
+                  <button
+                    type="button"
+                    onClick={() => selectCity(r)}
+                    className="w-full text-left px-4 py-2.5 text-sm text-ink
+                      hover:bg-primary/5 transition-colors truncate"
+                  >
+                    {r.display_name}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+          {form.city_name && (
+            <p className="mt-1.5 text-xs text-ink/40 font-mono">
+              {form.latitude.toFixed(4)}, {form.longitude.toFixed(4)}
+            </p>
+          )}
+        </div>
+
+        {/* ── Caption ── */}
+        <div>
+          <label className="block text-sm font-medium text-ink mb-1.5">
+            Caption <span className="text-ink/30 font-normal">(opcional)</span>
+          </label>
+          <textarea
+            value={form.caption}
+            onChange={e => setForm(f => ({ ...f, caption: e.target.value }))}
+            maxLength={500}
+            rows={3}
+            placeholder="Una frase sobre tu imagen..."
+            className="w-full rounded-xl border border-ink/15 bg-white px-4 py-2.5 text-sm
+              text-ink focus:outline-none focus:ring-2 focus:ring-primary/40 resize-none"
+          />
+          <p className="mt-1 text-xs text-ink/30 text-right">{form.caption.length}/500</p>
+        </div>
 
         {error   && <p className="text-sm text-secondary bg-secondary/10 rounded-xl px-4 py-3">{error}</p>}
         {success && <p className="text-sm text-primary bg-primary/10 rounded-xl px-4 py-3">¡Fanfic guardado! Queda pendiente de revisión.</p>}
 
         <button
           type="submit"
-          disabled={saving}
+          disabled={saving || uploading}
           className="w-full bg-primary text-white font-medium py-3 rounded-xl
             hover:bg-primary/90 transition-colors disabled:opacity-50"
         >
