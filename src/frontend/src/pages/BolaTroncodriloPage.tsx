@@ -223,8 +223,7 @@ export default function BolaTroncodriloPage() {
             <img
               src={selected.image_url}
               alt={selected.city_name}
-              onClick={() => setFullscreen(true)}
-              className="w-full h-56 object-cover cursor-pointer"
+              className="w-full h-56 object-cover"
             />
             {selected.is_featured && (
               <span className="absolute top-3 left-3 bg-primary text-white text-xs
@@ -248,6 +247,20 @@ export default function BolaTroncodriloPage() {
               </svg>
             </button>
           </div>
+
+          {/* Botón lightbox */}
+          <button
+            onClick={() => setFullscreen(true)}
+            className="w-full flex items-center justify-center gap-2 py-2.5
+              bg-white/5 hover:bg-white/10 text-white/60 hover:text-white
+              text-xs transition-colors"
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+              strokeWidth="2" strokeLinecap="round" className="w-4 h-4">
+              <path d="M15 3h6m0 0v6m0-6-7 7M9 21H3m0 0v-6m0 6 7-7" />
+            </svg>
+            Ver imagen completa
+          </button>
 
           {/* Info */}
           <div className="flex-1 overflow-y-auto p-5 space-y-3">
@@ -281,7 +294,7 @@ export default function BolaTroncodriloPage() {
         </div>
       )}
       {/* ── Lightbox ── */}
-      {fullscreen && selected && (
+      {fullscreen && selected?.image_url && (
         <div
           className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center"
           onClick={() => setFullscreen(false)}
