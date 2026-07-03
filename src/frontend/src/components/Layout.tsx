@@ -1,7 +1,10 @@
+import { useState } from 'react'
 import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
+import { useScrollDirection } from '../hooks/useScrollDirection'
 import { useCartStore } from '../store/cartStore'
 import CartDrawer from './CartDrawer'
+import MobileDrawer from './MobileDrawer'
 
 function CartIcon() {
   return (
@@ -24,7 +27,9 @@ const navLinks = [
 export default function Layout() {
   const { user, logout } = useAuth()
   const navigate = useNavigate()
+  const scrollDir = useScrollDirection()
   const { getTotalItems, openCart } = useCartStore()
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false)
 
   const totalItems = getTotalItems()
 
@@ -38,23 +43,25 @@ export default function Layout() {
   return (
     <div className="min-h-screen flex flex-col bg-canvas">
       {/* Header */}
-      <header className="sticky top-0 z-50 bg-dark border-b border-white/5">
+      <header className={`fixed top-0 w-full z-50 bg-dark border-b border-white/5
+        transition-transform duration-300
+        ${scrollDir === 'down' ? '-translate-y-full' : 'translate-y-0'}`}>
         <div className="max-w-6xl mx-auto px-4 h-16 flex items-center gap-6">
           {/* Logo */}
           <Link to="/" className="flex-shrink-0">
             <img src="/logo_troncodrilo.PNG" alt="Troncodrilo" className="h-9 w-auto" />
           </Link>
 
-          {/* Nav principal */}
+          {/* Nav principal — solo escritorio */}
           <nav className="hidden md:flex items-center gap-6 flex-1">
             {navLinks.map(({ to, label }) => (
               <NavLink key={to} to={to} className={navCls}>{label}</NavLink>
             ))}
           </nav>
 
-          {/* Derecha: carrito + auth */}
+          {/* Derecha: carrito + auth (escritorio) + hamburguesa (móvil) */}
           <div className="ml-auto flex items-center gap-4">
-            {/* Carrito */}
+            {/* Carrito — siempre visible */}
             <button
               onClick={openCart}
               aria-label={`Abrir carrito (${totalItems} productos)`}
@@ -68,40 +75,64 @@ export default function Layout() {
               </span>
             </button>
 
-            {/* Auth */}
-            {user ? (
-              <div className="flex items-center gap-3">
-                {user.role === 'admin' && (
-                  <NavLink to="/admin" className={navCls}>
-                    Admin
-                  </NavLink>
-                )}
-                <span className="text-white/70 text-sm hidden sm:inline">{user.name}</span>
-                <button
-                  onClick={handleLogout}
-                  className="text-sm text-white/70 hover:text-white transition-colors"
-                >
-                  Salir
-                </button>
-              </div>
-            ) : (
-              <div className="flex items-center gap-2">
-                <Link to="/login"
-                  className="text-sm text-white/70 hover:text-white transition-colors">
-                  Iniciar sesión
-                </Link>
-                <Link to="/register"
-                  className="text-sm bg-primary text-white px-3 py-1.5 rounded-lg
-                    hover:bg-primary/90 transition-colors font-medium">
-                  Registrarse
-                </Link>
-              </div>
-            )}
+            {/* Auth — solo escritorio */}
+            <div className="hidden md:flex items-center gap-3">
+              {user ? (
+                <>
+                  {user.role === 'admin' && (
+                    <NavLink to="/admin" className={navCls}>Admin</NavLink>
+                  )}
+                  <span className="text-white/70 text-sm">{user.name}</span>
+                  <button
+                    onClick={handleLogout}
+                    className="text-sm text-white/70 hover:text-white transition-colors"
+                  >
+                    Salir
+                  </button>
+                </>
+              ) : (
+                <>
+                  <Link to="/login"
+                    className="text-sm text-white/70 hover:text-white transition-colors">
+                    Iniciar sesión
+                  </Link>
+                  <Link to="/register"
+                    className="text-sm bg-primary text-white px-3 py-1.5 rounded-lg
+                      hover:bg-primary/90 transition-colors font-medium">
+                    Registrarse
+                  </Link>
+                </>
+              )}
+            </div>
+
+            {/* Hamburguesa — solo móvil */}
+            <button
+              onClick={() => setIsDrawerOpen(true)}
+              aria-label="Abrir menú"
+              className="md:hidden text-white/70 hover:text-white transition-colors p-1"
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                strokeWidth="2" strokeLinecap="round" className="w-6 h-6">
+                <path d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+            </button>
           </div>
         </div>
       </header>
 
-      {/* Drawer del carrito (portal implícito — fuera del flujo del main) */}
+      {/* Espaciador: compensa el header fixed (h-16 = 64px) */}
+      <div className="h-16 flex-shrink-0" />
+
+      {/* Drawer de navegación móvil */}
+      <MobileDrawer
+        isOpen={isDrawerOpen}
+        onClose={() => setIsDrawerOpen(false)}
+        user={user}
+        onLogout={handleLogout}
+        navLinks={navLinks}
+      />
+
+      {/* Drawer del carrito */}
       <CartDrawer />
 
       {/* Contenido de la página */}
