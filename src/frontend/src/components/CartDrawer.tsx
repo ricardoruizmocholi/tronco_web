@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { initiateCheckout } from '../api/orders'
+import { initiateCheckout, type ShippingAddress } from '../api/orders'
 import { getProducts } from '../api/products'
 import { getPublicShippingRates, type ShippingRate as ShippingRateType } from '../api/shipping'
+import ShippingAddressModal from './ShippingAddressModal'
 import { useCartStore } from '../store/cartStore'
 import type { Product } from '../types/product'
 
@@ -26,21 +27,23 @@ export default function CartDrawer() {
 
   const [recommendations, setRecommendations]   = useState<Product[]>([])
   const [shippingRates, setShippingRates]       = useState<ShippingRateType[]>([])
+  const [showShipping, setShowShipping]         = useState(false)
   const [paying, setPaying]                     = useState(false)
   const [payError, setPayError]                 = useState<string | null>(null)
 
-  async function handlePay() {
+  async function handleConfirmShipping(address: ShippingAddress) {
     setPaying(true)
     setPayError(null)
     try {
       const checkoutItems = items.map(i => ({ product_id: i.productId, quantity: i.quantity }))
-      const { checkout_url } = await initiateCheckout(checkoutItems)
+      const { checkout_url } = await initiateCheckout(checkoutItems, address)
       window.location.href = checkout_url
     } catch (err: unknown) {
       const axiosErr = err as { response?: { data?: { message?: string; errors?: string[] } } }
       const msg = axiosErr?.response?.data?.message ?? 'Error al iniciar el pago. Inténtalo de nuevo.'
       setPayError(msg)
       setPaying(false)
+      setShowShipping(false)
     }
   }
 
@@ -273,13 +276,13 @@ export default function CartDrawer() {
               </p>
             )}
             <button
-              onClick={handlePay}
+              onClick={() => { setPayError(null); setShowShipping(true) }}
               disabled={paying}
               className="w-full py-3 rounded-lg bg-primary text-white font-semibold text-sm
                 hover:bg-primary/90 transition-colors
                 disabled:bg-primary/50 disabled:cursor-not-allowed"
             >
-              {paying ? 'Redirigiendo…' : 'Ir a pagar'}
+              Ir a pagar
             </button>
             <button onClick={closeCart}
               className="w-full py-2.5 rounded-lg border border-ink/20 text-ink text-sm
@@ -289,6 +292,13 @@ export default function CartDrawer() {
           </div>
         )}
       </div>
+      {showShipping && (
+        <ShippingAddressModal
+          paying={paying}
+          onConfirm={handleConfirmShipping}
+          onClose={() => !paying && setShowShipping(false)}
+        />
+      )}
     </>
   )
 }

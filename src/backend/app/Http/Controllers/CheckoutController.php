@@ -13,35 +13,26 @@ use Stripe\Stripe;
 
 class CheckoutController extends Controller
 {
-    private const STRIPE_SHIPPING_COUNTRIES = [
-        'AC','AD','AE','AF','AG','AI','AL','AM','AO','AQ','AR','AT','AU','AW','AX','AZ',
-        'BA','BB','BD','BE','BF','BG','BH','BI','BJ','BL','BM','BN','BO','BQ','BR','BS',
-        'BT','BV','BW','BY','BZ','CA','CD','CF','CG','CH','CI','CK','CL','CM','CN','CO',
-        'CR','CV','CW','CY','CZ','DE','DJ','DK','DM','DO','DZ','EC','EE','EG','EH','ER',
-        'ES','ET','FI','FJ','FK','FO','FR','GA','GB','GD','GE','GF','GG','GH','GI','GL',
-        'GM','GN','GP','GQ','GR','GS','GT','GU','GW','GY','HK','HN','HR','HT','HU','ID',
-        'IE','IL','IM','IN','IO','IQ','IS','IT','JE','JM','JO','JP','KE','KG','KH','KI',
-        'KM','KN','KR','KW','KY','KZ','LA','LB','LC','LI','LK','LR','LS','LT','LU','LV',
-        'LY','MA','MC','MD','ME','MF','MG','MK','ML','MM','MN','MO','MQ','MR','MS','MT',
-        'MU','MV','MW','MX','MY','MZ','NA','NC','NE','NG','NI','NL','NO','NP','NR','NU',
-        'NZ','OM','PA','PE','PF','PG','PH','PK','PL','PM','PN','PR','PS','PT','PY','QA',
-        'RE','RO','RS','RU','RW','SA','SB','SC','SD','SE','SG','SH','SI','SJ','SK','SL',
-        'SM','SN','SO','SR','SS','ST','SV','SX','SZ','TA','TC','TD','TF','TG','TH','TJ',
-        'TK','TL','TM','TN','TO','TR','TT','TV','TW','TZ','UA','UG','US','UY','UZ','VA',
-        'VC','VE','VG','VN','VU','WF','WS','XK','YE','YT','ZA','ZM','ZW',
-    ];
-
     public function store(Request $request): JsonResponse
     {
         $request->validate([
             'items'              => ['required', 'array', 'min:1'],
             'items.*.product_id' => ['required', 'integer', 'exists:products,id'],
             'items.*.quantity'   => ['required', 'integer', 'min:1', 'max:100'],
+            'shipping_address.name'          => ['required', 'string', 'max:255'],
+            'shipping_address.phone'         => ['required', 'string', 'max:50'],
+            'shipping_address.address_line1' => ['required', 'string', 'max:255'],
+            'shipping_address.address_line2' => ['nullable', 'string', 'max:255'],
+            'shipping_address.postal_code'   => ['required', 'string', 'max:20'],
+            'shipping_address.city'          => ['required', 'string', 'max:255'],
+            'shipping_address.state'         => ['required', 'string', 'max:255'],
+            'shipping_address.country'       => ['required', 'string', 'size:2'],
         ]);
 
-        $user       = $request->user();
-        $incoming   = collect($request->input('items'));
-        $productIds = $incoming->pluck('product_id')->unique()->values();
+        $user            = $request->user();
+        $incoming        = collect($request->input('items'));
+        $shippingAddress = $request->input('shipping_address');
+        $productIds      = $incoming->pluck('product_id')->unique()->values();
 
         // Carga productos activos de una sola query
         $products = Product::whereIn('id', $productIds)
@@ -93,20 +84,28 @@ class CheckoutController extends Controller
             ];
         }
 
-        // Tarifas activas: estimación conservadora (la más alta) y países permitidos
-        $activeRates      = ShippingRate::active()->get();
-        $hasInternational = $activeRates->whereNull('country_code')->isNotEmpty();
-        $allowedCountries = $hasInternational
-            ? self::STRIPE_SHIPPING_COUNTRIES
-            : ($activeRates->pluck('country_code')->filter()->sort()->values()->toArray() ?: ['ES']);
-        $estimatedShipping = (int) ($activeRates->max('rate') ?? 0);
+        // Coste de envío real según el país ya conocido
+        $shippingCost = self::resolveShippingCost($shippingAddress['country'], $total);
 
-        // Crea el Order y sus OrderItems en una transacción
-        $order = DB::transaction(function () use ($user, $incoming, $products, $total, $estimatedShipping) {
+        // Añade envío como line item si tiene coste
+        if ($shippingCost > 0) {
+            $lineItems[] = [
+                'price_data' => [
+                    'currency'     => 'eur',
+                    'unit_amount'  => $shippingCost,
+                    'product_data' => ['name' => 'Gastos de envío'],
+                ],
+                'quantity' => 1,
+            ];
+        }
+
+        // Crea el Order con dirección y coste reales desde el inicio
+        $order = DB::transaction(function () use ($user, $incoming, $products, $total, $shippingCost, $shippingAddress) {
             $order = Order::create([
-                'user_id'       => $user->id,
-                'total'         => $total,
-                'shipping_cost' => $estimatedShipping,
+                'user_id'          => $user->id,
+                'total'            => $total,
+                'shipping_cost'    => $shippingCost,
+                'shipping_address' => $shippingAddress,
             ]);
 
             foreach ($incoming as $line) {
@@ -127,19 +126,37 @@ class CheckoutController extends Controller
         $baseUrl = rtrim(config('app.frontend_url'), '/');
 
         $session = StripeSession::create([
-            'payment_method_types'        => ['card'],
-            'line_items'                  => $lineItems,
-            'mode'                        => 'payment',
-            'shipping_address_collection' => ['allowed_countries' => $allowedCountries],
-            'success_url'                 => "{$baseUrl}/checkout/exito?order={$order->id}",
-            'cancel_url'                  => "{$baseUrl}/checkout/cancelado?order={$order->id}",
-            'metadata'                    => ['order_id' => $order->id],
-            'client_reference_id'         => (string) $order->id,
+            'payment_method_types' => ['card'],
+            'line_items'           => $lineItems,
+            'mode'                 => 'payment',
+            'success_url'          => "{$baseUrl}/checkout/exito?order={$order->id}",
+            'cancel_url'           => "{$baseUrl}/checkout/cancelado?order={$order->id}",
+            'metadata'             => ['order_id' => $order->id],
+            'client_reference_id'  => (string) $order->id,
         ]);
 
         // Guarda el session_id para identificar el pedido en el webhook
         $order->update(['stripe_session_id' => $session->id]);
 
         return response()->json(['checkout_url' => $session->url], 201);
+    }
+
+    // Resuelve la tarifa aplicable para el país y total del pedido
+    public static function resolveShippingCost(string $countryCode, int $orderTotal): int
+    {
+        // Tarifa específica del país tiene prioridad sobre la internacional (null)
+        $rate = ShippingRate::active()
+            ->where(fn($q) => $q->where('country_code', $countryCode)->orWhereNull('country_code'))
+            ->where('min_order_amount', '<=', $orderTotal)
+            ->orderByRaw('(country_code IS NULL) ASC')  // específica antes que internacional
+            ->orderByDesc('min_order_amount')            // umbral más alto que cumpla
+            ->first();
+
+        if (! $rate) return 0;
+
+        // Envío gratis si el pedido supera el umbral free_above
+        if ($rate->free_above !== null && $orderTotal >= $rate->free_above) return 0;
+
+        return $rate->rate;
     }
 }

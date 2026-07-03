@@ -95,12 +95,17 @@ class StripeWebhookController extends Controller
                 }
             }
 
-            $order->update([
-                'status'           => 'paid',
-                'stripe_session_id'=> $session->id,
-                'shipping_address' => $shippingAddress,
-                'shipping_cost'    => $shippingCost,
-            ]);
+            // No sobreescribe shipping_address si Stripe no la devuelve
+            // (la dirección ya fue guardada correctamente en el checkout)
+            $updateData = [
+                'status'            => 'paid',
+                'stripe_session_id' => $session->id,
+                'shipping_cost'     => $shippingCost,
+            ];
+            if ($shippingAddress !== null) {
+                $updateData['shipping_address'] = $shippingAddress;
+            }
+            $order->update($updateData);
 
             Log::info("Stripe webhook: order #{$orderId} marcado como paid.", [
                 'shipping_country' => $shippingAddress['country'] ?? null,
