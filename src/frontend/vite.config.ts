@@ -12,4 +12,12 @@ export default defineConfig({
       interval: 500,
     },
   },
+  optimizeDeps: {
+    include: ['react-globe.gl'],
+    esbuildOptions: {
+      loader: {
+        '.js': 'jsx',
+      },
+    },
+  },
 })

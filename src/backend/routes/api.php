@@ -1,7 +1,9 @@
 <?php
 
+use App\Http\Controllers\AdminFanficController;
 use App\Http\Controllers\ArtistController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\FanficController;
 use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\ImageUploadController;
 use App\Http\Controllers\OrderController;
@@ -40,7 +42,17 @@ Route::middleware('auth:sanctum')->group(function () {
 // Webhook de Stripe — sin auth, Stripe firma el payload con STRIPE_WEBHOOK_SECRET
 Route::post('/stripe/webhook', [StripeWebhookController::class, 'handle']);
 
-// Gestión admin (productos + artistas)
+// Fanfics — globo público
+Route::get('/fanfics', [FanficController::class, 'publicIndex']);
+
+// Fanfics — usuario autenticado
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/fanfics/mine',     [FanficController::class, 'mine']);
+    Route::post('/fanfics',         [FanficController::class, 'store']);
+    Route::put('/fanfics/{fanfic}', [FanficController::class, 'update']);
+});
+
+// Gestión admin (productos + artistas + fanfics)
 Route::middleware(['auth:sanctum', 'admin'])->prefix('admin')->group(function () {
     Route::post('/upload-image',                   [ImageUploadController::class, 'store']);
     Route::get('/products',                        [ProductController::class, 'adminIndex']);
@@ -60,4 +72,8 @@ Route::middleware(['auth:sanctum', 'admin'])->prefix('admin')->group(function ()
     Route::delete('/artists/{artist}/permanent',         [ArtistController::class, 'permanentDestroy']);
     Route::post('/artists/{artist}/images',              [ArtistController::class, 'storeImage']);
     Route::delete('/artists/{artist}/images/{image}',   [ArtistController::class, 'destroyImage']);
+
+    Route::get('/fanfics',                          [AdminFanficController::class, 'index']);
+    Route::patch('/fanfics/{fanfic}/approve',        [AdminFanficController::class, 'approve']);
+    Route::patch('/fanfics/{fanfic}/reject',         [AdminFanficController::class, 'reject']);
 });

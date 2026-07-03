@@ -40,7 +40,7 @@ un admin.
 
 ### Frontend
 - Página `/bola-troncodrilo`: globo/mapa interactivo
-- Decisión técnica pendiente: `react-globe.gl` (visual real estilo Radio Garden, requiere WebGL) vs alternativa 2D más ligera para móvil — se evalúa al empezar esta feature
+- Librería elegida: `react-globe.gl` — globo 3D estilo Radio Garden con WebGL
 - Al hacer click en un punto aprobado, modal/panel con el fanfic
 - Página `/mi-fanfic`: formulario crear/editar el propio fanfic, selector de ubicación, estado visible
 - Panel admin `/admin/fanfics`: cola de pendientes con aprobar/rechazar
@@ -52,15 +52,15 @@ Requiere `001-autenticacion` completa.
 
 ## Tasks
 
-1. [ ] Migración `fanfics` con constraint unique en `user_id`
-2. [ ] Modelo `Fanfic` con relaciones y scopes (`approved()`, `pending()`)
-3. [ ] `FanficController` (store, update propio, mine) con regla "solo uno por usuario"
-4. [ ] `FanficController@publicIndex` (solo aprobados, para el mapa)
-5. [ ] `AdminFanficController` (listado pending, approve, reject con motivo)
-6. [ ] Policy `FanficPolicy`
-7. [ ] Tests Feature: no se puede crear un segundo fanfic, edición resetea a pending, solo admin aprueba/rechaza, mapa público solo devuelve aprobados
-8. [ ] Frontend: evaluar e instalar librería de mapa/globo
-9. [ ] Frontend: página `/bola-troncodrilo` con puntos de fanfics aprobados
-10. [ ] Frontend: página `/mi-fanfic` (crear/editar/estado)
-11. [ ] Frontend: panel admin de moderación de fanfics
-12. [ ] Verificar los 9 criterios de aceptación
+1. [x] Migración `fanfics` con constraint unique en `user_id`
+2. [x] Modelo `Fanfic` con relaciones y scopes (`approved()`, `pending()`)
+3. [x] `FanficController` (store, update propio, mine) con regla "solo uno por usuario"
+4. [x] `FanficController@publicIndex` (solo aprobados, para el mapa)
+5. [x] `AdminFanficController` (listado pending, approve, reject con motivo)
+6. [x] Policy `FanficPolicy`
+7. [x] Tests Feature: no se puede crear un segundo fanfic, edición resetea a pending, solo admin aprueba/rechaza, mapa público solo devuelve aprobados
+8. [x] Frontend: evaluar e instalar librería de mapa/globo
+9. [x] Frontend: página `/bola-troncodrilo` con puntos de fanfics aprobados
+10. [x] Frontend: página `/mi-fanfic` (crear/editar/estado)
+11. [x] Frontend: panel admin de moderación de fanfics
+12. [x] Verificar los 9 criterios de aceptación
