@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import Globe from 'react-globe.gl'
 import Supercluster from 'supercluster'
 import { getFanfics } from '../api/fanfics'
@@ -23,6 +24,7 @@ function altitudeToZoom(alt: number): number {
 }
 
 export default function BolaTroncodriloPage() {
+  const navigate                      = useNavigate()
   const containerRef                  = useRef<HTMLDivElement>(null)
   const globeRef                      = useRef<any>(null)  // react-globe.gl instance — no typed export
   const [size, setSize]               = useState({ w: 0, h: 0 })
@@ -32,6 +34,14 @@ export default function BolaTroncodriloPage() {
   const [loadingMore, setLoadingMore] = useState(false)
   const [altitude, setAltitude]       = useState(2.5)
   const [selected, setSelected]       = useState<Fanfic | null>(null)
+  const [fullscreen, setFullscreen]   = useState(false)
+
+  // ── Escape cierra el lightbox ─────────────────────────────────────────────
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setFullscreen(false) }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [])
 
   // ── Dimensiones del contenedor ─────────────────────────────────────────────
   useEffect(() => {
@@ -210,7 +220,8 @@ export default function BolaTroncodriloPage() {
             <img
               src={selected.image_url}
               alt={selected.city_name}
-              className="w-full h-56 object-cover"
+              onClick={() => setFullscreen(true)}
+              className="w-full h-56 object-cover cursor-pointer"
             />
             {selected.is_featured && (
               <span className="absolute top-3 left-3 bg-primary text-white text-xs
@@ -266,6 +277,34 @@ export default function BolaTroncodriloPage() {
           </div>
         </div>
       )}
+      {/* ── Lightbox ── */}
+      {fullscreen && selected && (
+        <div
+          className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center"
+          onClick={() => setFullscreen(false)}
+        >
+          <img
+            src={selected.image_url}
+            alt={selected.city_name}
+            className="max-h-screen max-w-screen object-contain"
+            onClick={e => e.stopPropagation()}
+          />
+        </div>
+      )}
+
+      {/* ── CTA flotante ── */}
+      <button
+        onClick={() => navigate('/mi-fanfic')}
+        className="absolute bottom-6 right-6 z-20 flex items-center gap-2
+          bg-primary text-white font-medium text-sm px-5 py-3 rounded-full
+          shadow-lg hover:bg-primary/90 transition-colors"
+      >
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+          strokeWidth="2.5" strokeLinecap="round" className="w-4 h-4">
+          <path d="M12 5v14M5 12h14" />
+        </svg>
+        Sé parte de la comunidad
+      </button>
     </div>
   )
 }
