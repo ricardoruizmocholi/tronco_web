@@ -18,11 +18,14 @@ Orden recomendado de implementación. Cada feature tiene su carpeta en
 - 005-artistas-colaboradores: CRUD de artistas, apartado público de perfiles
 - 006-bola-troncodrilo: mapa interactivo, subida de fanfic (1 por usuario), flujo de moderación admin
 
-## Fase 3 — Mejoras post-MVP (no incluidas en el MVP inicial)
-- 007-panel-admin-completo: dashboard de ventas, gestión de stock
-- 008-cupones-descuentos
-- 009-reviews-productos
-- 010-notificaciones-email (pedido confirmado, fanfic aprobado/rechazado)
+## Fase 3 — Mejoras UX y negocio
+- 007-navegacion-responsive: header hide/show en scroll, menú hamburguesa, drawer lateral en móvil
+- 008-tallas-productos: variantes de talla con stock independiente, selector en ficha y carrito
+- 009-home-banners-colaboradores: hero banner editable desde admin, sección colaboradores con logos
+- 010-perfil-usuario: página /perfil con datos, cambio de contraseña e historial de pedidos
+- 011-panel-pedidos-admin: tabla filtrable, detalle, cambio de estado, métricas mensuales y exportación Excel
+- 012-preorder-lista-espera: reserva de productos agotados, lista de espera gestionable desde admin
+- 013-fondo-espacial-bola: StarField canvas con parpadeo y parallax en /bola-troncodrilo
 
 ## Criterio de avance
 No se empieza una feature de Fase 1+ sin que la Fase 0 esté verificada
