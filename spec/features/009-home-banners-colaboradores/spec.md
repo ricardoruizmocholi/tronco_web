@@ -8,14 +8,14 @@ Añade a la home una sección hero con banner editable desde el admin
 logos y enlace externo. Ambas secciones son gestionables sin tocar código.
 
 ### Criterios de aceptación
-- [ ] La home muestra un banner hero con imagen de fondo, título, subtítulo y botón CTA
-- [ ] El admin puede crear, editar, reordenar y desactivar banners
-- [ ] Solo los banners activos se muestran en la home pública
-- [ ] Si hay varios banners activos, se muestran como carrusel o el primero según orden
-- [ ] La home muestra una sección "Colaboradores" con logo y enlace externo de cada uno
-- [ ] Los links de colaboradores abren en `target="_blank"` con `rel="noopener noreferrer"`
-- [ ] El admin puede crear, editar y desactivar colaboradores
-- [ ] El admin puede subir imagen de logo para cada colaborador
+- [x] La home muestra un banner hero con imagen de fondo, título, subtítulo y botón CTA
+- [x] El admin puede crear, editar, reordenar y desactivar banners
+- [x] Solo los banners activos se muestran en la home pública
+- [x] Si hay varios banners activos, se muestran como carrusel o el primero según orden
+- [x] La home muestra una sección "Colaboradores" con logo y enlace externo de cada uno
+- [x] Los links de colaboradores abren en `target="_blank"` con `rel="noopener noreferrer"`
+- [x] El admin puede crear, editar y desactivar colaboradores
+- [x] El admin puede subir imagen de logo para cada colaborador
 
 ### Fuera de alcance
 - Carrusel animado con autoplay (si se implementa más de un banner, se puede quedar estático en MVP)
@@ -57,4 +57,4 @@ Requiere `000-infraestructura-docker` y endpoint de subida de imágenes (`/api/u
 9. [x] `AdminBannersPage.tsx`: tabla + formulario
 10. [x] `AdminCollaboratorsPage.tsx`: tabla + formulario
 11. [x] Cards en `AdminDashboardPage`
-12. [ ] Verificar los 8 criterios de aceptación
+12. [x] Verificar los 8 criterios de aceptación
