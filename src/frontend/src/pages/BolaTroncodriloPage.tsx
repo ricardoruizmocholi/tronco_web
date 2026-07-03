@@ -212,8 +212,11 @@ export default function BolaTroncodriloPage() {
 
       {/* ── Panel lateral ── */}
       {selected && (
-        <div className="absolute inset-y-0 right-0 w-full sm:w-96 flex flex-col
-          bg-dark/95 backdrop-blur-sm border-l border-white/10 shadow-2xl z-10">
+        <div
+          className="absolute inset-y-0 right-0 w-full sm:w-96 flex flex-col
+            bg-dark/95 backdrop-blur-sm border-l border-white/10 shadow-2xl z-10"
+          onClick={e => e.stopPropagation()}
+        >
 
           {/* Imagen */}
           <div className="relative flex-shrink-0">
