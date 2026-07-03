@@ -15,7 +15,7 @@ class ProductController extends Controller
     // GET /api/products  (?category=slug)
     public function index(): JsonResponse
     {
-        $query = Product::with(['category', 'images'])
+        $query = Product::with(['category', 'images', 'variants' => fn($q) => $q->where('is_active', true)])
             ->where('is_active', true);
 
         if ($slug = request()->query('category')) {
@@ -28,7 +28,7 @@ class ProductController extends Controller
     // GET /api/products/{slug}
     public function show(string $slug): JsonResponse
     {
-        $product = Product::with(['category', 'images'])
+        $product = Product::with(['category', 'images', 'variants' => fn($q) => $q->where('is_active', true)])
             ->where('slug', $slug)
             ->where('is_active', true)
             ->firstOrFail();
@@ -50,7 +50,7 @@ class ProductController extends Controller
             'slug' => Str::slug($request->name),
         ]);
 
-        return response()->json($product->load('category'), 201);
+        return response()->json($product->load(['category', 'variants']), 201);
     }
 
     // PUT /api/admin/products/{product}
@@ -64,7 +64,7 @@ class ProductController extends Controller
 
         $product->update($data);
 
-        return response()->json($product->load('category'));
+        return response()->json($product->load(['category', 'variants']));
     }
 
     // DELETE /api/admin/products/{product}  →  soft-delete semántico
@@ -78,7 +78,7 @@ class ProductController extends Controller
     // GET /api/admin/products  →  todos los productos sin filtrar is_active
     public function adminIndex(): JsonResponse
     {
-        $products = Product::with(['category', 'images'])
+        $products = Product::with(['category', 'images', 'variants'])
             ->orderBy('name')
             ->get();
 
@@ -90,7 +90,7 @@ class ProductController extends Controller
     {
         $product->update(['is_active' => !$product->is_active]);
 
-        return response()->json($product->load(['category', 'images']));
+        return response()->json($product->load(['category', 'images', 'variants']));
     }
 
     // POST /api/admin/products/{product}/images

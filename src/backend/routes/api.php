@@ -8,6 +8,7 @@ use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\ImageUploadController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\ProductController;
+use App\Http\Controllers\ProductVariantController;
 use App\Http\Controllers\ShippingRateController;
 use App\Http\Controllers\StripeWebhookController;
 use Illuminate\Support\Facades\Route;
@@ -67,6 +68,9 @@ Route::middleware(['auth:sanctum', 'admin'])->prefix('admin')->group(function ()
     Route::post('/products/{product}/images',            [ProductController::class, 'storeImage']);
     Route::delete('/products/{product}/images/{image}',  [ProductController::class, 'destroyImage']);
     Route::delete('/products/{product}/permanent',       [ProductController::class, 'permanentDestroy']);
+    Route::post('/products/{product}/variants',             [ProductVariantController::class, 'store']);
+    Route::put('/products/{product}/variants/{variant}',    [ProductVariantController::class, 'update']);
+    Route::delete('/products/{product}/variants/{variant}', [ProductVariantController::class, 'destroy']);
 
     Route::get('/artists',                              [ArtistController::class, 'adminIndex']);
     Route::post('/artists',                             [ArtistController::class, 'store']);

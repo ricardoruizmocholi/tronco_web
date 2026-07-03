@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { getProduct } from '../api/products'
 import { useCartStore } from '../store/cartStore'
-import type { Product, ProductImage } from '../types/product'
+import type { Product, ProductImage, ProductVariant } from '../types/product'
 
 const euros = new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' })
 
@@ -11,7 +11,8 @@ export default function ProductPage() {
   const [product, setProduct]       = useState<Product | null>(null)
   const [activeImg, setActiveImg]   = useState<ProductImage | null>(null)
   const [loading, setLoading]       = useState(true)
-  const [notFound, setNotFound]     = useState(false)
+  const [notFound, setNotFound]       = useState(false)
+  const [selectedVariant, setSelectedVariant] = useState<ProductVariant | null>(null)
 
   // Hook llamado incondicionalmente — antes de cualquier early return
   const addItem = useCartStore(s => s.addItem)
@@ -24,6 +25,7 @@ export default function ProductPage() {
       .then(p => {
         setProduct(p)
         setActiveImg(p.images.find(i => i.position === 1) ?? p.images[0] ?? null)
+        setSelectedVariant(null)
       })
       .catch(() => setNotFound(true))
       .finally(() => setLoading(false))
@@ -49,15 +51,21 @@ export default function ProductPage() {
   }
 
   const { name, description, price, stock, category, images } = product
-  const isSoldOut = stock === 0
+  const hasVariants    = product.variants.length > 0
+  const activeVariants = product.variants.filter(v => v.is_active)
+  const isSoldOut      = hasVariants
+    ? !activeVariants.some(v => v.stock > 0)
+    : stock === 0
 
   function handleAddToCart() {
     addItem({
       productId:    product.id,
+      variantId:    selectedVariant?.id,
+      size:         selectedVariant?.size,
       name:         product.name,
       slug:         product.slug,
       price:        product.price,
-      stock:        product.stock,
+      stock:        hasVariants ? (selectedVariant?.stock ?? 0) : product.stock,
       image:        images.find(i => i.position === 1)?.url ?? null,
       categorySlug: product.category?.slug ?? null,
     })
@@ -137,32 +145,71 @@ export default function ProductPage() {
 
             <p className="text-3xl font-bold text-ink">{euros.format(price / 100)}</p>
 
-            {/* Stock */}
+            {/* Stock / talla seleccionada */}
             <div className="flex items-center gap-2">
               {isSoldOut ? (
                 <span className="inline-flex items-center gap-1.5 text-sm font-medium text-secondary">
                   <span className="w-2 h-2 rounded-full bg-secondary inline-block" />
                   Agotado
                 </span>
-              ) : (
+              ) : hasVariants && selectedVariant ? (
+                <span className="inline-flex items-center gap-1.5 text-sm font-medium text-primary">
+                  <span className="w-2 h-2 rounded-full bg-primary inline-block" />
+                  {selectedVariant.stock} disponibles en talla {selectedVariant.size}
+                </span>
+              ) : !hasVariants ? (
                 <span className="inline-flex items-center gap-1.5 text-sm font-medium text-primary">
                   <span className="w-2 h-2 rounded-full bg-primary inline-block" />
                   {stock} disponibles
                 </span>
-              )}
+              ) : null}
             </div>
 
             <p className="text-ink/70 text-sm leading-relaxed">{description}</p>
 
+            {/* Selector de talla */}
+            {hasVariants && (
+              <div>
+                <p className="text-xs font-medium text-ink/60 mb-2 uppercase tracking-wide">Talla</p>
+                <div className="flex flex-wrap gap-2">
+                  {activeVariants.map(v => {
+                    const outOfStock = v.stock === 0
+                    const selected   = selectedVariant?.id === v.id
+                    return (
+                      <button
+                        key={v.id}
+                        type="button"
+                        disabled={outOfStock}
+                        onClick={() => setSelectedVariant(v)}
+                        className={`px-3.5 py-1.5 rounded-lg border text-sm font-medium transition-colors
+                          ${selected
+                            ? 'border-primary bg-primary text-white'
+                            : outOfStock
+                              ? 'border-ink/10 text-ink/25 bg-ink/[0.02] cursor-not-allowed line-through'
+                              : 'border-ink/20 text-ink hover:border-primary hover:text-primary'
+                          }`}
+                      >
+                        {v.size}
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+            )}
+
             {/* Botón añadir al carrito */}
             <button
               onClick={handleAddToCart}
-              disabled={isSoldOut}
+              disabled={isSoldOut || (hasVariants && !selectedVariant)}
               className="mt-2 w-full py-3 rounded-lg font-semibold text-sm transition-colors
                 bg-primary text-white hover:bg-primary/90
                 disabled:bg-ink/10 disabled:text-ink/30 disabled:cursor-not-allowed"
             >
-              {isSoldOut ? 'No disponible' : 'Añadir al carrito'}
+              {isSoldOut
+                ? 'No disponible'
+                : hasVariants && !selectedVariant
+                  ? 'Selecciona una talla'
+                  : 'Añadir al carrito'}
             </button>
 
             <Link to="/tienda" className="text-sm text-ink/50 hover:text-primary transition-colors text-center">

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Order;
 use App\Models\Product;
+use App\Models\ProductVariant;
 use App\Models\ShippingRate;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -18,6 +19,7 @@ class CheckoutController extends Controller
         $request->validate([
             'items'              => ['required', 'array', 'min:1'],
             'items.*.product_id' => ['required', 'integer', 'exists:products,id'],
+            'items.*.variant_id' => ['nullable', 'integer', 'exists:product_variants,id'],
             'items.*.quantity'   => ['required', 'integer', 'min:1', 'max:100'],
             'shipping_address.name'          => ['required', 'string', 'max:255'],
             'shipping_address.phone'         => ['required', 'string', 'max:50'],
@@ -40,6 +42,12 @@ class CheckoutController extends Controller
             ->get()
             ->keyBy('id');
 
+        // Carga variantes activas referenciadas en el pedido
+        $variantIds = $incoming->pluck('variant_id')->filter()->unique()->values();
+        $variants   = $variantIds->isNotEmpty()
+            ? ProductVariant::whereIn('id', $variantIds)->where('is_active', true)->get()->keyBy('id')
+            : collect();
+
         // Valida que todos los product_id existen y están activos
         foreach ($incoming as $line) {
             if (! $products->has($line['product_id'])) {
@@ -49,12 +57,25 @@ class CheckoutController extends Controller
             }
         }
 
-        // Valida stock suficiente para cada item — falla rápido antes de tocar BD
+        // Valida stock suficiente — por variante si viene variant_id, por producto si no
         $stockErrors = [];
         foreach ($incoming as $line) {
             $product = $products->get($line['product_id']);
-            if ($product->stock < $line['quantity']) {
-                $stockErrors[] = "«{$product->name}»: stock disponible {$product->stock}, solicitado {$line['quantity']}.";
+
+            if (! empty($line['variant_id'])) {
+                $variant = $variants->get($line['variant_id']);
+                if (! $variant || $variant->product_id !== $product->id) {
+                    return response()->json([
+                        'message' => "Variante inválida para «{$product->name}».",
+                    ], 422);
+                }
+                if ($variant->stock < $line['quantity']) {
+                    $stockErrors[] = "«{$product->name}» talla {$variant->size}: stock disponible {$variant->stock}, solicitado {$line['quantity']}.";
+                }
+            } else {
+                if ($product->stock < $line['quantity']) {
+                    $stockErrors[] = "«{$product->name}»: stock disponible {$product->stock}, solicitado {$line['quantity']}.";
+                }
             }
         }
         if (! empty($stockErrors)) {
@@ -68,7 +89,12 @@ class CheckoutController extends Controller
         $total     = 0;
         $lineItems = [];
         foreach ($incoming as $line) {
-            $product    = $products->get($line['product_id']);
+            $product = $products->get($line['product_id']);
+            $name    = $product->name;
+            if (! empty($line['variant_id'])) {
+                $variant = $variants->get($line['variant_id']);
+                $name   .= " — Talla {$variant->size}";
+            }
             $total     += $product->price * $line['quantity'];
 
             $lineItems[] = [
@@ -76,7 +102,7 @@ class CheckoutController extends Controller
                     'currency'     => 'eur',
                     'unit_amount'  => $product->price,
                     'product_data' => [
-                        'name'   => $product->name,
+                        'name'   => $name,
                         'images' => $product->image_url ? [$product->image_url] : [],
                     ],
                 ],

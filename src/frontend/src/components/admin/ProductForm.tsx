@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
-import { addProductImage, deleteProductImage } from '../../api/products'
+import { addProductImage, createVariant, deleteProductImage, deleteVariant, updateVariant } from '../../api/products'
 import { uploadImage } from '../../api/upload'
-import type { Category, Product, ProductFormData, ProductImage } from '../../types/product'
+import type { Category, Product, ProductFormData, ProductImage, ProductVariant } from '../../types/product'
 
 interface Props {
   product?: Product
@@ -51,6 +51,12 @@ export default function ProductForm({ product, categories, onSave, onCancel, sav
   const [uploading, setUploading]         = useState(false)
   const [imgError, setImgError]           = useState<string | null>(null)
 
+  const [localVariants, setLocalVariants] = useState<ProductVariant[]>(product?.variants ?? [])
+  const [newVarSize, setNewVarSize]       = useState('')
+  const [newVarStock, setNewVarStock]     = useState('0')
+  const [varSaving, setVarSaving]         = useState(false)
+  const [varError, setVarError]           = useState<string | null>(null)
+
   useEffect(() => {
     setForm(product ? toFormState(product) : empty)
     setErrors({})
@@ -58,6 +64,10 @@ export default function ProductForm({ product, categories, onSave, onCancel, sav
     setPendingImages([])
     setNewImgUrl('')
     setImgError(null)
+    setLocalVariants(product?.variants ?? [])
+    setNewVarSize('')
+    setNewVarStock('0')
+    setVarError(null)
   }, [product])
 
   function set(field: keyof FormState, value: string | boolean) {
@@ -130,6 +140,44 @@ export default function ProductForm({ product, categories, onSave, onCancel, sav
     } else {
       setPendingImages(prev => [...prev, newImgUrl.trim()])
       setNewImgUrl('')
+    }
+  }
+
+  async function handleAddVariant() {
+    if (!product || !newVarSize.trim()) return
+    const stock = parseInt(newVarStock, 10)
+    if (isNaN(stock) || stock < 0) return
+    setVarSaving(true)
+    setVarError(null)
+    try {
+      const v = await createVariant(product.id, { size: newVarSize.trim(), stock })
+      setLocalVariants(prev => [...prev, v])
+      setNewVarSize('')
+      setNewVarStock('0')
+    } catch {
+      setVarError('No se pudo añadir la variante.')
+    } finally {
+      setVarSaving(false)
+    }
+  }
+
+  async function handleToggleVariant(v: ProductVariant) {
+    if (!product) return
+    try {
+      const updated = await updateVariant(product.id, v.id, { is_active: !v.is_active })
+      setLocalVariants(prev => prev.map(x => (x.id === updated.id ? updated : x)))
+    } catch {
+      setVarError('No se pudo cambiar el estado de la variante.')
+    }
+  }
+
+  async function handleDeleteVariant(v: ProductVariant) {
+    if (!product) return
+    try {
+      await deleteVariant(product.id, v.id)
+      setLocalVariants(prev => prev.filter(x => x.id !== v.id))
+    } catch {
+      setVarError('No se pudo eliminar la variante.')
     }
   }
 
@@ -293,6 +341,71 @@ export default function ProductForm({ product, categories, onSave, onCancel, sav
           </button>
         </div>
       </div>
+
+      {/* Tallas/Variantes — solo en edición */}
+      {product && (
+        <div>
+          <label className="block text-xs font-medium text-ink/60 mb-2">Tallas / Stock</label>
+
+          {varError && <p className="text-xs text-secondary mb-2">{varError}</p>}
+
+          <div className="space-y-1.5 mb-3">
+            {localVariants.length === 0 && (
+              <p className="text-xs text-ink/30 italic">
+                Sin tallas definidas. El stock se gestiona en el campo de arriba.
+              </p>
+            )}
+            {localVariants.map(v => (
+              <div key={v.id}
+                className="flex items-center gap-3 px-3 py-2 rounded-lg border border-ink/10 bg-ink/[0.02]">
+                <span className="w-16 text-sm font-medium text-ink">{v.size}</span>
+                <span className="w-16 text-sm tabular-nums text-ink/70">{v.stock} uds.</span>
+                <span className={`flex-1 text-xs font-medium ${v.is_active ? 'text-primary' : 'text-ink/30'}`}>
+                  {v.is_active ? 'Activa' : 'Inactiva'}
+                </span>
+                <button type="button" onClick={() => handleToggleVariant(v)}
+                  className="text-xs px-2 py-0.5 rounded border border-ink/20 text-ink/50
+                    hover:border-primary hover:text-primary transition-colors flex-shrink-0">
+                  {v.is_active ? 'Desactivar' : 'Activar'}
+                </button>
+                <button type="button" onClick={() => handleDeleteVariant(v)}
+                  className="text-xs text-secondary hover:underline flex-shrink-0">
+                  Eliminar
+                </button>
+              </div>
+            ))}
+          </div>
+
+          <div className="flex gap-2">
+            <input
+              type="text"
+              value={newVarSize}
+              onChange={e => setNewVarSize(e.target.value)}
+              placeholder="Talla (S, M, L, XL…)"
+              className="flex-1 rounded-lg border border-ink/20 px-3 py-2 text-sm text-ink
+                focus:outline-none focus:ring-2 focus:ring-primary/40"
+            />
+            <input
+              type="number"
+              min="0"
+              value={newVarStock}
+              onChange={e => setNewVarStock(e.target.value)}
+              placeholder="Stock"
+              className="w-24 rounded-lg border border-ink/20 px-3 py-2 text-sm text-ink
+                focus:outline-none focus:ring-2 focus:ring-primary/40"
+            />
+            <button
+              type="button"
+              onClick={handleAddVariant}
+              disabled={varSaving || !newVarSize.trim()}
+              className="px-4 py-2 rounded-lg bg-primary text-white text-sm font-medium
+                hover:bg-primary/90 transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex-shrink-0"
+            >
+              {varSaving ? '…' : '+ Añadir'}
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Acciones */}
       <div className="flex gap-3 pt-2">

@@ -1,5 +1,5 @@
 import api from '../lib/axios'
-import type { Category, PaginatedProducts, Product, ProductFormData } from '../types/product'
+import type { Category, PaginatedProducts, Product, ProductFormData, ProductImage, ProductVariant } from '../types/product'
 
 export function getProducts(categorySlug?: string, page = 1): Promise<PaginatedProducts> {
   const params: Record<string, string | number> = { page }
@@ -43,4 +43,22 @@ export function addProductImage(productId: number, data: { url: string }): Promi
 
 export function deleteProductImage(productId: number, imageId: number): Promise<void> {
   return api.delete(`/api/admin/products/${productId}/images/${imageId}`).then(() => undefined)
+}
+
+export interface VariantPayload {
+  size: string
+  stock: number
+  is_active?: boolean
+}
+
+export function createVariant(productId: number, data: VariantPayload): Promise<ProductVariant> {
+  return api.post<ProductVariant>(`/api/admin/products/${productId}/variants`, data).then(r => r.data)
+}
+
+export function updateVariant(productId: number, variantId: number, data: Partial<VariantPayload>): Promise<ProductVariant> {
+  return api.put<ProductVariant>(`/api/admin/products/${productId}/variants/${variantId}`, data).then(r => r.data)
+}
+
+export function deleteVariant(productId: number, variantId: number): Promise<void> {
+  return api.delete(`/api/admin/products/${productId}/variants/${variantId}`).then(() => undefined)
 }

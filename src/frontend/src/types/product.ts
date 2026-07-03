@@ -11,6 +11,14 @@ export interface ProductImage {
   position: number
 }
 
+export interface ProductVariant {
+  id: number
+  product_id: number
+  size: string
+  stock: number
+  is_active: boolean
+}
+
 export interface Product {
   id: number
   category_id: number | null
@@ -24,6 +32,7 @@ export interface Product {
   is_active: boolean
   category: Category | null
   images: ProductImage[]
+  variants: ProductVariant[]
 }
 
 // Datos que el formulario admin envía al backend (price en céntimos)

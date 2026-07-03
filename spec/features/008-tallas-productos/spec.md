@@ -48,14 +48,14 @@ Requiere `002-catalogo-productos` y `004-checkout-stripe`.
 
 ## Tasks
 
-1. [ ] Migración `product_variants`
-2. [ ] Modelo `ProductVariant` y relación en `Product`
-3. [ ] Endpoints admin CRUD variantes (`/api/admin/products/{product}/variants`)
-4. [ ] `ProductController@show` y `@index` incluyen variantes activas
-5. [ ] `CheckoutController`: validar y descontar por variante
-6. [ ] `types/product.ts`: tipo `ProductVariant` + campo en `Product`
-7. [ ] Selector de talla en `ProductPage.tsx`
-8. [ ] `cartStore`: soporte `variantId` y `size`
-9. [ ] `CartDrawer.tsx`: mostrar talla en cada item
-10. [ ] Panel admin: gestión de variantes por producto
+1. [x] Migración `product_variants`
+2. [x] Modelo `ProductVariant` y relación en `Product`
+3. [x] Endpoints admin CRUD variantes (`/api/admin/products/{product}/variants`)
+4. [x] `ProductController@show` y `@index` incluyen variantes activas
+5. [x] `CheckoutController`: validar y descontar por variante
+6. [x] `types/product.ts`: tipo `ProductVariant` + campo en `Product`
+7. [x] Selector de talla en `ProductPage.tsx`
+8. [x] `cartStore`: soporte `variantId` y `size`
+9. [x] `CartDrawer.tsx`: mostrar talla en cada item
+10. [x] Panel admin: gestión de variantes por producto
 11. [ ] Verificar los 9 criterios de aceptación

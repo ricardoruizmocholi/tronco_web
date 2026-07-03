@@ -11,6 +11,9 @@ const euros = new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR
 export default function ProductCard({ product }: Props) {
   const addItem = useCartStore(s => s.addItem)
   const { name, slug, price, stock, images } = product
+  const hasVariants    = product.variants.length > 0
+  const availableSizes = product.variants.filter(v => v.is_active && v.stock > 0)
+  const cardSoldOut    = hasVariants ? availableSizes.length === 0 : stock === 0
 
   const img1 = images.find(i => i.position === 1)
   const img2 = images.find(i => i.position === 2)
@@ -60,20 +63,34 @@ export default function ProductCard({ product }: Props) {
           className="text-ink font-medium leading-snug hover:text-primary transition-colors">
           {name}
         </Link>
-        <div className="mt-auto flex items-center justify-between pt-3">
-          <span className="text-ink font-bold">{euros.format(price / 100)}</span>
-          {stock === 0 ? (
-            <span className="text-xs font-medium text-white bg-secondary rounded px-2 py-0.5">
-              Agotado
-            </span>
-          ) : (
-            <button
-              onClick={handleAddToCart}
-              className="text-xs font-medium text-white bg-primary rounded px-2.5 py-1
-                hover:bg-primary/90 transition-colors"
-            >
-              + Añadir
-            </button>
+        <div className="mt-auto pt-3">
+          <div className="flex items-center justify-between">
+            <span className="text-ink font-bold">{euros.format(price / 100)}</span>
+            {cardSoldOut ? (
+              <span className="text-xs font-medium text-white bg-secondary rounded px-2 py-0.5">
+                Agotado
+              </span>
+            ) : !hasVariants ? (
+              <button
+                onClick={handleAddToCart}
+                className="text-xs font-medium text-white bg-primary rounded px-2.5 py-1
+                  hover:bg-primary/90 transition-colors"
+              >
+                + Añadir
+              </button>
+            ) : null}
+          </div>
+
+          {/* Tallas disponibles */}
+          {hasVariants && !cardSoldOut && (
+            <div className="flex flex-wrap gap-1 mt-2">
+              {availableSizes.map(v => (
+                <span key={v.id}
+                  className="text-[11px] font-medium px-1.5 py-0.5 rounded bg-ink/5 text-ink/60">
+                  {v.size}
+                </span>
+              ))}
+            </div>
           )}
         </div>
       </div>

@@ -35,7 +35,11 @@ export default function CartDrawer() {
     setPaying(true)
     setPayError(null)
     try {
-      const checkoutItems = items.map(i => ({ product_id: i.productId, quantity: i.quantity }))
+      const checkoutItems = items.map(i => ({
+        product_id: i.productId,
+        variant_id: i.variantId,
+        quantity:   i.quantity,
+      }))
       const { checkout_url } = await initiateCheckout(checkoutItems, address)
       window.location.href = checkout_url
     } catch (err: unknown) {
@@ -121,7 +125,7 @@ export default function CartDrawer() {
             <div className="divide-y divide-ink/5">
               {/* Lista de items */}
               {items.map(item => (
-                <div key={item.productId} className="flex gap-3 p-4">
+                <div key={`${item.productId}-${item.variantId ?? ''}`} className="flex gap-3 p-4">
                   {/* Miniatura */}
                   <Link to={`/producto/${item.slug}`} onClick={closeCart}
                     className="flex-shrink-0 w-16 h-20 rounded-lg overflow-hidden bg-primary/10 block">
@@ -141,13 +145,16 @@ export default function CartDrawer() {
                     </Link>
                     <p className="text-xs text-ink/50">
                       {euros.format(item.price / 100)} / ud.
+                      {item.size && (
+                        <span className="ml-2 font-medium text-ink/70">Talla: {item.size}</span>
+                      )}
                     </p>
 
                     <div className="flex items-center gap-2 mt-auto pt-1">
                       {/* +/- cantidad */}
                       <div className="flex items-center border border-ink/15 rounded-lg overflow-hidden">
                         <button
-                          onClick={() => updateQuantity(item.productId, item.quantity - 1)}
+                          onClick={() => updateQuantity(item.productId, item.quantity - 1, item.variantId)}
                           aria-label="Reducir cantidad"
                           className="px-2.5 py-1 text-ink/60 hover:text-ink hover:bg-ink/5 transition-colors text-sm leading-none"
                         >−</button>
@@ -155,7 +162,7 @@ export default function CartDrawer() {
                           {item.quantity}
                         </span>
                         <button
-                          onClick={() => updateQuantity(item.productId, item.quantity + 1)}
+                          onClick={() => updateQuantity(item.productId, item.quantity + 1, item.variantId)}
                           disabled={item.quantity >= item.stock}
                           aria-label="Aumentar cantidad"
                           className="px-2.5 py-1 text-ink/60 hover:text-ink hover:bg-ink/5 transition-colors text-sm leading-none disabled:opacity-30 disabled:cursor-not-allowed"
@@ -171,7 +178,7 @@ export default function CartDrawer() {
 
                   {/* Eliminar item */}
                   <button
-                    onClick={() => removeItem(item.productId)}
+                    onClick={() => removeItem(item.productId, item.variantId)}
                     aria-label={`Eliminar ${item.name}`}
                     className="flex-shrink-0 text-ink/25 hover:text-secondary transition-colors self-start mt-0.5 p-0.5"
                   >

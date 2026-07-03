@@ -25,5 +25,6 @@ export interface Order {
 
 export interface CheckoutItem {
   product_id: number
+  variant_id?: number
   quantity: number
 }

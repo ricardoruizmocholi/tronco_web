@@ -3,6 +3,8 @@ import { persist } from 'zustand/middleware'
 
 export interface CartItem {
   productId:    number
+  variantId?:   number       // undefined → producto sin variantes
+  size?:        string
   name:         string
   slug:         string
   price:        number        // céntimos
@@ -17,8 +19,8 @@ interface CartStore {
   isOpen:  boolean
 
   addItem:        (item: Omit<CartItem, 'quantity'>) => void
-  removeItem:     (productId: number) => void
-  updateQuantity: (productId: number, quantity: number) => void
+  removeItem:     (productId: number, variantId?: number) => void
+  updateQuantity: (productId: number, quantity: number, variantId?: number) => void
   clearCart:      () => void
   openCart:       () => void
   closeCart:      () => void
@@ -34,12 +36,14 @@ export const useCartStore = create<CartStore>()(
 
       addItem: (incoming) => {
         const { items } = get()
-        const existing = items.find(i => i.productId === incoming.productId)
+        const existing = items.find(
+          i => i.productId === incoming.productId && i.variantId === incoming.variantId
+        )
 
         if (existing) {
           set({
             items: items.map(i =>
-              i.productId === incoming.productId
+              i.productId === incoming.productId && i.variantId === incoming.variantId
                 ? { ...i, quantity: Math.min(i.quantity + 1, incoming.stock) }
                 : i
             ),
@@ -50,17 +54,19 @@ export const useCartStore = create<CartStore>()(
         }
       },
 
-      removeItem: (productId) =>
-        set(s => ({ items: s.items.filter(i => i.productId !== productId) })),
+      removeItem: (productId, variantId?) =>
+        set(s => ({
+          items: s.items.filter(i => !(i.productId === productId && i.variantId === variantId))
+        })),
 
-      updateQuantity: (productId, quantity) => {
+      updateQuantity: (productId, quantity, variantId?) => {
         if (quantity <= 0) {
-          get().removeItem(productId)
+          get().removeItem(productId, variantId)
           return
         }
         set(s => ({
           items: s.items.map(i =>
-            i.productId === productId
+            i.productId === productId && i.variantId === variantId
               ? { ...i, quantity: Math.min(quantity, i.stock) }
               : i
           ),
