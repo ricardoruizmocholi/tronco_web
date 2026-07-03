@@ -178,42 +178,31 @@ export default function HomePage() {
                   href={c.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="group flex flex-col items-center gap-3 p-5 rounded-2xl
-                    bg-white border border-ink/10 hover:border-primary/40 hover:shadow-md
-                    transition-all duration-200 text-center"
+                  style={c.logo_url ? { backgroundImage: `url(${c.logo_url})` } : undefined}
+                  className={`group relative flex flex-col overflow-hidden rounded-2xl min-h-[200px]
+                    bg-cover bg-center hover:ring-2 hover:ring-primary/50 transition-all duration-200
+                    ${c.logo_url ? '' : 'bg-dark'}`}
                 >
-                  {/* Logo o placeholder */}
-                  <div className="w-14 h-14 rounded-xl overflow-hidden bg-ink/[0.04]
-                    border border-ink/10 flex items-center justify-center p-1.5 flex-shrink-0">
-                    {c.logo_url ? (
-                      <img
-                        src={c.logo_url}
-                        alt={c.name}
-                        className="max-w-full max-h-full object-contain"
-                      />
-                    ) : (
-                      <span className="text-lg font-bold text-ink/30">
-                        {c.name.slice(0, 2).toUpperCase()}
-                      </span>
-                    )}
-                  </div>
+                  {/* Overlay oscuro */}
+                  <div className="absolute inset-0 bg-dark/60 group-hover:bg-dark/50 transition-colors" />
 
-                  <div className="flex-1 min-w-0">
-                    <p className="font-semibold text-ink text-sm leading-snug
-                      group-hover:text-primary transition-colors">
+                  {/* Contenido sobre el overlay */}
+                  <div className="relative z-10 flex flex-col items-center justify-center
+                    flex-1 p-5 text-center gap-2">
+                    <p className="font-bold text-white text-sm leading-snug">
                       {c.name}
                     </p>
                     {c.description && (
-                      <p className="text-xs text-ink/50 mt-1 leading-relaxed line-clamp-2">
+                      <p className="text-xs text-white/70 leading-relaxed line-clamp-2">
                         {c.description}
                       </p>
                     )}
+                    <span className="mt-2 inline-block text-xs font-medium text-white
+                      border border-white/40 rounded-full px-3 py-1
+                      group-hover:border-primary group-hover:text-primary transition-colors">
+                      Visitar →
+                    </span>
                   </div>
-
-                  <span className="text-xs font-medium text-primary/70
-                    group-hover:text-primary transition-colors">
-                    Visitar →
-                  </span>
                 </a>
               ))}
             </div>
