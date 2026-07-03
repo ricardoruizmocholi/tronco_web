@@ -13,26 +13,6 @@ use Stripe\Stripe;
 
 class CheckoutController extends Controller
 {
-    // Países soportados por Stripe para shipping_address_collection
-    private const SHIPPING_COUNTRIES = [
-        'AC','AD','AE','AG','AI','AL','AM','AO','AR','AT','AU','AW','AZ',
-        'BA','BB','BD','BE','BF','BG','BH','BI','BJ','BM','BN','BO','BR',
-        'BS','BT','BW','BY','BZ','CA','CD','CF','CG','CH','CI','CK','CL',
-        'CM','CN','CO','CR','CV','CY','CZ','DE','DJ','DK','DM','DO','DZ',
-        'EC','EE','EG','ES','ET','FI','FJ','FK','FO','FR','GA','GB','GD',
-        'GE','GH','GI','GL','GM','GN','GQ','GR','GT','GW','GY','HK','HN',
-        'HR','HT','HU','ID','IE','IL','IN','IQ','IS','IT','JM','JO','JP',
-        'KE','KG','KH','KM','KN','KR','KW','KY','KZ','LA','LB','LC','LI',
-        'LK','LR','LS','LT','LU','LV','LY','MA','MC','MD','ME','MG','MK',
-        'ML','MM','MN','MO','MR','MS','MT','MU','MV','MW','MX','MY','MZ',
-        'NA','NE','NG','NI','NL','NO','NP','NR','NU','NZ','OM','PA','PE',
-        'PG','PH','PK','PL','PN','PS','PT','PW','PY','QA','RO','RS','RU',
-        'RW','SA','SB','SC','SE','SG','SH','SI','SK','SL','SM','SN','SO',
-        'SR','ST','SV','SZ','TC','TD','TG','TH','TJ','TL','TM','TN','TO',
-        'TR','TT','TV','TW','TZ','UA','UG','US','UY','UZ','VC','VE','VG',
-        'VN','VU','WS','YE','ZA','ZM','ZW',
-    ];
-
     public function store(Request $request): JsonResponse
     {
         $request->validate([
@@ -99,7 +79,7 @@ class CheckoutController extends Controller
         $activeRates      = ShippingRate::active()->get();
         $hasInternational = $activeRates->whereNull('country_code')->isNotEmpty();
         $allowedCountries = $hasInternational
-            ? self::SHIPPING_COUNTRIES
+            ? ['ZZ']
             : ($activeRates->pluck('country_code')->filter()->sort()->values()->toArray() ?: ['ES']);
         $estimatedShipping = (int) ($activeRates->max('rate') ?? 0);
 
