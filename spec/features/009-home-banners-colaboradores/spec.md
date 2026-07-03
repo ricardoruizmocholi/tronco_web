@@ -46,15 +46,15 @@ Requiere `000-infraestructura-docker` y endpoint de subida de imágenes (`/api/u
 
 ## Tasks
 
-1. [ ] Migración `banners`
-2. [ ] Migración `collaborators`
-3. [ ] Modelos `Banner` y `Collaborator`
-4. [ ] Endpoints públicos GET banners y colaboradores
-5. [ ] Endpoints admin CRUD banners (con imagen)
-6. [ ] Endpoints admin CRUD colaboradores (con logo)
-7. [ ] `HomePage.tsx`: sección hero con banner activo
-8. [ ] `HomePage.tsx`: sección colaboradores
-9. [ ] `AdminBannersPage.tsx`: tabla + formulario
-10. [ ] `AdminCollaboratorsPage.tsx`: tabla + formulario
-11. [ ] Cards en `AdminDashboardPage`
+1. [x] Migración `banners`
+2. [x] Migración `collaborators`
+3. [x] Modelos `Banner` y `Collaborator`
+4. [x] Endpoints públicos GET banners y colaboradores
+5. [x] Endpoints admin CRUD banners (con imagen)
+6. [x] Endpoints admin CRUD colaboradores (con logo)
+7. [x] `HomePage.tsx`: sección hero con banner activo
+8. [x] `HomePage.tsx`: sección colaboradores
+9. [x] `AdminBannersPage.tsx`: tabla + formulario
+10. [x] `AdminCollaboratorsPage.tsx`: tabla + formulario
+11. [x] Cards en `AdminDashboardPage`
 12. [ ] Verificar los 8 criterios de aceptación

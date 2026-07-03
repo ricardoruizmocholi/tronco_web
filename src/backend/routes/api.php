@@ -2,6 +2,8 @@
 
 use App\Http\Controllers\AdminFanficController;
 use App\Http\Controllers\ArtistController;
+use App\Http\Controllers\BannerController;
+use App\Http\Controllers\CollaboratorController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\FanficController;
 use App\Http\Controllers\CheckoutController;
@@ -46,6 +48,10 @@ Route::post('/stripe/webhook', [StripeWebhookController::class, 'handle']);
 
 // Tarifas de envío — público
 Route::get('/shipping-rates', [ShippingRateController::class, 'publicIndex']);
+
+// Banners y colaboradores — públicos
+Route::get('/banners',       [BannerController::class,       'publicIndex']);
+Route::get('/collaborators', [CollaboratorController::class, 'publicIndex']);
 
 // Fanfics — globo público
 Route::get('/fanfics', [FanficController::class, 'publicIndex']);
@@ -94,4 +100,14 @@ Route::middleware(['auth:sanctum', 'admin'])->prefix('admin')->group(function ()
     Route::post('/shipping-rates',            [ShippingRateController::class, 'store']);
     Route::put('/shipping-rates/{rate}',      [ShippingRateController::class, 'update']);
     Route::delete('/shipping-rates/{rate}',   [ShippingRateController::class, 'destroy']);
+
+    Route::get('/banners',              [BannerController::class, 'index']);
+    Route::post('/banners',             [BannerController::class, 'store']);
+    Route::put('/banners/{banner}',     [BannerController::class, 'update']);
+    Route::delete('/banners/{banner}',  [BannerController::class, 'destroy']);
+
+    Route::get('/collaborators',                   [CollaboratorController::class, 'index']);
+    Route::post('/collaborators',                  [CollaboratorController::class, 'store']);
+    Route::put('/collaborators/{collaborator}',    [CollaboratorController::class, 'update']);
+    Route::delete('/collaborators/{collaborator}', [CollaboratorController::class, 'destroy']);
 });
