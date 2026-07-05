@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AdminFanficController;
+use App\Http\Controllers\AdminOrderController;
 use App\Http\Controllers\ArtistController;
 use App\Http\Controllers\BannerController;
 use App\Http\Controllers\CollaboratorController;
@@ -97,6 +98,14 @@ Route::middleware(['auth:sanctum', 'admin'])->prefix('admin')->group(function ()
     Route::patch('/fanfics/{fanfic}/block-user',        [AdminFanficController::class, 'blockUser']);
     Route::get('/users/blocked',                        [AdminFanficController::class, 'blockedUsers']);
     Route::patch('/users/{user}/unblock',               [AdminFanficController::class, 'unblockUser']);
+
+    // Pedidos admin — rutas estáticas ANTES que {order} para evitar conflictos
+    Route::get('/orders/stats',              [AdminOrderController::class, 'stats']);
+    Route::get('/orders/pending-count',      [AdminOrderController::class, 'pendingCount']);
+    Route::get('/orders/export',             [AdminOrderController::class, 'export']);
+    Route::get('/orders',                    [AdminOrderController::class, 'index']);
+    Route::get('/orders/{order}',            [AdminOrderController::class, 'show']);
+    Route::put('/orders/{order}/status',     [AdminOrderController::class, 'updateStatus']);
 
     Route::get('/shipping-rates',             [ShippingRateController::class, 'index']);
     Route::post('/shipping-rates',            [ShippingRateController::class, 'store']);

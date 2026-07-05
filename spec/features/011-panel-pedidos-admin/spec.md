@@ -47,15 +47,15 @@ Requiere `004-checkout-stripe` (modelo `Order` y webhook funcionando).
 
 ## Tasks
 
-1. [ ] `AdminOrderController@index` con filtros y paginación
-2. [ ] `AdminOrderController@updateStatus` con validación de transiciones
-3. [ ] `AdminOrderController@metrics`
-4. [ ] `AdminOrderController@export` (CSV o XLSX)
-5. [ ] Rutas admin para pedidos en `api.php`
-6. [ ] `api/adminOrders.ts`: funciones de API
-7. [ ] `AdminOrdersPage.tsx`: tabla con filtros
-8. [ ] `AdminOrderDetailModal.tsx`: detalle de pedido
-9. [ ] `AdminOrderMetrics.tsx`: sección de métricas
-10. [ ] Badge de pedidos nuevos en dashboard y menú
-11. [ ] Exportación a Excel desde el panel
+1. [x] `AdminOrderController@index` con filtros y paginación
+2. [x] `AdminOrderController@updateStatus` con validación de transiciones
+3. [x] `AdminOrderController@metrics`
+4. [x] `AdminOrderController@export` (CSV o XLSX)
+5. [x] Rutas admin para pedidos en `api.php`
+6. [x] `api/adminOrders.ts`: funciones de API
+7. [x] `AdminOrdersPage.tsx`: tabla con filtros
+8. [x] `AdminOrderDetailModal.tsx`: detalle de pedido (integrado en AdminOrdersPage)
+9. [x] `AdminOrderMetrics.tsx`: sección de métricas (integrado en AdminOrdersPage)
+10. [x] Badge de pedidos nuevos en dashboard y menú
+11. [x] Exportación a Excel desde el panel
 12. [ ] Verificar los 8 criterios de aceptación

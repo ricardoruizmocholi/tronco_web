@@ -24,6 +24,7 @@ class Order extends Model
     {
         return [
             'total'            => 'integer',
+            'shipping_cost'    => 'integer',
             'shipping_address' => 'array',
         ];
     }

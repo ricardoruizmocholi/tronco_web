@@ -1,8 +1,9 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 import { useScrollDirection } from '../hooks/useScrollDirection'
 import { useCartStore } from '../store/cartStore'
+import { getPendingCount } from '../api/adminOrders'
 import CartDrawer from './CartDrawer'
 import MobileDrawer from './MobileDrawer'
 
@@ -30,8 +31,22 @@ export default function Layout() {
   const scrollDir = useScrollDirection()
   const { getTotalItems, openCart } = useCartStore()
   const [isDrawerOpen, setIsDrawerOpen] = useState(false)
+  const [pendingOrders, setPendingOrders] = useState(0)
 
   const totalItems = getTotalItems()
+
+  // Polling de pedidos pendientes — solo para admin, cada 60s
+  useEffect(() => {
+    if (user?.role !== 'admin') return
+
+    getPendingCount().then(setPendingOrders).catch(() => {})
+
+    const interval = setInterval(() => {
+      getPendingCount().then(setPendingOrders).catch(() => {})
+    }, 60_000)
+
+    return () => clearInterval(interval)
+  }, [user?.role])
 
   async function handleLogout() {
     try { await logout() } finally { navigate('/login') }
@@ -80,7 +95,16 @@ export default function Layout() {
               {user ? (
                 <>
                   {user.role === 'admin' && (
-                    <NavLink to="/admin" className={navCls}>Admin</NavLink>
+                    <span className="relative">
+                      <NavLink to="/admin" className={navCls}>Admin</NavLink>
+                      {pendingOrders > 0 && (
+                        <span className="absolute -top-1.5 -right-2 min-w-[16px] h-4 px-0.5
+                          bg-red-500 text-white text-[10px] font-bold rounded-full
+                          flex items-center justify-center leading-none pointer-events-none">
+                          {pendingOrders > 9 ? '9+' : pendingOrders}
+                        </span>
+                      )}
+                    </span>
                   )}
                   <NavLink to="/perfil" className={navCls}>
                     {user.name}
