@@ -12,6 +12,7 @@
 | role | enum(user, admin) | default `user` |
 | email_verified_at | timestamp nullable | |
 | created_at / updated_at | timestamp | |
+| is_blocked | boolean default false |
 
 ### categories
 | Campo | Tipo | Notas |
@@ -82,13 +83,19 @@
 | Campo | Tipo | Notas |
 |---|---|---|
 | id | bigint PK | |
-| user_id | bigint FK → users.id **unique** | un fanfic por usuario |
-|prioritario|boolean|
-| title | varchar | |
-| content | text | |
+| user_id | bigint FK → users.id unique | un fanfic por usuario |
+| image_url | varchar | URL de la imagen subida (via /api/admin/upload-image) |
+| caption | varchar nullable | texto descriptivo opcional |
+| city_name | varchar | nombre de la ciudad elegida |
 | latitude | decimal(10,7) | |
 | longitude | decimal(10,7) | |
-| status | enum(pending, approved, rejected) | default `pending` |
+| is_featured | boolean default false | si true, es destacado (artista colaborador o admin) |
+| status | enum(pending, approved, rejected) | default pending |
+| rejection_reason | text nullable | |
+| reviewed_by | bigint FK → users.id nullable | |
+| reviewed_at | timestamp nullable | |
+| is_blocked_user | boolean default false | en users: si true, no puede subir contenido |
+| created_at / updated_at | timestamp | |`pending` |
 | rejection_reason | text nullable | |
 | reviewed_by | bigint FK → users.id nullable | admin que revisó |
 | reviewed_at | timestamp nullable | |

@@ -82,7 +82,9 @@ export default function Layout() {
                   {user.role === 'admin' && (
                     <NavLink to="/admin" className={navCls}>Admin</NavLink>
                   )}
-                  <span className="text-white/70 text-sm">{user.name}</span>
+                  <NavLink to="/perfil" className={navCls}>
+                    {user.name}
+                  </NavLink>
                   <button
                     onClick={handleLogout}
                     className="text-sm text-white/70 hover:text-white transition-colors"

@@ -22,10 +22,8 @@ import ArtistProfilePage from './pages/ArtistProfilePage'
 import CheckoutSuccessPage from './pages/checkout/CheckoutSuccessPage'
 import CheckoutCancelPage from './pages/checkout/CheckoutCancelPage'
 import OrdersPage from './pages/OrdersPage'
+import ProfilePage from './pages/ProfilePage'
 
-const Placeholder = ({ label }: { label: string }) => (
-  <div className="py-20 text-center text-ink/50 text-sm">{label} — pendiente</div>
-)
 
 function App() {
   return (
@@ -46,7 +44,7 @@ function App() {
             <Route path="/bola-troncodrilo"  element={<BolaTroncodriloPage />} />
 
             <Route element={<ProtectedRoute />}>
-              <Route path="/perfil"              element={<Placeholder label="Mi perfil" />} />
+              <Route path="/perfil"              element={<ProfilePage />} />
               <Route path="/mi-fanfic"           element={<MiFanficPage />} />
               <Route path="/mis-pedidos"         element={<OrdersPage />} />
               <Route path="/checkout/exito"      element={<CheckoutSuccessPage />} />

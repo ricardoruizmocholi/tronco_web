@@ -5,6 +5,7 @@ use App\Http\Controllers\ArtistController;
 use App\Http\Controllers\BannerController;
 use App\Http\Controllers\CollaboratorController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\FanficController;
 use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\ImageUploadController;
@@ -19,8 +20,9 @@ Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login',    [AuthController::class, 'login']);
 
 Route::middleware('auth:sanctum')->group(function () {
-    Route::post('/logout', [AuthController::class, 'logout']);
-    Route::get('/user',    [AuthController::class, 'user']);
+    Route::post('/logout',            [AuthController::class, 'logout']);
+    Route::get('/user',               [AuthController::class, 'user']);
+    Route::put('/user/profile',       [ProfileController::class, 'update']);
 });
 
 Route::get('/health', function () {

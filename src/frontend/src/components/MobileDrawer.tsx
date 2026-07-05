@@ -95,7 +95,9 @@ export default function MobileDrawer({ isOpen, onClose, user, onLogout, navLinks
         <div className="flex-shrink-0 border-t border-white/5 px-3 py-4 space-y-1">
           {user ? (
             <>
-              <p className="px-4 py-2 text-xs text-white/30 truncate">{user.name}</p>
+              <NavLink to="/perfil" className={linkCls}>
+                Mi perfil
+              </NavLink>
               <button
                 onClick={() => { onLogout(); onClose() }}
                 className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm
