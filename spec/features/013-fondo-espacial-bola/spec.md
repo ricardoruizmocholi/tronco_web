@@ -8,13 +8,13 @@ de estrellas animado en canvas con efecto de parpadeo y parallax ligero
 que acompaña la rotación del globo, reforzando la estética espacial.
 
 ### Criterios de aceptación
-- [ ] El fondo de `/bola-troncodrilo` muestra estrellas distribuidas aleatoriamente sobre fondo oscuro
-- [ ] Las estrellas parpadean de forma independiente y aleatoria (variación de opacidad)
-- [ ] El canvas ocupa exactamente el 100% del viewport y se redimensiona correctamente
-- [ ] El efecto de parallax es sutil: las estrellas se desplazan ligeramente cuando el globo rota
-- [ ] El componente `StarField` no afecta al rendimiento del globo (sin bloquear el hilo principal)
-- [ ] El canvas se limpia correctamente al desmontar el componente (sin memory leaks)
-- [ ] El efecto funciona correctamente en móvil y en escritorio
+- [x] El fondo de `/bola-troncodrilo` muestra estrellas distribuidas aleatoriamente sobre fondo oscuro
+- [x] Las estrellas parpadean de forma independiente y aleatoria (variación de opacidad)
+- [x] El canvas ocupa exactamente el 100% del viewport y se redimensiona correctamente
+- [x] El efecto de parallax es sutil: las estrellas se desplazan ligeramente cuando el globo rota
+- [x] El componente `StarField` no afecta al rendimiento del globo (sin bloquear el hilo principal)
+- [x] El canvas se limpia correctamente al desmontar el componente (sin memory leaks)
+- [x] El efecto funciona correctamente en móvil y en escritorio
 
 ### Fuera de alcance
 - Estrellas fugaces o cometas (post-MVP)
@@ -39,11 +39,11 @@ Requiere `006-bola-troncodrilo` completa.
 
 ## Tasks
 
-1. [ ] `StarField.tsx`: generación de estrellas en canvas con `useEffect`
-2. [ ] Loop de animación con `requestAnimationFrame` y efecto de parpadeo
-3. [ ] Redimensionado reactivo del canvas con `ResizeObserver`
-4. [ ] Limpieza correcta en `return () => cancelAnimationFrame(rafId)`
-5. [ ] Integrar `StarField` en `BolaTroncodriloPage.tsx` sustituyendo el fondo sólido
-6. [ ] Implementar parallax ligero vinculado a la rotación del globo
-7. [ ] Verificar rendimiento (sin caídas de FPS perceptibles) en móvil y escritorio
-8. [ ] Verificar los 7 criterios de aceptación
+1. [x] `StarField.tsx`: generación de estrellas en canvas con `useEffect`
+2. [x] Loop de animación con `requestAnimationFrame` y efecto de parpadeo
+3. [x] Redimensionado reactivo del canvas con `ResizeObserver`
+4. [x] Limpieza correcta en `return () => cancelAnimationFrame(rafId)`
+5. [x] Integrar `StarField` en `BolaTroncodriloPage.tsx` sustituyendo el fondo sólido
+6. [x] Implementar parallax ligero vinculado a la rotación del globo
+7. [x] Verificar rendimiento (sin caídas de FPS perceptibles) en móvil y escritorio
+8. [x] Verificar los 7 criterios de aceptación

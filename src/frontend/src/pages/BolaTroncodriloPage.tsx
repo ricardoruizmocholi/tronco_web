@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import Globe from 'react-globe.gl'
 import Supercluster from 'supercluster'
 import { getFanfics } from '../api/fanfics'
+import StarField from '../components/StarField'
 import type { Fanfic } from '../types/fanfic'
 
 const GLOBE_IMG = '//unpkg.com/three-globe/example/img/earth-dark.jpg'
@@ -33,6 +34,7 @@ export default function BolaTroncodriloPage() {
   const [loading, setLoading]         = useState(true)
   const [loadingMore, setLoadingMore] = useState(false)
   const [altitude, setAltitude]       = useState(2.5)
+  const [azimuth, setAzimuth]         = useState(0)
   const [selected, setSelected]       = useState<Fanfic | null>(null)
   const [fullscreen, setFullscreen]   = useState(false)
 
@@ -85,6 +87,8 @@ export default function BolaTroncodriloPage() {
     const onMove = () => {
       const pov = globeRef.current?.pointOfView()
       if (pov?.altitude !== undefined) setAltitude(pov.altitude)
+      const az = globeRef.current?.controls()?.getAzimuthalAngle?.()
+      if (az !== undefined) setAzimuth(az)
     }
     controls.addEventListener('change', onMove)
     return () => controls.removeEventListener('change', onMove)
@@ -159,34 +163,39 @@ export default function BolaTroncodriloPage() {
       className="relative w-full bg-dark overflow-hidden"
       style={{ height: 'calc(100vh - 64px)' }}
     >
-      {/* ── Globo 3D ── */}
+      {/* ── Fondo de estrellas — detrás del globo ── */}
+      <StarField azimuth={azimuth} />
+
+      {/* ── Globo 3D — encima del StarField ── */}
       {size.w > 0 && (
-        <Globe
-          ref={globeRef}
-          width={size.w}
-          height={size.h}
-          globeImageUrl={GLOBE_IMG}
-          backgroundColor="#1C1F1A"
-          atmosphereColor="#5BBB2A"
-          atmosphereAltitude={0.15}
-          htmlElementsData={clusters}
-          htmlLat={d => (d as GeoFeature).geometry.coordinates[1]}
-          htmlLng={d => (d as GeoFeature).geometry.coordinates[0]}
-          htmlElement={makeHtmlElement}
-          onGlobeClick={() => setSelected(null)}
-        />
+        <div style={{ position: 'relative', zIndex: 1 }}>
+          <Globe
+            ref={globeRef}
+            width={size.w}
+            height={size.h}
+            globeImageUrl={GLOBE_IMG}
+            backgroundColor="rgba(0,0,0,0)"
+            atmosphereColor="#5BBB2A"
+            atmosphereAltitude={0.15}
+            htmlElementsData={clusters}
+            htmlLat={d => (d as GeoFeature).geometry.coordinates[1]}
+            htmlLng={d => (d as GeoFeature).geometry.coordinates[0]}
+            htmlElement={makeHtmlElement}
+            onGlobeClick={() => setSelected(null)}
+          />
+        </div>
       )}
 
       {/* ── Spinner carga inicial ── */}
       {loading && (
-        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+        <div className="absolute inset-0 z-[2] flex items-center justify-center pointer-events-none">
           <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
         </div>
       )}
 
       {/* ── Leyenda + Cargar más ── */}
       {!loading && (
-        <div className="absolute bottom-6 left-6 flex flex-col items-start gap-2">
+        <div className="absolute bottom-6 left-6 z-[2] flex flex-col items-start gap-2">
           <div className="bg-dark/70 backdrop-blur-sm rounded-xl px-4 py-2.5
             text-white/50 text-xs pointer-events-none select-none">
             {fanfics.length} imagen{fanfics.length !== 1 ? 'es' : ''} en el mapa
