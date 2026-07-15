@@ -58,4 +58,4 @@ Requiere `004-checkout-stripe` (modelo `Order` y webhook funcionando).
 9. [x] `AdminOrderMetrics.tsx`: sección de métricas (integrado en AdminOrdersPage)
 10. [x] Badge de pedidos nuevos en dashboard y menú
 11. [x] Exportación a Excel desde el panel
-12. [ ] Verificar los 8 criterios de aceptación
+12. [x] Verificar los 8 criterios de aceptación

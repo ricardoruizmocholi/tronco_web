@@ -14,6 +14,7 @@ export default function ProductCard({ product }: Props) {
   const hasVariants    = product.variants.length > 0
   const availableSizes = product.variants.filter(v => v.is_active && v.stock > 0)
   const cardSoldOut    = hasVariants ? availableSizes.length === 0 : stock === 0
+  const canPreorder    = cardSoldOut && product.allow_preorder
 
   const img1 = images.find(i => i.position === 1)
   const img2 = images.find(i => i.position === 2)
@@ -66,7 +67,11 @@ export default function ProductCard({ product }: Props) {
         <div className="mt-auto pt-3">
           <div className="flex items-center justify-between">
             <span className="text-ink font-bold">{euros.format(price / 100)}</span>
-            {cardSoldOut ? (
+            {cardSoldOut && canPreorder ? (
+              <span className="text-xs font-medium text-white bg-ink rounded px-2 py-0.5">
+                Preorder
+              </span>
+            ) : cardSoldOut ? (
               <span className="text-xs font-medium text-white bg-secondary rounded px-2 py-0.5">
                 Agotado
               </span>

@@ -126,4 +126,12 @@ class ProductController extends Controller
         $product->delete();
         return response()->json(['message' => 'Producto eliminado permanentemente.']);
     }
+
+    // PATCH /api/admin/products/{product}/toggle-preorder
+    public function togglePreorder(Product $product): JsonResponse
+    {
+        $product->update(['allow_preorder' => !$product->allow_preorder]);
+
+        return response()->json($product->load(['category', 'images', 'variants']));
+    }
 }

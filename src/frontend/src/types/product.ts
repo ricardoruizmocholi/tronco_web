@@ -30,6 +30,7 @@ export interface Product {
   stock: number
   image_url: string | null
   is_active: boolean
+  allow_preorder: boolean
   category: Category | null
   images: ProductImage[]
   variants: ProductVariant[]

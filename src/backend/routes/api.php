@@ -2,6 +2,8 @@
 
 use App\Http\Controllers\AdminFanficController;
 use App\Http\Controllers\AdminOrderController;
+use App\Http\Controllers\AdminPreorderController;
+use App\Http\Controllers\PreorderController;
 use App\Http\Controllers\ArtistController;
 use App\Http\Controllers\BannerController;
 use App\Http\Controllers\CollaboratorController;
@@ -58,6 +60,9 @@ Route::get('/collaborators', [CollaboratorController::class, 'publicIndex']);
 
 // Fanfics — globo público
 Route::get('/fanfics', [FanficController::class, 'publicIndex']);
+
+// Preorders — público (auth opcional via Sanctum)
+Route::post('/preorders', [PreorderController::class, 'store']);
 
 // Fanfics — usuario autenticado
 Route::middleware('auth:sanctum')->group(function () {
@@ -121,4 +126,13 @@ Route::middleware(['auth:sanctum', 'admin'])->prefix('admin')->group(function ()
     Route::post('/collaborators',                  [CollaboratorController::class, 'store']);
     Route::put('/collaborators/{collaborator}',    [CollaboratorController::class, 'update']);
     Route::delete('/collaborators/{collaborator}', [CollaboratorController::class, 'destroy']);
+
+    // Toggle allow_preorder en producto
+    Route::patch('/products/{product}/toggle-preorder', [ProductController::class, 'togglePreorder']);
+
+    // Preorders admin — estáticas antes de {preorder}
+    Route::get('/preorders/stats',                 [AdminPreorderController::class, 'stats']);
+    Route::get('/preorders/export',                [AdminPreorderController::class, 'export']);
+    Route::get('/preorders',                       [AdminPreorderController::class, 'index']);
+    Route::patch('/preorders/{preorder}/notify',   [AdminPreorderController::class, 'notify']);
 });

@@ -6,6 +6,7 @@ import {
   getAdminProducts,
   getCategories,
   toggleProduct,
+  togglePreorder,
   updateProduct,
 } from '../../api/products'
 import ProductForm from '../../components/admin/ProductForm'
@@ -61,6 +62,15 @@ export default function AdminProductsPage() {
       setProducts(ps => ps.map(p => (p.id === updated.id ? updated : p)))
     } catch {
       setError('No se pudo cambiar el estado del producto.')
+    }
+  }
+
+  async function handleTogglePreorder(product: Product) {
+    try {
+      const updated = await togglePreorder(product.id)
+      setProducts(ps => ps.map(p => (p.id === updated.id ? updated : p)))
+    } catch {
+      setError('No se pudo cambiar el estado de preorder.')
     }
   }
 
@@ -123,13 +133,14 @@ export default function AdminProductsPage() {
                   <th className="px-4 py-3 font-medium text-right">Precio</th>
                   <th className="px-4 py-3 font-medium text-right">Stock</th>
                   <th className="px-4 py-3 font-medium text-center">Estado</th>
+                  <th className="px-4 py-3 font-medium text-center">Preorder</th>
                   <th className="px-4 py-3 font-medium text-right">Acciones</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-ink/5">
                 {products.length === 0 && (
                   <tr>
-                    <td colSpan={6} className="px-4 py-10 text-center text-ink/40">
+                    <td colSpan={7} className="px-4 py-10 text-center text-ink/40">
                       No hay productos aún.
                     </td>
                   </tr>
@@ -163,6 +174,21 @@ export default function AdminProductsPage() {
                           Inactivo
                         </span>
                       )}
+                    </td>
+                    <td className="px-4 py-3 text-center">
+                      <button
+                        onClick={() => handleTogglePreorder(product)}
+                        title={product.allow_preorder ? 'Desactivar preorder' : 'Activar preorder'}
+                        className={`inline-flex items-center justify-center w-8 h-8 rounded-full border transition-colors ${
+                          product.allow_preorder
+                            ? 'border-primary/40 bg-primary/10 text-primary'
+                            : 'border-ink/20 text-ink/30 hover:border-ink/40'
+                        }`}
+                      >
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                      </button>
                     </td>
                     <td className="px-4 py-3 text-right">
                       <div className="flex gap-2 justify-end">

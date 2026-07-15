@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { getProduct } from '../api/products'
 import { useCartStore } from '../store/cartStore'
+import PreorderModal from '../components/PreorderModal'
 import type { Product, ProductImage, ProductVariant } from '../types/product'
 
 const euros = new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' })
@@ -13,6 +14,7 @@ export default function ProductPage() {
   const [loading, setLoading]       = useState(true)
   const [notFound, setNotFound]       = useState(false)
   const [selectedVariant, setSelectedVariant] = useState<ProductVariant | null>(null)
+  const [showPreorder, setShowPreorder]         = useState(false)
 
   // Hook llamado incondicionalmente — antes de cualquier early return
   const addItem = useCartStore(s => s.addItem)
@@ -56,6 +58,7 @@ export default function ProductPage() {
   const isSoldOut      = hasVariants
     ? !activeVariants.some(v => v.stock > 0)
     : stock === 0
+  const canPreorder    = isSoldOut && product.allow_preorder
 
   function handleAddToCart() {
     addItem({
@@ -73,6 +76,13 @@ export default function ProductPage() {
 
   return (
     <div className="min-h-screen bg-canvas">
+      {showPreorder && (
+        <PreorderModal
+          product={product}
+          variant={selectedVariant}
+          onClose={() => setShowPreorder(false)}
+        />
+      )}
       <main className="max-w-5xl mx-auto px-4 py-10">
         {/* Breadcrumb */}
         <nav className="text-sm text-ink/50 mb-6 flex gap-2">
@@ -197,20 +207,30 @@ export default function ProductPage() {
               </div>
             )}
 
-            {/* Botón añadir al carrito */}
-            <button
-              onClick={handleAddToCart}
-              disabled={isSoldOut || (hasVariants && !selectedVariant)}
-              className="mt-2 w-full py-3 rounded-lg font-semibold text-sm transition-colors
-                bg-primary text-white hover:bg-primary/90
-                disabled:bg-ink/10 disabled:text-ink/30 disabled:cursor-not-allowed"
-            >
-              {isSoldOut
-                ? 'No disponible'
-                : hasVariants && !selectedVariant
-                  ? 'Selecciona una talla'
-                  : 'Añadir al carrito'}
-            </button>
+            {/* Botón añadir al carrito / preorder */}
+            {canPreorder ? (
+              <button
+                onClick={() => setShowPreorder(true)}
+                className="mt-2 w-full py-3 rounded-lg font-semibold text-sm transition-colors
+                  bg-ink text-white hover:bg-ink/90"
+              >
+                Reservar plaza
+              </button>
+            ) : (
+              <button
+                onClick={handleAddToCart}
+                disabled={isSoldOut || (hasVariants && !selectedVariant)}
+                className="mt-2 w-full py-3 rounded-lg font-semibold text-sm transition-colors
+                  bg-primary text-white hover:bg-primary/90
+                  disabled:bg-ink/10 disabled:text-ink/30 disabled:cursor-not-allowed"
+              >
+                {isSoldOut
+                  ? 'No disponible'
+                  : hasVariants && !selectedVariant
+                    ? 'Selecciona una talla'
+                    : 'Añadir al carrito'}
+              </button>
+            )}
 
             <Link to="/tienda" className="text-sm text-ink/50 hover:text-primary transition-colors text-center">
               ← Volver a la tienda

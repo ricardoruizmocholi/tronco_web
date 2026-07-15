@@ -21,19 +21,22 @@ class Product extends Model
         'stock',
         'image_url',
         'is_active',
+        'allow_preorder',
     ];
 
     protected $attributes = [
-        'stock'     => 0,
-        'is_active' => true,
+        'stock'          => 0,
+        'is_active'      => true,
+        'allow_preorder' => false,
     ];
 
     protected function casts(): array
     {
         return [
-            'price'     => 'integer',
-            'stock'     => 'integer',
-            'is_active' => 'boolean',
+            'price'          => 'integer',
+            'stock'          => 'integer',
+            'is_active'      => 'boolean',
+            'allow_preorder' => 'boolean',
         ];
     }
 
@@ -55,5 +58,10 @@ class Product extends Model
     public function variants(): HasMany
     {
         return $this->hasMany(ProductVariant::class)->orderBy('id');
+    }
+
+    public function preorders(): HasMany
+    {
+        return $this->hasMany(Preorder::class);
     }
 }

@@ -86,6 +86,17 @@ const CARDS = [
     ),
   },
   {
+    title: 'Preorders',
+    description: 'Gestiona la lista de espera de productos agotados: reservas, notificaciones y exportación CSV.',
+    href: '/admin/preorders',
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-7 h-7">
+        <path strokeLinecap="round" strokeLinejoin="round"
+          d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
+    ),
+  },
+  {
     title: 'Colaboradores',
     description: 'Añade marcas o tiendas colaboradoras con logo y enlace externo.',
     href: '/admin/colaboradores',

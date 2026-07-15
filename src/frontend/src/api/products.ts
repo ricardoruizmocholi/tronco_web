@@ -33,6 +33,10 @@ export function toggleProduct(id: number): Promise<Product> {
   return api.patch<Product>(`/api/admin/products/${id}/toggle`).then(r => r.data)
 }
 
+export function togglePreorder(id: number): Promise<Product> {
+  return api.patch<Product>(`/api/admin/products/${id}/toggle-preorder`).then(r => r.data)
+}
+
 export function deleteProduct(id: number): Promise<void> {
   return api.delete(`/api/admin/products/${id}/permanent`).then(() => undefined)
 }

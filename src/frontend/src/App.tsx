@@ -16,6 +16,7 @@ import AdminShippingPage from './pages/admin/AdminShippingPage'
 import AdminBannersPage from './pages/admin/AdminBannersPage'
 import AdminCollaboratorsPage from './pages/admin/AdminCollaboratorsPage'
 import AdminOrdersPage from './pages/admin/AdminOrdersPage'
+import AdminPreordersPage from './pages/admin/AdminPreordersPage'
 import ArtistsPage from './pages/ArtistsPage'
 import BolaTroncodriloPage from './pages/BolaTroncodriloPage'
 import MiFanficPage from './pages/MiFanficPage'
@@ -61,6 +62,7 @@ function App() {
               <Route path="/admin/banners"        element={<AdminBannersPage />} />
               <Route path="/admin/colaboradores"  element={<AdminCollaboratorsPage />} />
               <Route path="/admin/pedidos"        element={<AdminOrdersPage />} />
+              <Route path="/admin/preorders"      element={<AdminPreordersPage />} />
             </Route>
 
             <Route path="*" element={<Navigate to="/" replace />} />
