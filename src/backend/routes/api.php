@@ -1,9 +1,13 @@
 <?php
 
+use App\Http\Controllers\AdminCancellationController;
 use App\Http\Controllers\AdminFanficController;
 use App\Http\Controllers\AdminOrderController;
 use App\Http\Controllers\AdminPreorderController;
+use App\Http\Controllers\AdminReturnController;
+use App\Http\Controllers\CancellationController;
 use App\Http\Controllers\PreorderController;
+use App\Http\Controllers\ReturnRequestController;
 use App\Http\Controllers\ArtistController;
 use App\Http\Controllers\BannerController;
 use App\Http\Controllers\CollaboratorController;
@@ -43,9 +47,12 @@ Route::get('/artists/{artist}', [ArtistController::class, 'show']);
 
 // Checkout y pedidos (usuario autenticado)
 Route::middleware('auth:sanctum')->group(function () {
-    Route::post('/checkout',          [CheckoutController::class, 'store']);
-    Route::get('/orders',             [OrderController::class, 'index']);
-    Route::get('/orders/{order}',     [OrderController::class, 'show']);
+    Route::post('/checkout',              [CheckoutController::class,      'store']);
+    Route::get('/orders',                 [OrderController::class,          'index']);
+    Route::get('/orders/{order}',         [OrderController::class,          'show']);
+    Route::post('/orders/{order}/cancel', [CancellationController::class,  'cancel']);
+    Route::post('/orders/{order}/return', [ReturnRequestController::class, 'store']);
+    Route::get('/user/returns',           [ReturnRequestController::class, 'index']);
 });
 
 // Webhook de Stripe — sin auth, Stripe firma el payload con STRIPE_WEBHOOK_SECRET
@@ -126,6 +133,16 @@ Route::middleware(['auth:sanctum', 'admin'])->prefix('admin')->group(function ()
     Route::post('/collaborators',                  [CollaboratorController::class, 'store']);
     Route::put('/collaborators/{collaborator}',    [CollaboratorController::class, 'update']);
     Route::delete('/collaborators/{collaborator}', [CollaboratorController::class, 'destroy']);
+
+    Route::put('/orders/{order}/cancel',   [AdminCancellationController::class, 'cancel']);
+
+    // Devoluciones admin — estáticas ANTES que {return} para evitar conflictos
+    Route::get('/returns/pending-count',    [AdminReturnController::class, 'pendingCount']);
+    Route::get('/returns',                  [AdminReturnController::class, 'index']);
+    Route::get('/returns/{return}',         [AdminReturnController::class, 'show']);
+    Route::put('/returns/{return}/approve', [AdminReturnController::class, 'approve']);
+    Route::put('/returns/{return}/reject',  [AdminReturnController::class, 'reject']);
+    Route::put('/returns/{return}/receive', [AdminReturnController::class, 'receive']);
 
     // Toggle allow_preorder en producto
     Route::patch('/products/{product}/toggle-preorder', [ProductController::class, 'togglePreorder']);

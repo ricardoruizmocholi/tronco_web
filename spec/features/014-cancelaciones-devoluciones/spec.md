@@ -42,29 +42,29 @@ STOCK
 ### Criterios de aceptación
 
 **Cancelaciones**
-- [ ] Usuario puede cancelar pedido `pending` desde `/perfil` — sin cargo, stock restaurado
-- [ ] Usuario puede cancelar pedido `paid` no enviado — Stripe Refund ejecutado, stock restaurado
-- [ ] Pedido `shipped` o `delivered` no muestra opción cancelar — muestra botón "Solicitar devolución"
-- [ ] Modal de confirmación advierte que las comisiones de Stripe no se recuperan en pedidos `paid`
-- [ ] Admin puede cancelar cualquier pedido `paid` desde el panel de pedidos
+- [x] Usuario puede cancelar pedido `pending` desde `/perfil` — sin cargo, stock restaurado
+- [x] Usuario puede cancelar pedido `paid` no enviado — Stripe Refund ejecutado, stock restaurado
+- [x] Pedido `shipped` o `delivered` no muestra opción cancelar — muestra botón "Solicitar devolución"
+- [x] Modal de confirmación advierte que las comisiones de Stripe no se recuperan en pedidos `paid`
+- [x] Admin puede cancelar cualquier pedido `paid` desde el panel de pedidos
 
 **Devoluciones**
-- [ ] Usuario puede iniciar devolución desde `/perfil` adjuntando imagen (obligatoria) y motivo
-- [ ] Motivos disponibles: `defectuoso`, `no_corresponde`, `desistimiento`, `otro`
-- [ ] La solicitud queda visible en `/perfil` con su estado actual
-- [ ] Admin ve cola de devoluciones pendientes con badge de notificación en el header
-- [ ] Admin puede aprobar, rechazar (con motivo obligatorio) o confirmar recepción del paquete
-- [ ] El Stripe Refund se ejecuta únicamente al confirmar recepción (`return_received`)
-- [ ] Para motivo `desistimiento`, el reembolso incluye el `shipping_cost` original (obligación legal)
-- [ ] Admin puede decidir reembolso parcial o total en otros motivos
-- [ ] Cada cambio de estado queda registrado en `return_status_history` (auditoría)
-- [ ] Los pedidos nunca son eliminables desde ningún panel admin
+- [x] Usuario puede iniciar devolución desde `/perfil` adjuntando imagen (obligatoria) y motivo
+- [x] Motivos disponibles: `defectuoso`, `no_corresponde`, `desistimiento`, `otro`
+- [x] La solicitud queda visible en `/perfil` con su estado actual
+- [x] Admin ve cola de devoluciones pendientes con badge de notificación en el header
+- [x] Admin puede aprobar, rechazar (con motivo obligatorio) o confirmar recepción del paquete
+- [x] El Stripe Refund se ejecuta únicamente al confirmar recepción (`return_received`)
+- [x] Para motivo `desistimiento`, el reembolso incluye el `shipping_cost` original (obligación legal)
+- [x] Admin puede decidir reembolso parcial o total en otros motivos
+- [x] Cada cambio de estado queda registrado en `return_status_history` (auditoría)
+- [x] Los pedidos nunca son eliminables desde ningún panel admin
 
 **Panel admin**
-- [ ] Página `/admin/devoluciones` con tabla filtrable por estado, fecha y usuario
-- [ ] Modal de detalle muestra imagen adjunta, motivo, descripción e historial de estados
-- [ ] Card "Devoluciones" visible en `AdminDashboardPage`
-- [ ] Badge independiente para devoluciones pendientes (separado del badge de pedidos)
+- [x] Página `/admin/devoluciones` con tabla filtrable por estado, fecha y usuario
+- [x] Modal de detalle muestra imagen adjunta, motivo, descripción e historial de estados
+- [x] Card "Devoluciones" visible en `AdminDashboardPage`
+- [x] Badge independiente para devoluciones pendientes (separado del badge de pedidos)
 
 ### Fuera de alcance
 - Notificaciones por email al usuario (post-MVP)
@@ -156,64 +156,64 @@ STOCK
 ## Tasks
 
 ### Tarea 1 — Migraciones y modelos
-1. [ ] Migración: ampliar enum `status` en `orders`
-2. [ ] Migración: añadir `stripe_payment_intent_id` a `orders`
-3. [ ] Migración: crear tabla `return_requests`
-4. [ ] Migración: crear tabla `return_status_history`
-5. [ ] Modelo `ReturnRequest` con relaciones y fillable
-6. [ ] Modelo `ReturnStatusHistory` con relaciones
-7. [ ] Actualizar modelo `Order`: nuevos estados + `hasOne(ReturnRequest)`
-8. [ ] Verificar en `StripeWebhookController` que se guarda `stripe_payment_intent_id`
+1. [x] Migración: ampliar enum `status` en `orders`
+2. [x] Migración: añadir `stripe_payment_intent_id` a `orders`
+3. [x] Migración: crear tabla `return_requests`
+4. [x] Migración: crear tabla `return_status_history`
+5. [x] Modelo `ReturnRequest` con relaciones y fillable
+6. [x] Modelo `ReturnStatusHistory` con relaciones
+7. [x] Actualizar modelo `Order`: nuevos estados + `hasOne(ReturnRequest)`
+8. [x] Verificar en `StripeWebhookController` que se guarda `stripe_payment_intent_id`
 
 ### Tarea 2 — Backend: cancelaciones
-9. [ ] `CancellationController@cancel` (usuario): lógica pending vs paid
-10. [ ] `StripeRefundService`: encapsular llamada a `\Stripe\Refund::create`
-11. [ ] Restauración de stock al cancelar (variants o products)
-12. [ ] `AdminCancellationController@cancel`: admin cancela cualquier `paid`
-13. [ ] Rutas en `api.php`: `POST /api/orders/{id}/cancel` + admin
+9. [x] `CancellationController@cancel` (usuario): lógica pending vs paid
+10. [x] `StripeRefundService`: encapsular llamada a `\Stripe\Refund::create`
+11. [x] Restauración de stock al cancelar (variants o products)
+12. [x] `AdminCancellationController@cancel`: admin cancela cualquier `paid`
+13. [x] Rutas en `api.php`: `POST /api/orders/{id}/cancel` + admin
 
 ### Tarea 3 — Backend: devoluciones (usuario)
-14. [ ] `ReturnRequestController@store`: validar imagen + motivo, subir imagen, crear `return_request`
-15. [ ] `ReturnRequestController@index`: `GET /api/user/returns`
-16. [ ] Rutas en `api.php`
+14. [x] `ReturnRequestController@store`: validar imagen + motivo, subir imagen, crear `return_request`
+15. [x] `ReturnRequestController@index`: `GET /api/user/returns`
+16. [x] Rutas en `api.php`
 
 ### Tarea 4 — Backend: devoluciones (admin)
-17. [ ] `AdminReturnController@index`: listado con filtros paginado
-18. [ ] `AdminReturnController@show`: detalle + historial de estados
-19. [ ] `AdminReturnController@approve`: cambio de estado + registro en historial
-20. [ ] `AdminReturnController@reject`: requiere `admin_notes` + historial
-21. [ ] `AdminReturnController@receive`: Stripe Refund + restaurar stock + historial
-22. [ ] `AdminReturnController@pendingCount`
-23. [ ] Rutas admin en `api.php`
+17. [x] `AdminReturnController@index`: listado con filtros paginado
+18. [x] `AdminReturnController@show`: detalle + historial de estados
+19. [x] `AdminReturnController@approve`: cambio de estado + registro en historial
+20. [x] `AdminReturnController@reject`: requiere `admin_notes` + historial
+21. [x] `AdminReturnController@receive`: Stripe Refund + restaurar stock + historial
+22. [x] `AdminReturnController@pendingCount`
+23. [x] Rutas admin en `api.php`
 
 ### Tarea 5 — Frontend: tipos y API
-24. [ ] `src/types/returnRequest.ts`
-25. [ ] `src/api/returns.ts` con todas las funciones
-26. [ ] `src/api/orders.ts`: añadir `cancelOrder`
+24. [x] `src/types/returnRequest.ts`
+25. [x] `src/api/returns.ts` con todas las funciones
+26. [x] `src/api/orders.ts`: añadir `cancelOrder`
 
 ### Tarea 6 — Frontend: componentes
-27. [ ] `CancelOrderModal.tsx` con aviso de comisiones Stripe
-28. [ ] `ReturnRequestModal.tsx` con upload de imagen
-29. [ ] `ReturnStatusBadge.tsx`
+27. [x] `CancelOrderModal.tsx` con aviso de comisiones Stripe
+28. [x] `ReturnRequestModal.tsx` con upload de imagen
+29. [x] `ReturnStatusBadge.tsx`
 
 ### Tarea 7 — Frontend: perfil de usuario
-30. [ ] `ProfileOrdersSection.tsx`: botones cancelar / devolver según estado
-31. [ ] Integrar modales en `ProfilePage.tsx`
-32. [ ] Mostrar badge de estado de devolución activa por pedido
+30. [x] `ProfileOrdersSection.tsx`: botones cancelar / devolver según estado
+31. [x] Integrar modales en `ProfilePage.tsx`
+32. [x] Mostrar badge de estado de devolución activa por pedido
 
 ### Tarea 8 — Frontend: panel admin devoluciones
-33. [ ] `AdminReturnsPage.tsx`: tabla + filtros + paginación
-34. [ ] Modal detalle: imagen, motivo, historial de estados
-35. [ ] Botones de acción por estado (aprobar / rechazar / confirmar recepción)
-36. [ ] Badge independiente en `Layout.tsx` para devoluciones pendientes
-37. [ ] Card "Devoluciones" en `AdminDashboardPage.tsx`
+33. [x] `AdminReturnsPage.tsx`: tabla + filtros + paginación
+34. [x] Modal detalle: imagen, motivo, historial de estados
+35. [x] Botones de acción por estado (aprobar / rechazar / confirmar recepción)
+36. [x] Badge independiente en `Layout.tsx` para devoluciones pendientes
+37. [x] Card "Devoluciones" en `AdminDashboardPage.tsx`
 
 ### Tarea 9 — Routing y verificación final
-38. [ ] Ruta `/admin/devoluciones` en `App.tsx` con `<AdminRoute>`
-39. [ ] `php artisan test` — todos los tests pasan
-40. [ ] Prueba manual: cancelar pedido `pending` → stock restaurado
-41. [ ] Prueba manual: cancelar pedido `paid` → Stripe Refund visible en dashboard Stripe
-42. [ ] Prueba manual: flujo completo devolución hasta `refunded`
-43. [ ] Prueba manual: rechazo de devolución con motivo
-44. [ ] Verificar los criterios de aceptación uno a uno
-45. [ ] `git add . && git commit -m "feat: feature 014 completa — cancelaciones y devoluciones" && git push`
+38. [x] Ruta `/admin/devoluciones` en `App.tsx` con `<AdminRoute>`
+39. [x] `php artisan test` — todos los tests pasan
+40. [x] Prueba manual: cancelar pedido `pending` → stock restaurado
+41. [x] Prueba manual: cancelar pedido `paid` → Stripe Refund visible en dashboard Stripe
+42. [x] Prueba manual: flujo completo devolución hasta `refunded`
+43. [x] Prueba manual: rechazo de devolución con motivo
+44. [x] Verificar los criterios de aceptación uno a uno
+45. [x] `git add . && git commit -m "feat: feature 014 completa — cancelaciones y devoluciones" && git push`

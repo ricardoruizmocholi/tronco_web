@@ -28,3 +28,7 @@ export function getOrders(): Promise<Order[]> {
 export function getOrder(id: number): Promise<Order> {
   return api.get<Order>(`/api/orders/${id}`).then(r => r.data)
 }
+
+export function cancelOrder(id: number): Promise<{ status: string; message: string }> {
+  return api.post<{ status: string; message: string }>(`/api/orders/${id}/cancel`).then(r => r.data)
+}

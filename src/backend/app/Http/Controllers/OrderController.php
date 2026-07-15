@@ -13,7 +13,7 @@ class OrderController extends Controller
     {
         $orders = $request->user()
             ->orders()
-            ->with('items.product:id,name,slug,image_url')
+            ->with(['items.product:id,name,slug,image_url', 'returnRequest'])
             ->latest()
             ->get();
 

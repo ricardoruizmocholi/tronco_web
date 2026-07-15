@@ -1,6 +1,18 @@
 import type { Product } from './product'
+import type { ReturnRequest } from './returnRequest'
 
-export type OrderStatus = 'pending' | 'paid' | 'failed' | 'shipped' | 'cancelled'
+export type OrderStatus =
+  | 'pending'
+  | 'paid'
+  | 'failed'
+  | 'shipped'
+  | 'cancelled'
+  | 'delivered'
+  | 'return_requested'
+  | 'return_approved'
+  | 'return_rejected'
+  | 'return_received'
+  | 'refunded'
 
 export interface OrderItem {
   id: number
@@ -16,9 +28,11 @@ export interface Order {
   user_id: number
   status: OrderStatus
   total: number
+  shipping_cost: number | null
   stripe_session_id: string | null
   shipping_address: Record<string, string> | null
   items: OrderItem[]
+  return_request?: ReturnRequest | null
   created_at: string
   updated_at: string
 }

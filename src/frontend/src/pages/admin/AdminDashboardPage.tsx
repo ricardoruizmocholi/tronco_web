@@ -97,6 +97,17 @@ const CARDS = [
     ),
   },
   {
+    title: 'Devoluciones',
+    description: 'Gestiona solicitudes de devolución: aprueba, rechaza o marca como recibido y emite el reembolso.',
+    href: '/admin/devoluciones',
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-7 h-7">
+        <path strokeLinecap="round" strokeLinejoin="round"
+          d="M9 15L3 9m0 0l6-6M3 9h12a6 6 0 010 12h-3" />
+      </svg>
+    ),
+  },
+  {
     title: 'Colaboradores',
     description: 'Añade marcas o tiendas colaboradoras con logo y enlace externo.',
     href: '/admin/colaboradores',

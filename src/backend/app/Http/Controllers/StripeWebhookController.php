@@ -98,9 +98,10 @@ class StripeWebhookController extends Controller
             // No sobreescribe shipping_address si Stripe no la devuelve
             // (la dirección ya fue guardada correctamente en el checkout)
             $updateData = [
-                'status'            => 'paid',
-                'stripe_session_id' => $session->id,
-                'shipping_cost'     => $shippingCost,
+                'status'                   => 'paid',
+                'stripe_session_id'        => $session->id,
+                'stripe_payment_intent_id' => $session->payment_intent,
+                'shipping_cost'            => $shippingCost,
             ];
             if ($shippingAddress !== null) {
                 $updateData['shipping_address'] = $shippingAddress;

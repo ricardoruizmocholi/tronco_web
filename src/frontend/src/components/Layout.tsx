@@ -4,6 +4,7 @@ import { useAuth } from '../hooks/useAuth'
 import { useScrollDirection } from '../hooks/useScrollDirection'
 import { useCartStore } from '../store/cartStore'
 import { getPendingCount } from '../api/adminOrders'
+import { getPendingReturnsCount } from '../api/returns'
 import CartDrawer from './CartDrawer'
 import MobileDrawer from './MobileDrawer'
 
@@ -31,18 +32,21 @@ export default function Layout() {
   const scrollDir = useScrollDirection()
   const { getTotalItems, openCart } = useCartStore()
   const [isDrawerOpen, setIsDrawerOpen] = useState(false)
-  const [pendingOrders, setPendingOrders] = useState(0)
+  const [pendingOrders,  setPendingOrders]  = useState(0)
+  const [pendingReturns, setPendingReturns] = useState(0)
 
   const totalItems = getTotalItems()
 
-  // Polling de pedidos pendientes — solo para admin, cada 60s
+  // Polling de pedidos y devoluciones pendientes — solo para admin, cada 60s
   useEffect(() => {
     if (user?.role !== 'admin') return
 
     getPendingCount().then(setPendingOrders).catch(() => {})
+    getPendingReturnsCount().then(setPendingReturns).catch(() => {})
 
     const interval = setInterval(() => {
       getPendingCount().then(setPendingOrders).catch(() => {})
+      getPendingReturnsCount().then(setPendingReturns).catch(() => {})
     }, 60_000)
 
     return () => clearInterval(interval)
@@ -95,13 +99,21 @@ export default function Layout() {
               {user ? (
                 <>
                   {user.role === 'admin' && (
-                    <span className="relative">
+                    <span className="inline-flex items-center gap-1">
                       <NavLink to="/admin" className={navCls}>Admin</NavLink>
                       {pendingOrders > 0 && (
-                        <span className="absolute -top-1.5 -right-2 min-w-[16px] h-4 px-0.5
+                        <span className="min-w-[16px] h-4 px-0.5
                           bg-red-500 text-white text-[10px] font-bold rounded-full
-                          flex items-center justify-center leading-none pointer-events-none">
+                          flex items-center justify-center leading-none">
                           {pendingOrders > 9 ? '9+' : pendingOrders}
+                        </span>
+                      )}
+                      {pendingReturns > 0 && (
+                        <span className="min-w-[16px] h-4 px-0.5
+                          text-white text-[10px] font-bold rounded-full
+                          flex items-center justify-center leading-none"
+                          style={{ backgroundColor: '#8B4A2A' }}>
+                          {pendingReturns > 9 ? '9+' : pendingReturns}
                         </span>
                       )}
                     </span>

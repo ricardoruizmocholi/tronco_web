@@ -1,28 +1,43 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { getOrders } from '../api/orders'
+import { getOrders, cancelOrder } from '../api/orders'
 import type { Order, OrderStatus } from '../types/order'
+import CancelOrderModal from './CancelOrderModal'
+import ReturnRequestModal from './ReturnRequestModal'
+import ReturnStatusBadge from './ReturnStatusBadge'
 
 const euros = new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' })
 
 const STATUS_CONFIG: Record<OrderStatus, { label: string; className: string }> = {
-  pending:   { label: 'Pendiente',  className: 'text-ink/50' },
-  paid:      { label: 'Pagado',     className: 'text-primary' },
-  failed:    { label: 'Fallido',    className: 'text-secondary' },
-  shipped:   { label: 'Enviado',    className: 'text-ink' },
-  cancelled: { label: 'Cancelado',  className: 'text-ink/30' },
+  pending:          { label: 'Pendiente',           className: 'text-ink/50' },
+  paid:             { label: 'Pagado',               className: 'text-primary' },
+  failed:           { label: 'Fallido',              className: 'text-secondary' },
+  shipped:          { label: 'Enviado',              className: 'text-ink' },
+  cancelled:        { label: 'Cancelado',            className: 'text-ink/30' },
+  delivered:        { label: 'Entregado',            className: 'text-primary' },
+  return_requested: { label: 'Devolución solicitada', className: 'text-secondary' },
+  return_approved:  { label: 'Devolución aprobada',  className: 'text-primary' },
+  return_rejected:  { label: 'Devolución rechazada', className: 'text-secondary' },
+  return_received:  { label: 'Devuelto recibido',    className: 'text-ink/50' },
+  refunded:         { label: 'Reembolsado',          className: 'text-primary' },
 }
 
 function StatusBadge({ status }: { status: OrderStatus }) {
-  const { label, className } = STATUS_CONFIG[status] ?? STATUS_CONFIG.pending
+  const cfg = STATUS_CONFIG[status] ?? STATUS_CONFIG.pending
   return (
-    <span className={`text-xs font-medium uppercase tracking-wide ${className}`}>
-      {label}
+    <span className={`text-xs font-medium uppercase tracking-wide ${cfg.className}`}>
+      {cfg.label}
     </span>
   )
 }
 
-function OrderCard({ order }: { order: Order }) {
+interface OrderCardProps {
+  order: Order
+  onCancel: (order: Order) => void
+  onReturn: (order: Order) => void
+}
+
+function OrderCard({ order, onCancel, onReturn }: OrderCardProps) {
   const [open, setOpen] = useState(false)
 
   const date = new Date(order.created_at).toLocaleDateString('es-ES', {
@@ -31,9 +46,11 @@ function OrderCard({ order }: { order: Order }) {
   const totalItems = order.items.reduce((n, i) => n + i.quantity, 0)
   const addr = order.shipping_address
 
+  const canCancel = ['pending', 'paid'].includes(order.status)
+  const canReturn  = ['shipped', 'delivered'].includes(order.status) && !order.return_request
+
   return (
     <div className="bg-white rounded-none border border-ink/10 overflow-hidden">
-      {/* Cabecera — clicable para desplegar */}
       <button
         onClick={() => setOpen(o => !o)}
         className="w-full flex items-center justify-between px-5 py-4 border-b border-ink/5 text-left hover:bg-ink/[0.03] transition-colors"
@@ -57,10 +74,8 @@ function OrderCard({ order }: { order: Order }) {
         </div>
       </button>
 
-      {/* Detalle expandible */}
       {open && (
         <div className="px-5 py-4 space-y-4">
-          {/* Items */}
           {order.items.length === 0 ? (
             <p className="text-xs text-ink/40">Sin artículos</p>
           ) : (
@@ -98,7 +113,6 @@ function OrderCard({ order }: { order: Order }) {
             </div>
           )}
 
-          {/* Dirección de envío */}
           {addr && (
             <div className="pt-3 border-t border-ink/5">
               <p className="text-xs font-medium text-ink/50 mb-1">Dirección de envío</p>
@@ -114,10 +128,36 @@ function OrderCard({ order }: { order: Order }) {
             </div>
           )}
 
-          {/* Pie con total de artículos */}
-          <p className="text-xs text-ink/40 pt-1">
-            {totalItems} {totalItems === 1 ? 'artículo' : 'artículos'}
-          </p>
+          {order.return_request && (
+            <div className="pt-3 border-t border-ink/5">
+              <p className="text-xs font-medium text-ink/50 mb-1">Estado de devolución</p>
+              <ReturnStatusBadge status={order.return_request.status} />
+            </div>
+          )}
+
+          <div className="pt-2 border-t border-ink/5 flex items-center justify-between">
+            <p className="text-xs text-ink/40">
+              {totalItems} {totalItems === 1 ? 'artículo' : 'artículos'}
+            </p>
+            <div className="flex gap-2">
+              {canReturn && (
+                <button
+                  onClick={() => onReturn(order)}
+                  className="text-xs text-secondary hover:underline"
+                >
+                  Solicitar devolución
+                </button>
+              )}
+              {canCancel && (
+                <button
+                  onClick={() => onCancel(order)}
+                  className="text-xs text-ink/40 hover:text-secondary hover:underline"
+                >
+                  Cancelar pedido
+                </button>
+              )}
+            </div>
+          </div>
         </div>
       )}
     </div>
@@ -125,9 +165,11 @@ function OrderCard({ order }: { order: Order }) {
 }
 
 export default function ProfileOrdersSection() {
-  const [orders, setOrders]   = useState<Order[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError]     = useState(false)
+  const [orders, setOrders]       = useState<Order[]>([])
+  const [loading, setLoading]     = useState(true)
+  const [error, setError]         = useState(false)
+  const [cancelTarget, setCancelTarget] = useState<Order | null>(null)
+  const [returnTarget, setReturnTarget] = useState<Order | null>(null)
 
   useEffect(() => {
     getOrders()
@@ -136,30 +178,80 @@ export default function ProfileOrdersSection() {
       .finally(() => setLoading(false))
   }, [])
 
-  if (loading) {
-    return <p className="text-ink/50 text-sm py-6">Cargando pedidos…</p>
+  function handleCancelled(orderId: number) {
+    setOrders(prev =>
+      prev.map(o => o.id === orderId ? { ...o, status: 'cancelled' as OrderStatus } : o)
+    )
+    setCancelTarget(null)
   }
 
-  if (error) {
-    return <p className="text-ink/50 text-sm py-6">No se pudieron cargar los pedidos.</p>
+  function handleRequested(orderId: number) {
+    setOrders(prev =>
+      prev.map(o =>
+        o.id === orderId
+          ? {
+              ...o,
+              status: 'return_requested' as OrderStatus,
+              return_request: {
+                id: 0, order_id: orderId, user_id: 0,
+                reason: 'otro' as const,
+                description: null, image_url: null,
+                status: 'pending' as const,
+                admin_notes: null, stripe_refund_id: null, refund_amount: null,
+                requested_at: null, approved_at: null, rejected_at: null,
+                received_at: null, refunded_at: null,
+                created_at: new Date().toISOString(),
+                updated_at: new Date().toISOString(),
+                history: [],
+              },
+            }
+          : o
+      )
+    )
+    setReturnTarget(null)
   }
+
+  if (loading) return <p className="text-ink/50 text-sm py-6">Cargando pedidos…</p>
+  if (error)   return <p className="text-ink/50 text-sm py-6">No se pudieron cargar los pedidos.</p>
 
   if (orders.length === 0) {
     return (
       <div className="text-center py-10 space-y-3">
         <p className="text-ink/40 text-sm">Todavía no tienes pedidos.</p>
-        <Link to="/tienda" className="text-primary text-sm hover:underline">
-          Ir a la tienda →
-        </Link>
+        <Link to="/tienda" className="text-primary text-sm hover:underline">Ir a la tienda →</Link>
       </div>
     )
   }
 
   return (
-    <div className="flex flex-col gap-3">
-      {orders.map(order => (
-        <OrderCard key={order.id} order={order} />
-      ))}
-    </div>
+    <>
+      <div className="flex flex-col gap-3">
+        {orders.map(order => (
+          <OrderCard
+            key={order.id}
+            order={order}
+            onCancel={setCancelTarget}
+            onReturn={setReturnTarget}
+          />
+        ))}
+      </div>
+
+      {cancelTarget && (
+        <CancelOrderModal
+          order={cancelTarget}
+          onClose={() => setCancelTarget(null)}
+          onCancelled={() => handleCancelled(cancelTarget.id)}
+          cancelFn={cancelOrder}
+        />
+      )}
+
+      {returnTarget && (
+        <ReturnRequestModal
+          order={returnTarget}
+          onClose={() => setReturnTarget(null)}
+          onRequested={() => handleRequested(returnTarget.id)}
+        />
+      )}
+    </>
   )
 }
