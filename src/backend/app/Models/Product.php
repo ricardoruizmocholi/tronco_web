@@ -86,4 +86,18 @@ class Product extends Model
     {
         return $query->where('created_at', '>=', now()->subDays(30));
     }
+
+    /**
+     * Eager load ligero para listados (índice, novedades, promociones activas):
+     * solo atributos tipo color, para pintar swatches en ProductCard sin cargar
+     * variantes/combinaciones completas. Centralizado aquí para que cualquier
+     * endpoint que devuelva productos a un listado lo incluya de forma consistente
+     * — olvidarlo en un controlador deja `attributes` undefined en el frontend.
+     */
+    public static function colorAttributesEagerLoad(): array
+    {
+        return [
+            'attributes' => fn ($q) => $q->where('type', 'color')->with('values'),
+        ];
+    }
 }

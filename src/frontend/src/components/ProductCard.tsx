@@ -25,7 +25,10 @@ export default function ProductCard({ product }: Props) {
   const cardSoldOut    = hasVariants ? availableSizes.length === 0 : stock === 0
   const canPreorder    = cardSoldOut && product.allow_preorder
   const promotion      = product.promotion ?? null
-  const colorAttribute = product.attributes.find(a => a.type === 'color')
+  // product.attributes solo se carga en algunos endpoints (listados con swatches de
+  // color) — nunca debe asumirse presente, o un producto sin ese eager load rompería
+  // toda la página.
+  const colorAttribute = (product.attributes ?? []).find(a => a.type === 'color')
 
   const img1 = images.find(i => i.position === 1)
   const img2 = images.find(i => i.position === 2)

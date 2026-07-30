@@ -12,22 +12,13 @@ use Illuminate\Support\Str;
 
 class ProductController extends Controller
 {
-    // Eager load ligero para listados — solo atributos tipo color (swatches en ProductCard),
-    // sin cargar variantes/combinaciones completas.
-    private static function colorAttributesOnly(): array
-    {
-        return [
-            'attributes' => fn ($q) => $q->where('type', 'color')->with('values'),
-        ];
-    }
-
     // GET /api/products  (?category=slug)
     public function index(): JsonResponse
     {
         $query = Product::with([
             'category', 'images', 'promotion',
             'variants' => fn($q) => $q->where('is_active', true),
-            ...self::colorAttributesOnly(),
+            ...Product::colorAttributesEagerLoad(),
         ])->where('is_active', true);
 
         if ($slug = request()->query('category')) {
@@ -58,7 +49,7 @@ class ProductController extends Controller
         $products = Product::with([
             'category', 'images', 'promotion',
             'variants' => fn($q) => $q->where('is_active', true),
-            ...self::colorAttributesOnly(),
+            ...Product::colorAttributesEagerLoad(),
         ])
             ->where('is_active', true)
             ->newArrivals()

@@ -63,8 +63,9 @@ export default function ProductPage() {
   }
 
   const { name, description, price, stock, category, images } = product
+  const attributes     = product.attributes ?? []
   const hasVariants    = product.variants.length > 0
-  const hasAttributes  = product.attributes.length > 0
+  const hasAttributes  = attributes.length > 0
   const activeVariants = product.variants.filter(v => v.is_active)
   const isSoldOut      = hasVariants
     ? !activeVariants.some(v => v.stock > 0)
@@ -77,10 +78,10 @@ export default function ProductPage() {
   const activeVariant = useMemo<ProductVariant | null>(() => {
     if (!hasVariants) return null
     if (!hasAttributes) return activeVariants[0] ?? null
-    if (Object.keys(selectedValues).length !== product.attributes.length) return null
+    if (Object.keys(selectedValues).length !== attributes.length) return null
 
     return activeVariants.find(v =>
-      product.attributes.every(attr =>
+      attributes.every(attr =>
         v.attribute_values.some(
           av => av.attribute_id === attr.id && av.attribute_value_id === selectedValues[attr.id]
         )
@@ -103,7 +104,7 @@ export default function ProductPage() {
 
   // Valores sin stock disponible dada la selección actual del resto de atributos
   function unavailableValueIds(attributeId: number): number[] {
-    const attribute = product!.attributes.find(a => a.id === attributeId)
+    const attribute = attributes.find(a => a.id === attributeId)
     if (!attribute) return []
 
     return attribute.values
@@ -111,7 +112,7 @@ export default function ProductPage() {
         const matching = activeVariants.filter(v => {
           const hasThisValue = v.attribute_values.some(av => av.attribute_value_id === value.id)
           if (!hasThisValue) return false
-          return product!.attributes.every(attr => {
+          return attributes.every(attr => {
             if (attr.id === attributeId) return true
             const sel = selectedValues[attr.id]
             if (sel === undefined) return true
@@ -254,7 +255,7 @@ export default function ProductPage() {
             {/* Selectores por atributo (Color, Talla, ...) */}
             {hasVariants && hasAttributes && (
               <div className="flex flex-col gap-4">
-                {product.attributes.map(attribute => (
+                {attributes.map(attribute => (
                   <AttributeSelector
                     key={attribute.id}
                     attribute={attribute}

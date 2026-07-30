@@ -65,7 +65,9 @@ export interface Product {
   category: Category | null
   images: ProductImage[]
   variants: ProductVariant[]
-  attributes: ProductAttribute[]
+  // No todos los endpoints lo cargan (solo listados/ficha con swatches de color) —
+  // tratar siempre como potencialmente ausente: (product.attributes ?? [])
+  attributes?: ProductAttribute[]
   promotion?: ProductPromotion | null
 }
 
