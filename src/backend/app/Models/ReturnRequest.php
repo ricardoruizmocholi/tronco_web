@@ -51,4 +51,9 @@ class ReturnRequest extends Model
     {
         return $this->hasMany(ReturnStatusHistory::class)->orderBy('created_at');
     }
+
+    public function items(): HasMany
+    {
+        return $this->hasMany(ReturnRequestItem::class);
+    }
 }

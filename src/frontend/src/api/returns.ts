@@ -5,10 +5,16 @@ import type {
   ReturnRequest,
 } from '../types/returnRequest'
 
+export interface CreateReturnItemPayload {
+  order_item_id: number
+  quantity: number
+}
+
 export interface CreateReturnPayload {
   reason: string
   description?: string
   image: File
+  items?: CreateReturnItemPayload[]
 }
 
 export function createReturnRequest(orderId: number, payload: CreateReturnPayload): Promise<ReturnRequest> {
@@ -16,6 +22,10 @@ export function createReturnRequest(orderId: number, payload: CreateReturnPayloa
   form.append('reason', payload.reason)
   if (payload.description) form.append('description', payload.description)
   form.append('image', payload.image)
+  payload.items?.forEach((item, i) => {
+    form.append(`items[${i}][order_item_id]`, String(item.order_item_id))
+    form.append(`items[${i}][quantity]`, String(item.quantity))
+  })
   return api.post<ReturnRequest>(`/api/orders/${orderId}/return`, form, {
     headers: { 'Content-Type': 'multipart/form-data' },
   }).then(r => r.data)

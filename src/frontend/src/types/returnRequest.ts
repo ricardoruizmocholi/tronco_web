@@ -3,6 +3,14 @@ import type { Order } from './order'
 export type ReturnReason = 'defectuoso' | 'no_corresponde' | 'desistimiento' | 'otro'
 export type ReturnStatus = 'pending' | 'approved' | 'rejected' | 'received' | 'refunded'
 
+export interface ReturnRequestItem {
+  id: number
+  return_request_id: number
+  order_item_id: number
+  quantity: number
+  reason: string | null
+}
+
 export interface ReturnStatusHistory {
   id: number
   return_request_id: number
@@ -34,6 +42,7 @@ export interface ReturnRequest {
   updated_at: string
   order?: Order
   history?: ReturnStatusHistory[]
+  items?: ReturnRequestItem[]
 }
 
 export interface PaginatedAdminReturns {

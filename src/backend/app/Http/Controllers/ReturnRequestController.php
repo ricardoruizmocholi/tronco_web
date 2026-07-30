@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Order;
 use App\Models\ReturnRequest;
+use App\Models\ReturnRequestItem;
 use App\Models\ReturnStatusHistory;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -29,17 +30,39 @@ class ReturnRequestController extends Controller
         }
 
         $data = $request->validate([
-            'reason'      => ['required', 'in:defectuoso,no_corresponde,desistimiento,otro'],
-            'description' => ['nullable', 'string', 'max:1000'],
-            'image'       => ['required', 'file', 'image', 'max:5120'],
+            'reason'                => ['required', 'in:defectuoso,no_corresponde,desistimiento,otro'],
+            'description'           => ['nullable', 'string', 'max:1000'],
+            'image'                 => ['required', 'file', 'image', 'max:5120'],
+            'items'                 => ['nullable', 'array', 'min:1'],
+            'items.*.order_item_id' => ['required_with:items', 'integer'],
+            'items.*.quantity'      => ['required_with:items', 'integer', 'min:1'],
+            'items.*.reason'        => ['nullable', 'string', 'max:255'],
         ]);
+
+        $requestedItems = collect($data['items'] ?? []);
+
+        if ($requestedItems->isNotEmpty()) {
+            $orderItems = $order->items->keyBy('id');
+
+            foreach ($requestedItems as $itemData) {
+                $orderItem = $orderItems->get($itemData['order_item_id']);
+
+                if (! $orderItem) {
+                    return response()->json(['message' => 'Uno de los artículos no pertenece a este pedido.'], 422);
+                }
+
+                if ($itemData['quantity'] > $orderItem->quantity) {
+                    return response()->json(['message' => 'La cantidad a devolver supera la cantidad del pedido.'], 422);
+                }
+            }
+        }
 
         $file      = $request->file('image');
         $filename  = Str::uuid() . '.' . $file->getClientOriginalExtension();
         $file->storeAs('images', $filename, 'public');
         $imageUrl  = config('app.url') . '/storage/images/' . $filename;
 
-        $returnRequest = DB::transaction(function () use ($order, $data, $imageUrl, $request) {
+        $returnRequest = DB::transaction(function () use ($order, $data, $imageUrl, $request, $requestedItems) {
             $rr = ReturnRequest::create([
                 'order_id'     => $order->id,
                 'user_id'      => $request->user()->id,
@@ -49,6 +72,15 @@ class ReturnRequestController extends Controller
                 'status'       => 'pending',
                 'requested_at' => now(),
             ]);
+
+            foreach ($requestedItems as $itemData) {
+                ReturnRequestItem::create([
+                    'return_request_id' => $rr->id,
+                    'order_item_id'     => $itemData['order_item_id'],
+                    'quantity'          => $itemData['quantity'],
+                    'reason'            => $itemData['reason'] ?? null,
+                ]);
+            }
 
             ReturnStatusHistory::create([
                 'return_request_id' => $rr->id,
@@ -64,7 +96,7 @@ class ReturnRequestController extends Controller
             return $rr;
         });
 
-        return response()->json($returnRequest->load('order'), 201);
+        return response()->json($returnRequest->load('order', 'items'), 201);
     }
 
     public function index(Request $request): JsonResponse

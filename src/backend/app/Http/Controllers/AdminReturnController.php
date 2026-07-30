@@ -109,7 +109,7 @@ class AdminReturnController extends Controller
      */
     public function receive(Request $request, int $id): JsonResponse
     {
-        $rr = ReturnRequest::with(['order.items.product'])->findOrFail($id);
+        $rr = ReturnRequest::with(['order.items.product', 'items.orderItem'])->findOrFail($id);
 
         if ($rr->status !== 'approved') {
             return response()->json(['message' => 'Solo se puede confirmar recepción de devoluciones aprobadas.'], 422);
@@ -122,15 +122,28 @@ class AdminReturnController extends Controller
             return response()->json(['message' => 'No se puede procesar el reembolso. El pedido no tiene ID de pago.'], 422);
         }
 
-        // For desistimiento, full refund including shipping (legal obligation)
+        $returnedItems = $rr->items;
+
+        // If the request has specific items, refund only those (unit_price * quantity).
+        // Otherwise (legacy full-order requests) refund the whole order total.
+        if ($returnedItems->isNotEmpty()) {
+            $itemsRefund  = $returnedItems->sum(fn ($ri) => $ri->orderItem->unit_price * $ri->quantity);
+            $isFullReturn = $returnedItems->sum('quantity') === $order->items->sum('quantity');
+        } else {
+            $itemsRefund  = $order->total;
+            $isFullReturn = true;
+        }
+
+        // For desistimiento, full refund including shipping (legal obligation) — only when
+        // every item in the order is being returned.
         // For other reasons, admin can pass a custom amount (partial refund)
         if ($rr->reason === 'desistimiento') {
-            $refundAmount = $order->total + ($order->shipping_cost ?? 0);
+            $refundAmount = $itemsRefund + ($isFullReturn ? ($order->shipping_cost ?? 0) : 0);
         } else {
             $data = $request->validate([
                 'refund_amount' => ['nullable', 'integer', 'min:1'],
             ]);
-            $refundAmount = $data['refund_amount'] ?? $order->total;
+            $refundAmount = $data['refund_amount'] ?? $itemsRefund;
         }
 
         try {

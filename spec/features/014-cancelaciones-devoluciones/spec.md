@@ -59,6 +59,18 @@ STOCK
 - [x] Admin puede decidir reembolso parcial o total en otros motivos
 - [x] Cada cambio de estado queda registrado en `return_status_history` (auditoría)
 - [x] Los pedidos nunca son eliminables desde ningún panel admin
+- [x] Usuario puede elegir devolver solo algunos artículos del pedido (devolución parcial),
+      marcando/desmarcando artículos y ajustando la cantidad de cada uno (1 hasta el máximo comprado)
+- [x] Si no se selecciona ningún artículo, el frontend bloquea el envío del formulario
+- [x] El subtotal a devolver se recalcula en tiempo real según la selección
+- [x] El backend valida que cada artículo devuelto pertenezca al pedido y que la cantidad
+      no supere la comprada
+- [x] Si la solicitud no especifica artículos (`items[]` ausente), se devuelve el pedido
+      completo (comportamiento heredado, compatible con clientes antiguos)
+- [x] El `refund_amount` al confirmar recepción se calcula sumando `unit_price * quantity`
+      solo de los artículos efectivamente devueltos, no el total del pedido
+- [x] Para `desistimiento`, el `shipping_cost` solo se añade al reembolso si se devuelven
+      TODOS los artículos del pedido
 
 **Panel admin**
 - [x] Página `/admin/devoluciones` con tabla filtrable por estado, fecha y usuario
@@ -68,7 +80,6 @@ STOCK
 
 ### Fuera de alcance
 - Notificaciones por email al usuario (post-MVP)
-- Devoluciones parciales de pedidos con múltiples productos (post-MVP)
 - Integración con empresa de transporte para etiqueta de devolución (post-MVP)
 - Bloqueo automático de solicitudes fuera del plazo de 14 días (decisión del admin)
 
@@ -87,24 +98,39 @@ STOCK
   (necesaria para ejecutar Stripe Refunds programáticamente)
 - `create_return_requests_table`: tabla de solicitudes de devolución
 - `create_return_status_history_table`: tabla de auditoría de cambios
+- `add_items_to_return_requests_table`: tabla `return_request_items`
+  (`return_request_id`, `order_item_id`, `quantity`, `reason` nullable)
+  para soportar devoluciones parciales
 
 **Modelos**
-- `ReturnRequest`: belongsTo Order, belongsTo User, hasMany ReturnStatusHistory
-- `ReturnStatusHistory`: belongsTo ReturnRequest, belongsTo User (changed_by)
+- `ReturnRequest`: belongsTo Order, belongsTo User, hasMany ReturnStatusHistory,
+  hasMany ReturnRequestItem
+- `ReturnStatusHistory`: belongsTo ReturnRequest, belongsTo User (changed_by).
+  `$table = 'return_status_history'` explícito (el nombre de la migración es
+  singular; Eloquent pluraliza "History" a "Histories" por defecto)
+- `ReturnRequestItem`: belongsTo ReturnRequest, belongsTo OrderItem
 - `Order`: añadir nuevos estados al enum, hasOne ReturnRequest
 
 **Controladores**
 - `CancellationController` (auth:sanctum):
   - `POST /api/orders/{id}/cancel` — owner del pedido
 - `ReturnRequestController` (auth:sanctum):
-  - `POST /api/orders/{id}/return` — inicia solicitud (imagen + motivo)
+  - `POST /api/orders/{id}/return` — inicia solicitud (imagen + motivo).
+    Acepta `items[]` opcional (`order_item_id`, `quantity`) para devolución
+    parcial; valida que cada `order_item_id` pertenezca al pedido y que
+    `quantity` no supere la cantidad comprada. Si `items[]` no se envía,
+    se devuelve el pedido completo (fallback)
   - `GET /api/user/returns` — historial de devoluciones del usuario
 - `AdminReturnController` (middleware admin):
   - `GET /api/admin/returns` — cola con filtros
   - `GET /api/admin/returns/{id}` — detalle + historial
   - `PUT /api/admin/returns/{id}/approve`
   - `PUT /api/admin/returns/{id}/reject` — requiere `admin_notes`
-  - `PUT /api/admin/returns/{id}/receive` — ejecuta Stripe Refund + restaura stock
+  - `PUT /api/admin/returns/{id}/receive` — ejecuta Stripe Refund + restaura stock.
+    `refund_amount` se calcula sumando `unit_price * quantity` de los
+    `return_request_items` asociados (o el total del pedido si no hay items,
+    caso legacy). Para `desistimiento`, el `shipping_cost` solo se añade si
+    la devolución cubre todos los artículos del pedido
   - `GET /api/admin/returns/pending-count` — para badge
 - `AdminCancellationController` (middleware admin):
   - `PUT /api/admin/orders/{id}/cancel` — admin puede cancelar cualquier `paid`
@@ -129,7 +155,9 @@ STOCK
 **Componentes**
 - `CancelOrderModal.tsx`: confirmación con aviso legal sobre comisiones Stripe
 - `ReturnRequestModal.tsx`: formulario con selector motivo + upload imagen
-  (reutiliza lógica de `ImageUploadController`) + descripción opcional
+  (reutiliza lógica de `ImageUploadController`) + descripción opcional +
+  selección de artículos a devolver (checkbox + cantidad por artículo,
+  todos marcados por defecto, subtotal en tiempo real)
 - `ReturnStatusBadge.tsx`: badge de estado de devolución reutilizable
 
 **Páginas modificadas**
@@ -217,3 +245,15 @@ STOCK
 43. [x] Prueba manual: rechazo de devolución con motivo
 44. [x] Verificar los criterios de aceptación uno a uno
 45. [x] `git add . && git commit -m "feat: feature 014 completa — cancelaciones y devoluciones" && git push`
+
+### Tarea 10 — Fix crítico: tabla `return_status_history` + devoluciones parciales
+46. [x] Corregir `ReturnStatusHistory::$table` (la tabla real es `return_status_history`,
+    singular; Eloquent la pluralizaba a `return_status_histories` sin el `$table` explícito)
+47. [x] Migración `add_items_to_return_requests_table`: tabla `return_request_items`
+48. [x] Modelo `ReturnRequestItem` + relación `ReturnRequest::items()`
+49. [x] `ReturnRequestController@store`: validar y persistir `items[]` parciales
+50. [x] `AdminReturnController@receive`: `refund_amount` por artículos devueltos +
+    `shipping_cost` condicionado a devolución completa
+51. [x] `ReturnRequestModal.tsx`: sección de selección de artículos con subtotal en vivo
+52. [x] `php artisan test` — mismos 19 fallos preexistentes (FanficTest/CheckoutTest,
+    no relacionados), sin fallos nuevos

@@ -9,10 +9,18 @@ const REASONS = [
   { value: 'otro',          label: 'Otro motivo' },
 ]
 
+const euros = new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' })
+
 interface Props {
   order: Order
   onClose: () => void
   onRequested: (orderId: number) => void
+}
+
+interface ItemSelection {
+  orderItemId: number
+  checked: boolean
+  quantity: number
 }
 
 export default function ReturnRequestModal({ order, onClose, onRequested }: Props) {
@@ -23,7 +31,25 @@ export default function ReturnRequestModal({ order, onClose, onRequested }: Prop
   const [loading, setLoading]         = useState(false)
   const [error, setError]             = useState<string | null>(null)
   const [success, setSuccess]         = useState(false)
+  const [itemSelections, setItemSelections] = useState<ItemSelection[]>(() =>
+    order.items.map(oi => ({ orderItemId: oi.id, checked: true, quantity: oi.quantity })),
+  )
   const fileRef = useRef<HTMLInputElement>(null)
+
+  function toggleItemChecked(orderItemId: number, checked: boolean) {
+    setItemSelections(prev => prev.map(sel => sel.orderItemId === orderItemId ? { ...sel, checked } : sel))
+  }
+
+  function updateItemQuantity(orderItemId: number, quantity: number) {
+    setItemSelections(prev => prev.map(sel => sel.orderItemId === orderItemId ? { ...sel, quantity } : sel))
+  }
+
+  const subtotal = itemSelections
+    .filter(sel => sel.checked)
+    .reduce((sum, sel) => {
+      const orderItem = order.items.find(oi => oi.id === sel.orderItemId)
+      return sum + (orderItem ? orderItem.unit_price * sel.quantity : 0)
+    }, 0)
 
   function handleImageChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0] ?? null
@@ -40,11 +66,18 @@ export default function ReturnRequestModal({ order, onClose, onRequested }: Prop
     e.preventDefault()
     if (!image) { setError('La imagen del producto es obligatoria.'); return }
     if (!reason) { setError('Selecciona un motivo.'); return }
+    const selectedItems = itemSelections.filter(sel => sel.checked)
+    if (selectedItems.length === 0) { setError('Selecciona al menos un artículo a devolver.'); return }
 
     setLoading(true)
     setError(null)
     try {
-      await createReturnRequest(order.id, { reason, description: description || undefined, image })
+      await createReturnRequest(order.id, {
+        reason,
+        description: description || undefined,
+        image,
+        items: selectedItems.map(sel => ({ order_item_id: sel.orderItemId, quantity: sel.quantity })),
+      })
       setSuccess(true)
       onRequested(order.id)
     } catch (err: unknown) {
@@ -159,6 +192,48 @@ export default function ReturnRequestModal({ order, onClose, onRequested }: Prop
                 Eliminar imagen
               </button>
             )}
+          </div>
+
+          {/* Artículos a devolver */}
+          <div>
+            <label className="block text-[10px] font-semibold uppercase tracking-widest text-ink/40 mb-2">
+              ¿Qué artículos quieres devolver? <span className="text-secondary">*</span>
+            </label>
+            <div className="space-y-3">
+              {order.items.map(orderItem => {
+                const sel = itemSelections.find(s => s.orderItemId === orderItem.id)
+                if (!sel) return null
+                return (
+                  <div key={orderItem.id} className="flex items-center justify-between gap-3 border-b border-ink/10 pb-2">
+                    <label className="flex items-center gap-2 flex-1 min-w-0 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={sel.checked}
+                        onChange={e => toggleItemChecked(orderItem.id, e.target.checked)}
+                        className="shrink-0"
+                      />
+                      <span className="text-sm text-ink truncate">
+                        {orderItem.product?.name ?? `Artículo #${orderItem.id}`}
+                      </span>
+                    </label>
+                    <select
+                      value={sel.quantity}
+                      disabled={!sel.checked}
+                      onChange={e => updateItemQuantity(orderItem.id, Number(e.target.value))}
+                      className="bg-transparent border-b border-ink/20 text-sm text-ink px-1 py-1
+                        focus:outline-none focus:border-primary disabled:opacity-40 transition-colors"
+                    >
+                      {Array.from({ length: orderItem.quantity }, (_, idx) => idx + 1).map(q => (
+                        <option key={q} value={q}>{q}</option>
+                      ))}
+                    </select>
+                  </div>
+                )
+              })}
+            </div>
+            <p className="text-sm text-ink/60 mt-3">
+              Subtotal a devolver: <span className="font-medium text-ink">{euros.format(subtotal / 100)}</span>
+            </p>
           </div>
 
           {/* Descripción opcional */}
