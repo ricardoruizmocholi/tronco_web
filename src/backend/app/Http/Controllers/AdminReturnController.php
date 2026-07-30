@@ -119,7 +119,16 @@ class AdminReturnController extends Controller
 
         if (! $order->stripe_payment_intent_id) {
             Log::error("AdminReturnController@receive: order #{$order->id} has no stripe_payment_intent_id.");
-            return response()->json(['message' => 'No se puede procesar el reembolso. El pedido no tiene ID de pago.'], 422);
+
+            if ($order->stripe_session_id) {
+                return response()->json([
+                    'message' => "Este pedido no tiene ID de pago de Stripe. Verifica en el dashboard de Stripe "
+                        . "el pago con session ID: {$order->stripe_session_id} y procesa el reembolso manualmente.",
+                    'stripe_session_id' => $order->stripe_session_id,
+                ], 422);
+            }
+
+            return response()->json(['message' => 'No se puede procesar el reembolso. El pedido no tiene ID de pago ni de sesión de Stripe.'], 422);
         }
 
         $returnedItems = $rr->items;
