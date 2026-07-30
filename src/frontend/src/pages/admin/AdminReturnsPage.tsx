@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
 import {
   approveReturn,
   confirmReturnReceived,
@@ -30,6 +31,36 @@ const STATUS_OPTIONS: { value: ReturnStatus | ''; label: string }[] = [
 const inputCls =
   'w-full border border-ink/15 bg-white px-3 py-2 text-sm text-ink ' +
   'placeholder:text-ink/30 focus:outline-none focus:border-primary transition-colors'
+
+interface ReturnLine {
+  key: string
+  productName: string
+  size: string
+  quantity: number
+  unitPrice: number
+}
+
+// return_request_items describe una devolución parcial; si no hay ninguno
+// (solicitud legacy o devolución del pedido completo) se muestran todos
+// los artículos del pedido.
+function getReturnLines(detail: ReturnRequest): ReturnLine[] {
+  if (detail.items && detail.items.length > 0) {
+    return detail.items.map(ri => ({
+      key: `rri-${ri.id}`,
+      productName: ri.order_item?.product?.name ?? `Artículo #${ri.order_item_id}`,
+      size: ri.order_item?.variant?.size ?? '—',
+      quantity: ri.quantity,
+      unitPrice: ri.order_item?.unit_price ?? 0,
+    }))
+  }
+  return (detail.order?.items ?? []).map(oi => ({
+    key: `oi-${oi.id}`,
+    productName: oi.product?.name ?? `Artículo #${oi.id}`,
+    size: oi.variant?.size ?? '—',
+    quantity: oi.quantity,
+    unitPrice: oi.unit_price,
+  }))
+}
 
 export default function AdminReturnsPage() {
   const [returns, setReturns]     = useState<ReturnRequest[]>([])
@@ -222,7 +253,7 @@ export default function AdminReturnsPage() {
                 <tr key={rr.id} className="border-b border-ink/5 hover:bg-ink/[0.02] transition-colors">
                   <td className="px-4 py-3 font-mono text-xs text-ink/50">{rr.id}</td>
                   <td className="px-4 py-3 text-xs text-ink">
-                    {(rr as ReturnRequest & { user?: { name: string; email: string } }).user?.email ?? '—'}
+                    {rr.user?.email ?? '—'}
                   </td>
                   <td className="px-4 py-3 text-xs font-semibold text-primary">
                     #{rr.order_id}
@@ -343,6 +374,86 @@ export default function AdminReturnsPage() {
                       Stripe Refund: {detail.stripe_refund_id}
                     </p>
                   )}
+
+                  {/* Artículos a devolver */}
+                  {(() => {
+                    const lines = getReturnLines(detail)
+                    if (lines.length === 0) return null
+                    const total = lines.reduce((sum, l) => sum + l.unitPrice * l.quantity, 0)
+                    return (
+                      <div>
+                        <p className="text-xs font-semibold text-ink/50 uppercase tracking-wide mb-3">
+                          Artículos a devolver
+                        </p>
+                        <div className="border border-ink/10 divide-y divide-ink/5">
+                          {lines.map(line => (
+                            <div key={line.key} className="flex items-center justify-between gap-3 px-3 py-2 text-sm">
+                              <div className="min-w-0">
+                                <p className="text-ink truncate">{line.productName}</p>
+                                <p className="text-xs text-ink/40">
+                                  Talla: {line.size} · {euros.format(line.unitPrice / 100)} × {line.quantity}
+                                </p>
+                              </div>
+                              <p className="font-medium text-ink flex-shrink-0">
+                                {euros.format((line.unitPrice * line.quantity) / 100)}
+                              </p>
+                            </div>
+                          ))}
+                        </div>
+                        <div className="flex items-center justify-between px-1 pt-2">
+                          <p className="text-xs font-semibold text-ink/50 uppercase tracking-wide">
+                            Total a reembolsar
+                          </p>
+                          <p className="text-sm font-bold text-primary">{euros.format(total / 100)}</p>
+                        </div>
+                      </div>
+                    )
+                  })()}
+
+                  {/* Datos del cliente */}
+                  <div>
+                    <p className="text-xs font-semibold text-ink/50 uppercase tracking-wide mb-3">
+                      Datos del cliente
+                    </p>
+                    <div className="border border-ink/10 p-4 space-y-3 text-sm">
+                      <div>
+                        <p className="text-ink font-medium">{detail.user?.name ?? '—'}</p>
+                        <p className="text-ink/50 text-xs">{detail.user?.email ?? '—'}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-ink/40 mb-1">
+                          Dirección de envío original (a la que debe volver el paquete)
+                        </p>
+                        {detail.order?.shipping_address ? (
+                          <div className="text-ink/70 leading-relaxed">
+                            {detail.order.shipping_address.name && <p>{detail.order.shipping_address.name}</p>}
+                            {(detail.order.shipping_address.address_line1 ?? detail.order.shipping_address.line1) && (
+                              <p>{detail.order.shipping_address.address_line1 ?? detail.order.shipping_address.line1}</p>
+                            )}
+                            {(detail.order.shipping_address.address_line2 ?? detail.order.shipping_address.line2) && (
+                              <p>{detail.order.shipping_address.address_line2 ?? detail.order.shipping_address.line2}</p>
+                            )}
+                            {(detail.order.shipping_address.postal_code || detail.order.shipping_address.city) && (
+                              <p>
+                                {[detail.order.shipping_address.postal_code, detail.order.shipping_address.city]
+                                  .filter(Boolean).join(' ')}
+                              </p>
+                            )}
+                            {detail.order.shipping_address.state && <p>{detail.order.shipping_address.state}</p>}
+                            {detail.order.shipping_address.country && <p>{detail.order.shipping_address.country}</p>}
+                          </div>
+                        ) : (
+                          <p className="text-ink/30 text-xs">Sin dirección de envío registrada.</p>
+                        )}
+                      </div>
+                      <Link
+                        to={`/admin/pedidos?order=${detail.order_id}`}
+                        className="inline-block text-xs text-primary hover:text-primary/70 transition-colors"
+                      >
+                        Ver pedido #{detail.order_id} →
+                      </Link>
+                    </div>
+                  </div>
 
                   {/* History */}
                   {detail.history && detail.history.length > 0 && (

@@ -37,8 +37,14 @@ class AdminReturnController extends Controller
 
     public function show(int $id): JsonResponse
     {
-        $rr = ReturnRequest::with(['order.items.product', 'user', 'history.changedByUser'])
-            ->findOrFail($id);
+        $rr = ReturnRequest::with([
+            'order.items.product',
+            'order.items.variant',
+            'user',
+            'history.changedByUser',
+            'items.orderItem.product',
+            'items.orderItem.variant',
+        ])->findOrFail($id);
 
         return response()->json($rr);
     }

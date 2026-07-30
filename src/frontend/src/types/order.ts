@@ -1,4 +1,4 @@
-import type { Product } from './product'
+import type { Product, ProductVariant } from './product'
 import type { ReturnRequest } from './returnRequest'
 
 export type OrderStatus =
@@ -18,9 +18,11 @@ export interface OrderItem {
   id: number
   order_id: number
   product_id: number
+  variant_id?: number | null
   quantity: number
   unit_price: number
   product: Pick<Product, 'id' | 'name' | 'slug' | 'image_url' | 'price'> | null
+  variant?: Pick<ProductVariant, 'id' | 'size'> | null
 }
 
 export interface Order {

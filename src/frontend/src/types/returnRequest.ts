@@ -1,4 +1,4 @@
-import type { Order } from './order'
+import type { Order, OrderItem } from './order'
 
 export type ReturnReason = 'defectuoso' | 'no_corresponde' | 'desistimiento' | 'otro'
 export type ReturnStatus = 'pending' | 'approved' | 'rejected' | 'received' | 'refunded'
@@ -9,6 +9,7 @@ export interface ReturnRequestItem {
   order_item_id: number
   quantity: number
   reason: string | null
+  order_item?: OrderItem
 }
 
 export interface ReturnStatusHistory {
@@ -41,6 +42,7 @@ export interface ReturnRequest {
   created_at: string
   updated_at: string
   order?: Order
+  user?: { id: number; name: string; email: string }
   history?: ReturnStatusHistory[]
   items?: ReturnRequestItem[]
 }

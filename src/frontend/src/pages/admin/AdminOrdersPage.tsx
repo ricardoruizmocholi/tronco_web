@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import {
   exportOrders,
   getAdminOrder,
@@ -309,6 +310,13 @@ export default function AdminOrdersPage() {
   const [statsLoading, setStatsLoading] = useState(true)
 
   const [selectedId, setSelectedId] = useState<number | null>(null)
+
+  // Abre directamente el detalle si se llega con ?order=ID (p.ej. desde el panel de devoluciones)
+  const [searchParams] = useSearchParams()
+  useEffect(() => {
+    const orderParam = searchParams.get('order')
+    if (orderParam) setSelectedId(Number(orderParam))
+  }, [searchParams])
 
   // Cargar stats al montar
   useEffect(() => {
