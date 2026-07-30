@@ -43,6 +43,39 @@ export default function ProductPage() {
       .finally(() => setLoading(false))
   }, [slug])
 
+  // Derivados seguros con `product` potencialmente null — deben calcularse ANTES
+  // de cualquier return condicional: los hooks de abajo (useMemo/useEffect) dependen
+  // de ellos, y las Rules of Hooks no permiten hooks después de un return temprano.
+  const attributes     = product?.attributes ?? []
+  const hasVariants    = (product?.variants.length ?? 0) > 0
+  const hasAttributes  = attributes.length > 0
+  const activeVariants = product?.variants.filter(v => v.is_active) ?? []
+
+  // Variante activa: sin atributos, la única variante posible (si existe); con
+  // atributos, la que combina exactamente con todos los valores seleccionados.
+  const activeVariant = useMemo<ProductVariant | null>(() => {
+    if (!product || !hasVariants) return null
+    if (!hasAttributes) return activeVariants[0] ?? null
+    if (Object.keys(selectedValues).length !== attributes.length) return null
+
+    return activeVariants.find(v =>
+      attributes.every(attr =>
+        v.attribute_values.some(
+          av => av.attribute_id === attr.id && av.attribute_value_id === selectedValues[attr.id]
+        )
+      )
+    ) ?? null
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [product, selectedValues, hasVariants, hasAttributes])
+
+  // Cambia la imagen principal si la variante seleccionada tiene una propia
+  useEffect(() => {
+    if (product && activeVariant?.image_url) {
+      setActiveImg({ id: -activeVariant.id, product_id: product.id, url: activeVariant.image_url, position: 0 })
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeVariant?.id, activeVariant?.image_url])
+
   if (loading) {
     return (
       <div className="min-h-screen bg-canvas flex items-center justify-center">
@@ -63,40 +96,11 @@ export default function ProductPage() {
   }
 
   const { name, description, price, stock, category, images } = product
-  const attributes     = product.attributes ?? []
-  const hasVariants    = product.variants.length > 0
-  const hasAttributes  = attributes.length > 0
-  const activeVariants = product.variants.filter(v => v.is_active)
   const isSoldOut      = hasVariants
     ? !activeVariants.some(v => v.stock > 0)
     : stock === 0
   const canPreorder    = isSoldOut && product.allow_preorder
   const promotion      = product.promotion ?? null
-
-  // Variante activa: sin atributos, la única variante posible (si existe); con
-  // atributos, la que combina exactamente con todos los valores seleccionados.
-  const activeVariant = useMemo<ProductVariant | null>(() => {
-    if (!hasVariants) return null
-    if (!hasAttributes) return activeVariants[0] ?? null
-    if (Object.keys(selectedValues).length !== attributes.length) return null
-
-    return activeVariants.find(v =>
-      attributes.every(attr =>
-        v.attribute_values.some(
-          av => av.attribute_id === attr.id && av.attribute_value_id === selectedValues[attr.id]
-        )
-      )
-    ) ?? null
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [product, selectedValues, hasVariants, hasAttributes])
-
-  // Cambia la imagen principal si la variante seleccionada tiene una propia
-  useEffect(() => {
-    if (activeVariant?.image_url) {
-      setActiveImg({ id: -activeVariant.id, product_id: product.id, url: activeVariant.image_url, position: 0 })
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeVariant?.id, activeVariant?.image_url])
 
   function handleSelectValue(attributeId: number, valueId: number) {
     setSelectedValues(prev => ({ ...prev, [attributeId]: valueId }))
