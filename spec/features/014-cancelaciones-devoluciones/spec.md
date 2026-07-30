@@ -257,3 +257,51 @@ STOCK
 51. [x] `ReturnRequestModal.tsx`: sección de selección de artículos con subtotal en vivo
 52. [x] `php artisan test` — mismos 19 fallos preexistentes (FanficTest/CheckoutTest,
     no relacionados), sin fallos nuevos
+
+### Tarea 11 — Verificación final: `stripe_payment_intent_id` ausente + modal admin
+53. [x] Comando `stripe:sync-payment-intents`: recupera el `payment_intent_id` desde
+    la Checkout Session de Stripe para pedidos que no lo tienen guardado
+54. [x] Corregido el filtro del comando: no restringir por `status = 'paid'`
+    (un pedido en devolución/cancelación ya no está en `paid` aunque necesite
+    su `payment_intent_id`) — se procesan todos los pedidos con
+    `payment_intent_id` nulo, y se listan aparte los que ni siquiera tienen
+    `stripe_session_id` (irrecuperables automáticamente)
+55. [x] `AdminReturnController@receive`: si falta `payment_intent_id`, el mensaje
+    de error incluye el `stripe_session_id` para gestión manual en Stripe
+56. [x] `AdminReturnController@show`: eager loading de `order.items.variant`,
+    `items.orderItem.product`, `items.orderItem.variant` para el detalle admin
+57. [x] `AdminReturnsPage.tsx`: secciones "Artículos a devolver" (con subtotal y
+    total) y "Datos del cliente" (nombre, email, dirección de envío, link al
+    pedido) en el modal de detalle
+58. [x] `AdminOrdersPage.tsx`: soporte `?order=ID` para abrir el detalle del
+    pedido desde el link del panel de devoluciones
+59. [x] `php artisan test` — mismos 19 fallos preexistentes, sin fallos nuevos
+60. [x] Verificado manualmente con datos reales (pedido #7 / devolución #5):
+    JSON de `show()` inspeccionado en tinker, coincide con lo que consume el frontend
+
+---
+
+## Notas de implementación
+
+**`stripe_payment_intent_id` en pedidos anteriores a la feature**
+Los pedidos creados antes de la Feature 014 no tenían `stripe_payment_intent_id`
+guardado (el webhook empezó a persistirlo con esta feature). Se creó el comando
+`stripe:sync-payment-intents`, que recupera ese valor desde la Checkout Session
+de Stripe (`stripe_session_id`) y lo guarda en el pedido. El comando procesa
+**cualquier pedido con `payment_intent_id` nulo, sin filtrar por `status`**:
+un pedido en devolución o cancelación ya no está en `paid` (avanza a `shipped`,
+`return_approved`, `refunded`, etc.) aunque siga necesitando su
+`payment_intent_id` para poder reembolsarse. Los pedidos sin `stripe_session_id`
+se listan aparte como irrecuperables automáticamente.
+
+**Tabla `return_status_history`**
+Eloquent pluraliza el nombre de la clase `ReturnStatusHistory` a
+`return_status_histories`, pero la migración crea la tabla en singular
+(`return_status_history`). Se añadió `protected $table = 'return_status_history'`
+explícito en el modelo para que coincida con la tabla real.
+
+**Devoluciones parciales**
+`return_request_items` permite devolver artículos individuales del pedido
+(no solo el pedido completo). El `shipping_cost` de un `desistimiento` solo
+se añade al reembolso si se devuelven **todos** los artículos del pedido —
+devolver un único artículo de varios no da derecho a recuperar el envío completo.
