@@ -59,6 +59,7 @@ export default function ProductPage() {
     ? !activeVariants.some(v => v.stock > 0)
     : stock === 0
   const canPreorder    = isSoldOut && product.allow_preorder
+  const promotion      = product.promotion ?? null
 
   function handleAddToCart() {
     addItem({
@@ -67,7 +68,7 @@ export default function ProductPage() {
       size:         selectedVariant?.size,
       name:         product.name,
       slug:         product.slug,
-      price:        product.price,
+      price:        promotion?.discounted_price ?? product.price,
       stock:        hasVariants ? (selectedVariant?.stock ?? 0) : product.stock,
       image:        images.find(i => i.position === 1)?.url ?? null,
       categorySlug: product.category?.slug ?? null,
@@ -153,7 +154,14 @@ export default function ProductPage() {
 
             <h1 className="text-2xl font-bold text-ink leading-tight">{name}</h1>
 
-            <p className="text-3xl font-bold text-ink">{euros.format(price / 100)}</p>
+            {promotion ? (
+              <div className="flex items-center gap-3">
+                <p className="text-lg text-ink/40 line-through">{euros.format(promotion.original_price / 100)}</p>
+                <p className="text-3xl font-bold text-primary">{euros.format(promotion.discounted_price / 100)}</p>
+              </div>
+            ) : (
+              <p className="text-3xl font-bold text-ink">{euros.format(price / 100)}</p>
+            )}
 
             {/* Stock / talla seleccionada */}
             <div className="flex items-center gap-2">

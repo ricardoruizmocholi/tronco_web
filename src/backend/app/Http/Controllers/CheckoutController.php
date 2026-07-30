@@ -36,9 +36,10 @@ class CheckoutController extends Controller
         $shippingAddress = $request->input('shipping_address');
         $productIds      = $incoming->pluck('product_id')->unique()->values();
 
-        // Carga productos activos de una sola query
+        // Carga productos activos de una sola query — con la promoción vigente si existe
         $products = Product::whereIn('id', $productIds)
             ->where('is_active', true)
+            ->with('promotion')
             ->get()
             ->keyBy('id');
 
@@ -85,22 +86,26 @@ class CheckoutController extends Controller
             ], 422);
         }
 
-        // Recalcula total en backend — nunca se acepta del frontend
+        // Recalcula total en backend — nunca se acepta del frontend.
+        // Si el producto tiene una promoción vigente, el precio unitario es el
+        // discounted_price; si no, el precio normal. El descuento debe respetarse
+        // hasta el pago real, no solo mostrarse en la ficha.
         $total     = 0;
         $lineItems = [];
         foreach ($incoming as $line) {
-            $product = $products->get($line['product_id']);
-            $name    = $product->name;
+            $product   = $products->get($line['product_id']);
+            $unitPrice = $product->promotion?->discounted_price ?? $product->price;
+            $name      = $product->name;
             if (! empty($line['variant_id'])) {
                 $variant = $variants->get($line['variant_id']);
                 $name   .= " — Talla {$variant->size}";
             }
-            $total     += $product->price * $line['quantity'];
+            $total     += $unitPrice * $line['quantity'];
 
             $lineItems[] = [
                 'price_data' => [
                     'currency'     => 'eur',
-                    'unit_amount'  => $product->price,
+                    'unit_amount'  => $unitPrice,
                     'product_data' => [
                         'name'   => $name,
                         'images' => $product->image_url ? [$product->image_url] : [],
@@ -139,7 +144,7 @@ class CheckoutController extends Controller
                 $order->items()->create([
                     'product_id' => $product->id,
                     'quantity'   => $line['quantity'],
-                    'unit_price' => $product->price,
+                    'unit_price' => $product->promotion?->discounted_price ?? $product->price,
                 ]);
             }
 

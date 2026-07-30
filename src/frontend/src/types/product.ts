@@ -1,3 +1,5 @@
+import type { ProductPromotion } from './promotion'
+
 export interface Category {
   id: number
   name: string
@@ -34,6 +36,7 @@ export interface Product {
   category: Category | null
   images: ProductImage[]
   variants: ProductVariant[]
+  promotion?: ProductPromotion | null
 }
 
 // Datos que el formulario admin envía al backend (price en céntimos)

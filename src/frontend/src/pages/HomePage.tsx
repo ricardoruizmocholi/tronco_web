@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { getPublicBanners } from '../api/banners'
 import { getPublicCollaborators } from '../api/collaborators'
+import CarouselSection from '../components/CarouselSection'
 import type { Banner } from '../api/banners'
 import type { Collaborator } from '../api/collaborators'
 
@@ -109,6 +110,9 @@ export default function HomePage() {
           </div>
         )}
       </section>
+
+      {/* ── Ofertas y novedades ── */}
+      <CarouselSection />
 
       {/* ── Acceso rápido ── */}
       <section className="max-w-4xl mx-auto px-4 py-16 grid grid-cols-1 md:grid-cols-2 gap-6">

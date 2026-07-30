@@ -4,6 +4,7 @@ use App\Http\Controllers\AdminCancellationController;
 use App\Http\Controllers\AdminFanficController;
 use App\Http\Controllers\AdminOrderController;
 use App\Http\Controllers\AdminPreorderController;
+use App\Http\Controllers\AdminPromotionController;
 use App\Http\Controllers\AdminReturnController;
 use App\Http\Controllers\CancellationController;
 use App\Http\Controllers\PreorderController;
@@ -19,6 +20,7 @@ use App\Http\Controllers\ImageUploadController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProductVariantController;
+use App\Http\Controllers\PromotionController;
 use App\Http\Controllers\ShippingRateController;
 use App\Http\Controllers\StripeWebhookController;
 use Illuminate\Support\Facades\Route;
@@ -37,9 +39,14 @@ Route::get('/health', function () {
 });
 
 // Catálogo público
+// /products/new va ANTES que /products/{slug} para que no lo capture como slug
 Route::get('/products',        [ProductController::class, 'index']);
+Route::get('/products/new',    [ProductController::class, 'newArrivals']);
 Route::get('/products/{slug}', [ProductController::class, 'show']);
 Route::get('/categories',      [ProductController::class, 'categories']);
+
+// Promociones — público
+Route::get('/promotions/active', [PromotionController::class, 'active']);
 
 // Artistas públicos
 Route::get('/artists',          [ArtistController::class, 'index']);
@@ -152,4 +159,10 @@ Route::middleware(['auth:sanctum', 'admin'])->prefix('admin')->group(function ()
     Route::get('/preorders/export',                [AdminPreorderController::class, 'export']);
     Route::get('/preorders',                       [AdminPreorderController::class, 'index']);
     Route::patch('/preorders/{preorder}/notify',   [AdminPreorderController::class, 'notify']);
+
+    // Promociones admin
+    Route::get('/promotions',                [AdminPromotionController::class, 'index']);
+    Route::post('/promotions',               [AdminPromotionController::class, 'store']);
+    Route::put('/promotions/{promotion}',    [AdminPromotionController::class, 'update']);
+    Route::delete('/promotions/{promotion}', [AdminPromotionController::class, 'destroy']);
 });

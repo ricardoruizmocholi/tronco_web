@@ -15,7 +15,7 @@ class ProductController extends Controller
     // GET /api/products  (?category=slug)
     public function index(): JsonResponse
     {
-        $query = Product::with(['category', 'images', 'variants' => fn($q) => $q->where('is_active', true)])
+        $query = Product::with(['category', 'images', 'variants' => fn($q) => $q->where('is_active', true), 'promotion'])
             ->where('is_active', true);
 
         if ($slug = request()->query('category')) {
@@ -28,12 +28,25 @@ class ProductController extends Controller
     // GET /api/products/{slug}
     public function show(string $slug): JsonResponse
     {
-        $product = Product::with(['category', 'images', 'variants' => fn($q) => $q->where('is_active', true)])
+        $product = Product::with(['category', 'images', 'variants' => fn($q) => $q->where('is_active', true), 'promotion'])
             ->where('slug', $slug)
             ->where('is_active', true)
             ->firstOrFail();
 
         return response()->json($product);
+    }
+
+    // GET /api/products/new — creados en los últimos 30 días, para el carrusel de la landing
+    public function newArrivals(): JsonResponse
+    {
+        $products = Product::with(['category', 'images', 'variants' => fn($q) => $q->where('is_active', true), 'promotion'])
+            ->where('is_active', true)
+            ->newArrivals()
+            ->orderByDesc('created_at')
+            ->limit(20)
+            ->get();
+
+        return response()->json($products);
     }
 
     // GET /api/categories

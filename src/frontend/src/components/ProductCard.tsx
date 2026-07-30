@@ -15,6 +15,7 @@ export default function ProductCard({ product }: Props) {
   const availableSizes = product.variants.filter(v => v.is_active && v.stock > 0)
   const cardSoldOut    = hasVariants ? availableSizes.length === 0 : stock === 0
   const canPreorder    = cardSoldOut && product.allow_preorder
+  const promotion      = product.promotion ?? null
 
   const img1 = images.find(i => i.position === 1)
   const img2 = images.find(i => i.position === 2)
@@ -25,7 +26,7 @@ export default function ProductCard({ product }: Props) {
       productId:    product.id,
       name:         product.name,
       slug:         product.slug,
-      price:        product.price,
+      price:        promotion?.discounted_price ?? product.price,
       stock:        product.stock,
       image:        img1?.url ?? null,
       categorySlug: product.category?.slug ?? null,
@@ -36,6 +37,12 @@ export default function ProductCard({ product }: Props) {
     <div className="group flex flex-col rounded-lg border border-ink/10 bg-white overflow-hidden hover:shadow-md transition-shadow">
       {/* Imagen — enlaza a la ficha */}
       <Link to={`/producto/${slug}`} className="relative h-48 w-full overflow-hidden block flex-shrink-0">
+        {promotion && (
+          <span className="absolute top-2 left-2 z-10 bg-primary text-white text-[10px]
+            font-semibold uppercase tracking-wide px-2 py-1">
+            Oferta
+          </span>
+        )}
         {img1 ? (
           <>
             <img
@@ -66,7 +73,14 @@ export default function ProductCard({ product }: Props) {
         </Link>
         <div className="mt-auto pt-3">
           <div className="flex items-center justify-between">
-            <span className="text-ink font-bold">{euros.format(price / 100)}</span>
+            {promotion ? (
+              <span className="flex items-center gap-1.5">
+                <span className="text-ink/40 text-xs line-through">{euros.format(promotion.original_price / 100)}</span>
+                <span className="text-primary font-bold">{euros.format(promotion.discounted_price / 100)}</span>
+              </span>
+            ) : (
+              <span className="text-ink font-bold">{euros.format(price / 100)}</span>
+            )}
             {cardSoldOut && canPreorder ? (
               <span className="text-xs font-medium text-white bg-ink rounded px-2 py-0.5">
                 Preorder
