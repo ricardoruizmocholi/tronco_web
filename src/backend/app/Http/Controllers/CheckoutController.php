@@ -43,10 +43,12 @@ class CheckoutController extends Controller
             ->get()
             ->keyBy('id');
 
-        // Carga variantes activas referenciadas en el pedido
+        // Carga variantes activas referenciadas en el pedido — con sus atributos para
+        // el nombre a mostrar (talla legacy o combinación de atributos nueva)
         $variantIds = $incoming->pluck('variant_id')->filter()->unique()->values();
         $variants   = $variantIds->isNotEmpty()
-            ? ProductVariant::whereIn('id', $variantIds)->where('is_active', true)->get()->keyBy('id')
+            ? ProductVariant::whereIn('id', $variantIds)->where('is_active', true)
+                ->with('variantAttributes.attributeValue')->get()->keyBy('id')
             : collect();
 
         // Valida que todos los product_id existen y están activos
@@ -71,7 +73,9 @@ class CheckoutController extends Controller
                     ], 422);
                 }
                 if ($variant->stock < $line['quantity']) {
-                    $stockErrors[] = "«{$product->name}» talla {$variant->size}: stock disponible {$variant->stock}, solicitado {$line['quantity']}.";
+                    $label = self::variantLabel($variant);
+                    $stockErrors[] = "«{$product->name}»" . ($label ? " {$label}" : '')
+                        . ": stock disponible {$variant->stock}, solicitado {$line['quantity']}.";
                 }
             } else {
                 if ($product->stock < $line['quantity']) {
@@ -87,18 +91,22 @@ class CheckoutController extends Controller
         }
 
         // Recalcula total en backend — nunca se acepta del frontend.
-        // Si el producto tiene una promoción vigente, el precio unitario es el
-        // discounted_price; si no, el precio normal. El descuento debe respetarse
-        // hasta el pago real, no solo mostrarse en la ficha.
+        // Precedencia del precio unitario: precio propio de la variante (price_override)
+        // > promoción vigente del producto > precio base del producto. Un precio propio
+        // de variante es una decisión deliberada del admin y prevalece sobre el descuento
+        // de catálogo, para evitar ambigüedad de "descuento sobre descuento".
         $total     = 0;
         $lineItems = [];
         foreach ($incoming as $line) {
-            $product   = $products->get($line['product_id']);
-            $unitPrice = $product->promotion?->discounted_price ?? $product->price;
+            $product = $products->get($line['product_id']);
+            $variant = ! empty($line['variant_id']) ? $variants->get($line['variant_id']) : null;
+            $unitPrice = $variant?->price_override ?? $product->promotion?->discounted_price ?? $product->price;
             $name      = $product->name;
-            if (! empty($line['variant_id'])) {
-                $variant = $variants->get($line['variant_id']);
-                $name   .= " — Talla {$variant->size}";
+            if ($variant) {
+                $label = self::variantLabel($variant);
+                if ($label) {
+                    $name .= " — {$label}";
+                }
             }
             $total     += $unitPrice * $line['quantity'];
 
@@ -131,7 +139,7 @@ class CheckoutController extends Controller
         }
 
         // Crea el Order con dirección y coste reales desde el inicio
-        $order = DB::transaction(function () use ($user, $incoming, $products, $total, $shippingCost, $shippingAddress) {
+        $order = DB::transaction(function () use ($user, $incoming, $products, $variants, $total, $shippingCost, $shippingAddress) {
             $order = Order::create([
                 'user_id'          => $user->id,
                 'total'            => $total,
@@ -141,10 +149,11 @@ class CheckoutController extends Controller
 
             foreach ($incoming as $line) {
                 $product = $products->get($line['product_id']);
+                $variant = ! empty($line['variant_id']) ? $variants->get($line['variant_id']) : null;
                 $order->items()->create([
                     'product_id' => $product->id,
                     'quantity'   => $line['quantity'],
-                    'unit_price' => $product->promotion?->discounted_price ?? $product->price,
+                    'unit_price' => $variant?->price_override ?? $product->promotion?->discounted_price ?? $product->price,
                 ]);
             }
 
@@ -189,5 +198,18 @@ class CheckoutController extends Controller
         if ($rate->free_above !== null && $orderTotal >= $rate->free_above) return 0;
 
         return $rate->rate;
+    }
+
+    // Etiqueta legible de la variante: talla legacy si existe, si no la combinación
+    // de atributos (p.ej. "Rojo / S"). Null si la variante no tiene ninguna de las dos.
+    private static function variantLabel(ProductVariant $variant): ?string
+    {
+        if (! empty($variant->size)) {
+            return "Talla {$variant->size}";
+        }
+
+        $labels = $variant->attribute_values->pluck('label')->implode(' / ');
+
+        return $labels !== '' ? $labels : null;
     }
 }

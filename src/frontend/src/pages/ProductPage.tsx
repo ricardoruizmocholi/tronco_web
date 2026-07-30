@@ -1,11 +1,20 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { getProduct } from '../api/products'
 import { useCartStore } from '../store/cartStore'
 import PreorderModal from '../components/PreorderModal'
+import AttributeSelector from '../components/AttributeSelector'
 import type { Product, ProductImage, ProductVariant } from '../types/product'
 
 const euros = new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' })
+
+// Etiqueta legible para el carrito: talla legacy si existe, si no la combinación de atributos
+function variantCartLabel(variant: ProductVariant | null): string | undefined {
+  if (!variant) return undefined
+  if (variant.size) return variant.size
+  const labels = variant.attribute_values.map(av => av.label)
+  return labels.length > 0 ? labels.join(' / ') : undefined
+}
 
 export default function ProductPage() {
   const { slug } = useParams<{ slug: string }>()
@@ -13,7 +22,8 @@ export default function ProductPage() {
   const [activeImg, setActiveImg]   = useState<ProductImage | null>(null)
   const [loading, setLoading]       = useState(true)
   const [notFound, setNotFound]       = useState(false)
-  const [selectedVariant, setSelectedVariant] = useState<ProductVariant | null>(null)
+  // attribute_id -> attribute_value_id seleccionado
+  const [selectedValues, setSelectedValues] = useState<Record<number, number>>({})
   const [showPreorder, setShowPreorder]         = useState(false)
 
   // Hook llamado incondicionalmente — antes de cualquier early return
@@ -27,7 +37,7 @@ export default function ProductPage() {
       .then(p => {
         setProduct(p)
         setActiveImg(p.images.find(i => i.position === 1) ?? p.images[0] ?? null)
-        setSelectedVariant(null)
+        setSelectedValues({})
       })
       .catch(() => setNotFound(true))
       .finally(() => setLoading(false))
@@ -54,6 +64,7 @@ export default function ProductPage() {
 
   const { name, description, price, stock, category, images } = product
   const hasVariants    = product.variants.length > 0
+  const hasAttributes  = product.attributes.length > 0
   const activeVariants = product.variants.filter(v => v.is_active)
   const isSoldOut      = hasVariants
     ? !activeVariants.some(v => v.stock > 0)
@@ -61,15 +72,69 @@ export default function ProductPage() {
   const canPreorder    = isSoldOut && product.allow_preorder
   const promotion      = product.promotion ?? null
 
+  // Variante activa: sin atributos, la única variante posible (si existe); con
+  // atributos, la que combina exactamente con todos los valores seleccionados.
+  const activeVariant = useMemo<ProductVariant | null>(() => {
+    if (!hasVariants) return null
+    if (!hasAttributes) return activeVariants[0] ?? null
+    if (Object.keys(selectedValues).length !== product.attributes.length) return null
+
+    return activeVariants.find(v =>
+      product.attributes.every(attr =>
+        v.attribute_values.some(
+          av => av.attribute_id === attr.id && av.attribute_value_id === selectedValues[attr.id]
+        )
+      )
+    ) ?? null
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [product, selectedValues, hasVariants, hasAttributes])
+
+  // Cambia la imagen principal si la variante seleccionada tiene una propia
+  useEffect(() => {
+    if (activeVariant?.image_url) {
+      setActiveImg({ id: -activeVariant.id, product_id: product.id, url: activeVariant.image_url, position: 0 })
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeVariant?.id, activeVariant?.image_url])
+
+  function handleSelectValue(attributeId: number, valueId: number) {
+    setSelectedValues(prev => ({ ...prev, [attributeId]: valueId }))
+  }
+
+  // Valores sin stock disponible dada la selección actual del resto de atributos
+  function unavailableValueIds(attributeId: number): number[] {
+    const attribute = product!.attributes.find(a => a.id === attributeId)
+    if (!attribute) return []
+
+    return attribute.values
+      .filter(value => {
+        const matching = activeVariants.filter(v => {
+          const hasThisValue = v.attribute_values.some(av => av.attribute_value_id === value.id)
+          if (!hasThisValue) return false
+          return product!.attributes.every(attr => {
+            if (attr.id === attributeId) return true
+            const sel = selectedValues[attr.id]
+            if (sel === undefined) return true
+            return v.attribute_values.some(av => av.attribute_id === attr.id && av.attribute_value_id === sel)
+          })
+        })
+        return matching.length === 0 || matching.every(v => v.stock === 0)
+      })
+      .map(v => v.id)
+  }
+
+  const effectivePrice = activeVariant?.effective_price ?? promotion?.discounted_price ?? price
+  const originalPrice  = promotion?.original_price ?? price
+
   function handleAddToCart() {
     addItem({
       productId:    product.id,
-      variantId:    selectedVariant?.id,
-      size:         selectedVariant?.size,
+      variantId:    activeVariant?.id,
+      size:         variantCartLabel(activeVariant),
       name:         product.name,
       slug:         product.slug,
-      price:        promotion?.discounted_price ?? product.price,
-      stock:        hasVariants ? (selectedVariant?.stock ?? 0) : product.stock,
+      price:        effectivePrice,
+      stock:        hasVariants ? (activeVariant?.stock ?? 0) : product.stock,
       image:        images.find(i => i.position === 1)?.url ?? null,
       categorySlug: product.category?.slug ?? null,
     })
@@ -80,7 +145,7 @@ export default function ProductPage() {
       {showPreorder && (
         <PreorderModal
           product={product}
-          variant={selectedVariant}
+          variant={activeVariant}
           onClose={() => setShowPreorder(false)}
         />
       )}
@@ -154,26 +219,27 @@ export default function ProductPage() {
 
             <h1 className="text-2xl font-bold text-ink leading-tight">{name}</h1>
 
-            {promotion ? (
+            {promotion || (activeVariant && activeVariant.price_override !== null) ? (
               <div className="flex items-center gap-3">
-                <p className="text-lg text-ink/40 line-through">{euros.format(promotion.original_price / 100)}</p>
-                <p className="text-3xl font-bold text-primary">{euros.format(promotion.discounted_price / 100)}</p>
+                <p className="text-lg text-ink/40 line-through">{euros.format(originalPrice / 100)}</p>
+                <p className="text-3xl font-bold text-primary">{euros.format(effectivePrice / 100)}</p>
               </div>
             ) : (
-              <p className="text-3xl font-bold text-ink">{euros.format(price / 100)}</p>
+              <p className="text-3xl font-bold text-ink">{euros.format(effectivePrice / 100)}</p>
             )}
 
-            {/* Stock / talla seleccionada */}
+            {/* Stock / combinación seleccionada */}
             <div className="flex items-center gap-2">
               {isSoldOut ? (
                 <span className="inline-flex items-center gap-1.5 text-sm font-medium text-secondary">
                   <span className="w-2 h-2 rounded-full bg-secondary inline-block" />
                   Agotado
                 </span>
-              ) : hasVariants && selectedVariant ? (
+              ) : hasVariants && activeVariant ? (
                 <span className="inline-flex items-center gap-1.5 text-sm font-medium text-primary">
                   <span className="w-2 h-2 rounded-full bg-primary inline-block" />
-                  {selectedVariant.stock} disponibles en talla {selectedVariant.size}
+                  {activeVariant.stock} disponibles
+                  {variantCartLabel(activeVariant) && ` — ${variantCartLabel(activeVariant)}`}
                 </span>
               ) : !hasVariants ? (
                 <span className="inline-flex items-center gap-1.5 text-sm font-medium text-primary">
@@ -185,33 +251,18 @@ export default function ProductPage() {
 
             <p className="text-ink/70 text-sm leading-relaxed">{description}</p>
 
-            {/* Selector de talla */}
-            {hasVariants && (
-              <div>
-                <p className="text-xs font-medium text-ink/60 mb-2 uppercase tracking-wide">Talla</p>
-                <div className="flex flex-wrap gap-2">
-                  {activeVariants.map(v => {
-                    const outOfStock = v.stock === 0
-                    const selected   = selectedVariant?.id === v.id
-                    return (
-                      <button
-                        key={v.id}
-                        type="button"
-                        disabled={outOfStock}
-                        onClick={() => setSelectedVariant(v)}
-                        className={`px-3.5 py-1.5 rounded-lg border text-sm font-medium transition-colors
-                          ${selected
-                            ? 'border-primary bg-primary text-white'
-                            : outOfStock
-                              ? 'border-ink/10 text-ink/25 bg-ink/[0.02] cursor-not-allowed line-through'
-                              : 'border-ink/20 text-ink hover:border-primary hover:text-primary'
-                          }`}
-                      >
-                        {v.size}
-                      </button>
-                    )
-                  })}
-                </div>
+            {/* Selectores por atributo (Color, Talla, ...) */}
+            {hasVariants && hasAttributes && (
+              <div className="flex flex-col gap-4">
+                {product.attributes.map(attribute => (
+                  <AttributeSelector
+                    key={attribute.id}
+                    attribute={attribute}
+                    selectedValueId={selectedValues[attribute.id] ?? null}
+                    onSelect={valueId => handleSelectValue(attribute.id, valueId)}
+                    unavailableValueIds={unavailableValueIds(attribute.id)}
+                  />
+                ))}
               </div>
             )}
 
@@ -227,15 +278,15 @@ export default function ProductPage() {
             ) : (
               <button
                 onClick={handleAddToCart}
-                disabled={isSoldOut || (hasVariants && !selectedVariant)}
+                disabled={isSoldOut || (hasVariants && !activeVariant)}
                 className="mt-2 w-full py-3 rounded-lg font-semibold text-sm transition-colors
                   bg-primary text-white hover:bg-primary/90
                   disabled:bg-ink/10 disabled:text-ink/30 disabled:cursor-not-allowed"
               >
                 {isSoldOut
                   ? 'No disponible'
-                  : hasVariants && !selectedVariant
-                    ? 'Selecciona una talla'
+                  : hasVariants && !activeVariant
+                    ? 'Selecciona una opción'
                     : 'Añadir al carrito'}
               </button>
             )}

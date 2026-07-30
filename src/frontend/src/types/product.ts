@@ -13,12 +13,41 @@ export interface ProductImage {
   position: number
 }
 
+export type AttributeType = 'text' | 'color'
+
+export interface ProductAttributeValue {
+  id: number
+  value: string // texto libre, o hex #RRGGBB si el atributo es de tipo color
+  label: string
+  position: number
+}
+
+export interface ProductAttribute {
+  id: number
+  name: string
+  type: AttributeType
+  values: ProductAttributeValue[]
+}
+
+// Combinación de un valor de atributo aplicada a una variante concreta
+export interface VariantAttributeValue {
+  attribute_id: number
+  attribute_value_id: number
+  value: string
+  label: string
+}
+
 export interface ProductVariant {
   id: number
   product_id: number
-  size: string
+  size?: string | null // legacy — las variantes nuevas se definen por attribute_values
   stock: number
+  price_override: number | null
+  image_url: string | null
+  effective_price: number  // price_override ?? product.price
+  effective_image: string | null // image_url ?? primera imagen del producto
   is_active: boolean
+  attribute_values: VariantAttributeValue[]
 }
 
 export interface Product {
@@ -36,6 +65,7 @@ export interface Product {
   category: Category | null
   images: ProductImage[]
   variants: ProductVariant[]
+  attributes: ProductAttribute[]
   promotion?: ProductPromotion | null
 }
 

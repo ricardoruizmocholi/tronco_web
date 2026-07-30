@@ -9,6 +9,14 @@ interface Props {
   onClose: () => void
 }
 
+// Talla legacy si existe, si no la combinación de atributos (p.ej. "Rojo / S")
+function variantLabel(variant: ProductVariant | null): string | null {
+  if (!variant) return null
+  if (variant.size) return `Talla: ${variant.size}`
+  const labels = variant.attribute_values.map(av => av.label)
+  return labels.length > 0 ? labels.join(' / ') : null
+}
+
 export default function PreorderModal({ product, variant, onClose }: Props) {
   const { user } = useAuth()
 
@@ -74,10 +82,11 @@ export default function PreorderModal({ product, variant, onClose }: Props) {
           <>
             <p className="text-xs font-medium text-ink/50 uppercase tracking-widest mb-1">Reserva de lista de espera</p>
             <h2 className="text-lg font-bold text-ink mb-1">{product.name}</h2>
-            {variant && (
-              <p className="text-sm text-ink/50 mb-6">Talla: {variant.size}</p>
+            {variantLabel(variant) ? (
+              <p className="text-sm text-ink/50 mb-6">{variantLabel(variant)}</p>
+            ) : (
+              <div className="mb-6" />
             )}
-            {!variant && <div className="mb-6" />}
 
             <p className="text-sm text-ink/60 mb-7 leading-relaxed">
               Apúntate a la lista de espera. No se realiza ningún cargo — solo guardamos tu interés y te

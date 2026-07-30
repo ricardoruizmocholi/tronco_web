@@ -18,6 +18,7 @@ use App\Http\Controllers\FanficController;
 use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\ImageUploadController;
 use App\Http\Controllers\OrderController;
+use App\Http\Controllers\ProductAttributeController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProductVariantController;
 use App\Http\Controllers\PromotionController;
@@ -99,6 +100,14 @@ Route::middleware(['auth:sanctum', 'admin'])->prefix('admin')->group(function ()
     Route::post('/products/{product}/variants',             [ProductVariantController::class, 'store']);
     Route::put('/products/{product}/variants/{variant}',    [ProductVariantController::class, 'update']);
     Route::delete('/products/{product}/variants/{variant}', [ProductVariantController::class, 'destroy']);
+
+    // Atributos de producto (color, talla, material...) y sus valores
+    Route::post('/products/{product}/attributes',   [ProductAttributeController::class, 'store']);
+    Route::put('/attributes/{attribute}',           [ProductAttributeController::class, 'update']);
+    Route::delete('/attributes/{attribute}',        [ProductAttributeController::class, 'destroy']);
+    Route::post('/attributes/{attribute}/values',   [ProductAttributeController::class, 'storeValue']);
+    Route::put('/attribute-values/{value}',         [ProductAttributeController::class, 'updateValue']);
+    Route::delete('/attribute-values/{value}',      [ProductAttributeController::class, 'destroyValue']);
 
     Route::get('/artists',                              [ArtistController::class, 'adminIndex']);
     Route::post('/artists',                             [ArtistController::class, 'store']);

@@ -12,11 +12,23 @@ use Illuminate\Support\Str;
 
 class ProductController extends Controller
 {
+    // Eager load ligero para listados — solo atributos tipo color (swatches en ProductCard),
+    // sin cargar variantes/combinaciones completas.
+    private static function colorAttributesOnly(): array
+    {
+        return [
+            'attributes' => fn ($q) => $q->where('type', 'color')->with('values'),
+        ];
+    }
+
     // GET /api/products  (?category=slug)
     public function index(): JsonResponse
     {
-        $query = Product::with(['category', 'images', 'variants' => fn($q) => $q->where('is_active', true), 'promotion'])
-            ->where('is_active', true);
+        $query = Product::with([
+            'category', 'images', 'promotion',
+            'variants' => fn($q) => $q->where('is_active', true),
+            ...self::colorAttributesOnly(),
+        ])->where('is_active', true);
 
         if ($slug = request()->query('category')) {
             $query->whereHas('category', fn($q) => $q->where('slug', $slug));
@@ -28,7 +40,11 @@ class ProductController extends Controller
     // GET /api/products/{slug}
     public function show(string $slug): JsonResponse
     {
-        $product = Product::with(['category', 'images', 'variants' => fn($q) => $q->where('is_active', true), 'promotion'])
+        $product = Product::with([
+            'category', 'images', 'promotion',
+            'attributes.values',
+            'variants.variantAttributes.attributeValue',
+        ])
             ->where('slug', $slug)
             ->where('is_active', true)
             ->firstOrFail();
@@ -39,7 +55,11 @@ class ProductController extends Controller
     // GET /api/products/new — creados en los últimos 30 días, para el carrusel de la landing
     public function newArrivals(): JsonResponse
     {
-        $products = Product::with(['category', 'images', 'variants' => fn($q) => $q->where('is_active', true), 'promotion'])
+        $products = Product::with([
+            'category', 'images', 'promotion',
+            'variants' => fn($q) => $q->where('is_active', true),
+            ...self::colorAttributesOnly(),
+        ])
             ->where('is_active', true)
             ->newArrivals()
             ->orderByDesc('created_at')
@@ -63,7 +83,7 @@ class ProductController extends Controller
             'slug' => Str::slug($request->name),
         ]);
 
-        return response()->json($product->load(['category', 'variants']), 201);
+        return response()->json($product->load(['category', 'variants.variantAttributes.attributeValue', 'attributes.values']), 201);
     }
 
     // PUT /api/admin/products/{product}
@@ -77,7 +97,7 @@ class ProductController extends Controller
 
         $product->update($data);
 
-        return response()->json($product->load(['category', 'variants']));
+        return response()->json($product->load(['category', 'variants.variantAttributes.attributeValue', 'attributes.values']));
     }
 
     // DELETE /api/admin/products/{product}  →  soft-delete semántico
@@ -91,7 +111,11 @@ class ProductController extends Controller
     // GET /api/admin/products  →  todos los productos sin filtrar is_active
     public function adminIndex(): JsonResponse
     {
-        $products = Product::with(['category', 'images', 'variants'])
+        $products = Product::with([
+            'category', 'images',
+            'attributes.values',
+            'variants.variantAttributes.attributeValue',
+        ])
             ->orderBy('name')
             ->get();
 
@@ -103,7 +127,7 @@ class ProductController extends Controller
     {
         $product->update(['is_active' => !$product->is_active]);
 
-        return response()->json($product->load(['category', 'images', 'variants']));
+        return response()->json($product->load(['category', 'images', 'variants.variantAttributes.attributeValue', 'attributes.values']));
     }
 
     // POST /api/admin/products/{product}/images
@@ -145,6 +169,6 @@ class ProductController extends Controller
     {
         $product->update(['allow_preorder' => !$product->allow_preorder]);
 
-        return response()->json($product->load(['category', 'images', 'variants']));
+        return response()->json($product->load(['category', 'images', 'variants.variantAttributes.attributeValue', 'attributes.values']));
     }
 }

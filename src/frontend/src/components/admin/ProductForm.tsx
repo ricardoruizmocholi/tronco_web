@@ -1,7 +1,14 @@
 import { useEffect, useState } from 'react'
 import { addProductImage, createVariant, deleteProductImage, deleteVariant, updateVariant } from '../../api/products'
+import {
+  createAttribute, createAttributeValue, deleteAttribute, deleteAttributeValue,
+} from '../../api/attributes'
 import { uploadImage } from '../../api/upload'
-import type { Category, Product, ProductFormData, ProductImage, ProductVariant } from '../../types/product'
+import type {
+  AttributeType, Category, Product, ProductAttribute, ProductFormData, ProductImage, ProductVariant,
+} from '../../types/product'
+
+const euros = new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' })
 
 interface Props {
   product?: Product
@@ -52,10 +59,26 @@ export default function ProductForm({ product, categories, onSave, onCancel, sav
   const [imgError, setImgError]           = useState<string | null>(null)
 
   const [localVariants, setLocalVariants] = useState<ProductVariant[]>(product?.variants ?? [])
-  const [newVarSize, setNewVarSize]       = useState('')
-  const [newVarStock, setNewVarStock]     = useState('0')
-  const [varSaving, setVarSaving]         = useState(false)
-  const [varError, setVarError]           = useState<string | null>(null)
+  const [newVarSelections, setNewVarSelections] = useState<Record<number, string>>({})
+  const [newVarStock, setNewVarStock]           = useState('0')
+  const [newVarPriceEuros, setNewVarPriceEuros] = useState('')
+  const [newVarImageUrl, setNewVarImageUrl]     = useState('')
+  const [varSaving, setVarSaving]               = useState(false)
+  const [varError, setVarError]                 = useState<string | null>(null)
+
+  // Atributos del producto (Color, Talla...)
+  const [localAttributes, setLocalAttributes] = useState<ProductAttribute[]>(product?.attributes ?? [])
+  const [attrModalOpen, setAttrModalOpen]     = useState(false)
+  const [newAttrName, setNewAttrName]         = useState('')
+  const [newAttrType, setNewAttrType]         = useState<AttributeType>('text')
+  const [attrSaving, setAttrSaving]           = useState(false)
+  const [attrError, setAttrError]             = useState<string | null>(null)
+
+  const [valueModalAttrId, setValueModalAttrId] = useState<number | null>(null)
+  const [newValueLabel, setNewValueLabel]       = useState('')
+  const [newValueRaw, setNewValueRaw]           = useState('')
+  const [valueSaving, setValueSaving]           = useState(false)
+  const [valueError, setValueError]             = useState<string | null>(null)
 
   useEffect(() => {
     setForm(product ? toFormState(product) : empty)
@@ -65,9 +88,16 @@ export default function ProductForm({ product, categories, onSave, onCancel, sav
     setNewImgUrl('')
     setImgError(null)
     setLocalVariants(product?.variants ?? [])
-    setNewVarSize('')
+    setNewVarSelections({})
     setNewVarStock('0')
+    setNewVarPriceEuros('')
+    setNewVarImageUrl('')
     setVarError(null)
+    setLocalAttributes(product?.attributes ?? [])
+    setAttrModalOpen(false)
+    setAttrError(null)
+    setValueModalAttrId(null)
+    setValueError(null)
   }, [product])
 
   function set(field: keyof FormState, value: string | boolean) {
@@ -144,20 +174,120 @@ export default function ProductForm({ product, categories, onSave, onCancel, sav
   }
 
   async function handleAddVariant() {
-    if (!product || !newVarSize.trim()) return
+    if (!product) return
     const stock = parseInt(newVarStock, 10)
     if (isNaN(stock) || stock < 0) return
+
+    if (localAttributes.length > 0 && localAttributes.some(a => !newVarSelections[a.id])) {
+      setVarError('Selecciona un valor para cada atributo.')
+      return
+    }
+
     setVarSaving(true)
     setVarError(null)
     try {
-      const v = await createVariant(product.id, { size: newVarSize.trim(), stock })
+      const priceOverride = newVarPriceEuros.trim()
+        ? Math.round(parseFloat(newVarPriceEuros) * 100)
+        : null
+
+      const v = await createVariant(product.id, {
+        stock,
+        price_override: isNaN(priceOverride as number) ? null : priceOverride,
+        image_url: newVarImageUrl.trim() || null,
+        attribute_value_ids: Object.values(newVarSelections).map(id => parseInt(id, 10)),
+      })
       setLocalVariants(prev => [...prev, v])
-      setNewVarSize('')
+      setNewVarSelections({})
       setNewVarStock('0')
-    } catch {
-      setVarError('No se pudo añadir la variante.')
+      setNewVarPriceEuros('')
+      setNewVarImageUrl('')
+    } catch (err: unknown) {
+      const data = (err as { response?: { data?: { message?: string; errors?: Record<string, string[]> } } })
+        ?.response?.data
+      const firstFieldError = data?.errors ? Object.values(data.errors)[0]?.[0] : undefined
+      setVarError(firstFieldError ?? data?.message ?? 'No se pudo añadir la variante.')
     } finally {
       setVarSaving(false)
+    }
+  }
+
+  // --- Atributos ---
+
+  async function handleCreateAttribute() {
+    if (!product || !newAttrName.trim()) return
+    setAttrSaving(true)
+    setAttrError(null)
+    try {
+      const attr = await createAttribute(product.id, { name: newAttrName.trim(), type: newAttrType })
+      setLocalAttributes(prev => [...prev, attr])
+      setAttrModalOpen(false)
+      setNewAttrName('')
+      setNewAttrType('text')
+    } catch {
+      setAttrError('No se pudo crear el atributo.')
+    } finally {
+      setAttrSaving(false)
+    }
+  }
+
+  async function handleDeleteAttribute(attr: ProductAttribute) {
+    if (!window.confirm(`¿Eliminar el atributo "${attr.name}" y todos sus valores? Las variantes que lo usen perderán esa combinación.`)) return
+    try {
+      await deleteAttribute(attr.id)
+      setLocalAttributes(prev => prev.filter(a => a.id !== attr.id))
+      setLocalVariants(prev => prev.map(v => ({
+        ...v,
+        attribute_values: v.attribute_values.filter(av => av.attribute_id !== attr.id),
+      })))
+    } catch {
+      setAttrError('No se pudo eliminar el atributo.')
+    }
+  }
+
+  function openValueModal(attribute: ProductAttribute) {
+    setValueModalAttrId(attribute.id)
+    setNewValueLabel('')
+    setNewValueRaw(attribute.type === 'color' ? '#5BBB2A' : '')
+    setValueError(null)
+  }
+
+  async function handleCreateValue() {
+    if (valueModalAttrId === null) return
+    const attr = localAttributes.find(a => a.id === valueModalAttrId)
+    if (!attr) return
+
+    if (!newValueLabel.trim()) { setValueError('El label es obligatorio.'); return }
+    if (attr.type === 'color' && !/^#[0-9A-Fa-f]{6}$/.test(newValueRaw)) {
+      setValueError('El color debe ser un hex válido (#RRGGBB).')
+      return
+    }
+    if (attr.type === 'text' && !newValueRaw.trim()) {
+      setValueError('El valor es obligatorio.')
+      return
+    }
+
+    setValueSaving(true)
+    setValueError(null)
+    try {
+      const value = await createAttributeValue(attr.id, { value: newValueRaw.trim(), label: newValueLabel.trim() })
+      setLocalAttributes(prev => prev.map(a => (a.id === attr.id ? { ...a, values: [...a.values, value] } : a)))
+      setValueModalAttrId(null)
+    } catch {
+      setValueError('No se pudo añadir el valor.')
+    } finally {
+      setValueSaving(false)
+    }
+  }
+
+  async function handleDeleteValue(attributeId: number, valueId: number, label: string) {
+    if (!window.confirm(`¿Eliminar el valor "${label}"?`)) return
+    try {
+      await deleteAttributeValue(valueId)
+      setLocalAttributes(prev => prev.map(a => (
+        a.id === attributeId ? { ...a, values: a.values.filter(v => v.id !== valueId) } : a
+      )))
+    } catch {
+      setAttrError('No se pudo eliminar el valor.')
     }
   }
 
@@ -197,6 +327,7 @@ export default function ProductForm({ product, categories, onSave, onCancel, sav
     }`
 
   return (
+    <>
     <form onSubmit={handleSubmit} className="bg-white border border-ink/10 rounded-xl p-6 space-y-4">
       <h2 className="font-semibold text-ink text-base">
         {product ? 'Editar producto' : 'Nuevo producto'}
@@ -342,68 +473,176 @@ export default function ProductForm({ product, categories, onSave, onCancel, sav
         </div>
       </div>
 
-      {/* Tallas/Variantes — solo en edición */}
+      {/* Variantes — solo en edición */}
       {product && (
         <div>
-          <label className="block text-xs font-medium text-ink/60 mb-2">Tallas / Stock</label>
+          <label className="block text-xs font-medium text-ink/60 mb-2">Variantes / Stock</label>
 
           {varError && <p className="text-xs text-secondary mb-2">{varError}</p>}
 
           <div className="space-y-1.5 mb-3">
             {localVariants.length === 0 && (
               <p className="text-xs text-ink/30 italic">
-                Sin tallas definidas. El stock se gestiona en el campo de arriba.
+                Sin variantes definidas. El stock se gestiona en el campo de arriba.
               </p>
             )}
-            {localVariants.map(v => (
-              <div key={v.id}
-                className="flex items-center gap-3 px-3 py-2 rounded-lg border border-ink/10 bg-ink/[0.02]">
-                <span className="w-16 text-sm font-medium text-ink">{v.size}</span>
-                <span className="w-16 text-sm tabular-nums text-ink/70">{v.stock} uds.</span>
-                <span className={`flex-1 text-xs font-medium ${v.is_active ? 'text-primary' : 'text-ink/30'}`}>
-                  {v.is_active ? 'Activa' : 'Inactiva'}
-                </span>
-                <button type="button" onClick={() => handleToggleVariant(v)}
-                  className="text-xs px-2 py-0.5 rounded border border-ink/20 text-ink/50
-                    hover:border-primary hover:text-primary transition-colors flex-shrink-0">
-                  {v.is_active ? 'Desactivar' : 'Activar'}
-                </button>
-                <button type="button" onClick={() => handleDeleteVariant(v)}
-                  className="text-xs text-secondary hover:underline flex-shrink-0">
-                  Eliminar
-                </button>
-              </div>
-            ))}
+            {localVariants.map(v => {
+              const label = v.size || v.attribute_values.map(av => av.label).join(' / ') || 'Variante única'
+              return (
+                <div key={v.id}
+                  className="flex items-center gap-3 px-3 py-2 rounded-lg border border-ink/10 bg-ink/[0.02]">
+                  <span className="w-28 text-sm font-medium text-ink truncate">{label}</span>
+                  <span className="w-16 text-sm tabular-nums text-ink/70">{v.stock} uds.</span>
+                  {v.price_override !== null && (
+                    <span className="text-xs text-primary font-medium flex-shrink-0">
+                      {euros.format(v.price_override / 100)}
+                    </span>
+                  )}
+                  <span className={`flex-1 text-xs font-medium ${v.is_active ? 'text-primary' : 'text-ink/30'}`}>
+                    {v.is_active ? 'Activa' : 'Inactiva'}
+                  </span>
+                  <button type="button" onClick={() => handleToggleVariant(v)}
+                    className="text-xs px-2 py-0.5 rounded border border-ink/20 text-ink/50
+                      hover:border-primary hover:text-primary transition-colors flex-shrink-0">
+                    {v.is_active ? 'Desactivar' : 'Activar'}
+                  </button>
+                  <button type="button" onClick={() => handleDeleteVariant(v)}
+                    className="text-xs text-secondary hover:underline flex-shrink-0">
+                    Eliminar
+                  </button>
+                </div>
+              )
+            })}
           </div>
 
-          <div className="flex gap-2">
-            <input
-              type="text"
-              value={newVarSize}
-              onChange={e => setNewVarSize(e.target.value)}
-              placeholder="Talla (S, M, L, XL…)"
-              className="flex-1 rounded-lg border border-ink/20 px-3 py-2 text-sm text-ink
-                focus:outline-none focus:ring-2 focus:ring-primary/40"
-            />
+          {localAttributes.length === 0 ? (
+            <p className="text-xs text-ink/30 italic mb-3">
+              Define al menos un atributo (más abajo) para poder crear variantes por combinación.
+              También puedes añadir una variante única sin atributos.
+            </p>
+          ) : (
+            <div className="grid grid-cols-2 gap-3 mb-3">
+              {localAttributes.map(attr => (
+                <div key={attr.id}>
+                  <label className="block text-[11px] font-medium text-ink/50 mb-1">{attr.name}</label>
+                  <select
+                    value={newVarSelections[attr.id] ?? ''}
+                    onChange={e => setNewVarSelections(prev => ({ ...prev, [attr.id]: e.target.value }))}
+                    className="w-full rounded-lg border border-ink/20 px-3 py-2 text-sm text-ink bg-white
+                      focus:outline-none focus:ring-2 focus:ring-primary/40"
+                  >
+                    <option value="">Selecciona {attr.name.toLowerCase()}…</option>
+                    {attr.values.map(v => (
+                      <option key={v.id} value={v.id}>{v.label}</option>
+                    ))}
+                  </select>
+                </div>
+              ))}
+            </div>
+          )}
+
+          <div className="grid grid-cols-3 gap-2 mb-2">
             <input
               type="number"
               min="0"
               value={newVarStock}
               onChange={e => setNewVarStock(e.target.value)}
               placeholder="Stock"
-              className="w-24 rounded-lg border border-ink/20 px-3 py-2 text-sm text-ink
+              className="rounded-lg border border-ink/20 px-3 py-2 text-sm text-ink
                 focus:outline-none focus:ring-2 focus:ring-primary/40"
             />
+            <input
+              type="number"
+              min="0"
+              step="0.01"
+              value={newVarPriceEuros}
+              onChange={e => setNewVarPriceEuros(e.target.value)}
+              placeholder="Precio base del producto"
+              className="rounded-lg border border-ink/20 px-3 py-2 text-sm text-ink
+                focus:outline-none focus:ring-2 focus:ring-primary/40"
+            />
+            <input
+              type="text"
+              value={newVarImageUrl}
+              onChange={e => setNewVarImageUrl(e.target.value)}
+              placeholder="Primera imagen del producto"
+              className="rounded-lg border border-ink/20 px-3 py-2 text-sm text-ink
+                focus:outline-none focus:ring-2 focus:ring-primary/40"
+            />
+          </div>
+          <button
+            type="button"
+            onClick={handleAddVariant}
+            disabled={varSaving}
+            className="px-4 py-2 rounded-lg bg-primary text-white text-sm font-medium
+              hover:bg-primary/90 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+          >
+            {varSaving ? '…' : '+ Añadir variante'}
+          </button>
+        </div>
+      )}
+
+      {/* Atributos del producto — solo en edición */}
+      {product && (
+        <div>
+          <div className="flex items-center justify-between mb-2">
+            <label className="block text-xs font-medium text-ink/60">Atributos del producto</label>
             <button
               type="button"
-              onClick={handleAddVariant}
-              disabled={varSaving || !newVarSize.trim()}
-              className="px-4 py-2 rounded-lg bg-primary text-white text-sm font-medium
-                hover:bg-primary/90 transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex-shrink-0"
+              onClick={() => setAttrModalOpen(true)}
+              className="text-xs text-primary hover:underline font-medium"
             >
-              {varSaving ? '…' : '+ Añadir'}
+              + Añadir atributo
             </button>
           </div>
+
+          {attrError && <p className="text-xs text-secondary mb-2">{attrError}</p>}
+
+          {localAttributes.length === 0 ? (
+            <p className="text-xs text-ink/30 italic">Sin atributos definidos (p. ej. Color, Talla, Material…).</p>
+          ) : (
+            <div className="space-y-3">
+              {localAttributes.map(attr => (
+                <div key={attr.id} className="rounded-lg border border-ink/10 bg-ink/[0.02] p-3">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm font-medium text-ink">
+                      {attr.name} <span className="text-xs text-ink/40 font-normal">({attr.type === 'color' ? 'color' : 'texto'})</span>
+                    </span>
+                    <div className="flex items-center gap-3">
+                      <button type="button" onClick={() => openValueModal(attr)}
+                        className="text-xs text-primary hover:underline font-medium">
+                        + Añadir valor
+                      </button>
+                      <button type="button" onClick={() => handleDeleteAttribute(attr)}
+                        className="text-xs text-secondary hover:underline">
+                        Eliminar atributo
+                      </button>
+                    </div>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {attr.values.length === 0 && (
+                      <p className="text-xs text-ink/30 italic">Sin valores todavía.</p>
+                    )}
+                    {attr.values.map(v => (
+                      <span key={v.id}
+                        className="inline-flex items-center gap-1.5 text-xs px-2 py-1 rounded-full
+                          border border-ink/15 bg-white text-ink/70">
+                        {attr.type === 'color' && (
+                          <span className="w-3 h-3 rounded-full border border-ink/15 flex-shrink-0"
+                            style={{ backgroundColor: v.value }} />
+                        )}
+                        {v.label}
+                        <button type="button" onClick={() => handleDeleteValue(attr.id, v.id, v.label)}
+                          className="text-secondary hover:text-secondary/70">
+                          ×
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       )}
 
@@ -421,5 +660,134 @@ export default function ProductForm({ product, categories, onSave, onCancel, sav
         </button>
       </div>
     </form>
+
+    {/* Modal: nuevo atributo */}
+    {attrModalOpen && (
+      <div
+        className="fixed inset-0 bg-ink/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+        onClick={e => { if (e.target === e.currentTarget) setAttrModalOpen(false) }}
+      >
+        <div className="bg-white rounded-2xl p-6 max-w-sm w-full shadow-2xl">
+          <h3 className="font-semibold text-ink mb-4">Nuevo atributo</h3>
+
+          <label className="block text-xs font-medium text-ink/60 mb-1">Nombre</label>
+          <input
+            type="text"
+            value={newAttrName}
+            onChange={e => setNewAttrName(e.target.value)}
+            placeholder="Color, Talla, Material…"
+            autoFocus
+            className="w-full rounded-lg border border-ink/20 px-3 py-2 text-sm text-ink mb-3
+              focus:outline-none focus:ring-2 focus:ring-primary/40"
+          />
+
+          <label className="block text-xs font-medium text-ink/60 mb-1.5">Tipo</label>
+          <div className="flex gap-4 mb-4">
+            {(['text', 'color'] as AttributeType[]).map(type => (
+              <label key={type} className="flex items-center gap-2 text-sm text-ink cursor-pointer">
+                <input
+                  type="radio"
+                  name="attr_type"
+                  checked={newAttrType === type}
+                  onChange={() => setNewAttrType(type)}
+                  className="accent-primary"
+                />
+                {type === 'color' ? 'Color' : 'Texto'}
+              </label>
+            ))}
+          </div>
+
+          {attrError && <p className="text-xs text-secondary mb-3">{attrError}</p>}
+
+          <div className="flex gap-3 justify-end">
+            <button type="button" onClick={() => setAttrModalOpen(false)}
+              className="px-4 py-2 text-sm text-ink/60 hover:text-ink transition-colors">
+              Cancelar
+            </button>
+            <button type="button" onClick={handleCreateAttribute} disabled={attrSaving || !newAttrName.trim()}
+              className="px-4 py-2 bg-primary text-white text-sm rounded-lg
+                hover:bg-primary/90 disabled:opacity-50 transition-colors font-medium">
+              {attrSaving ? 'Creando…' : 'Crear atributo'}
+            </button>
+          </div>
+        </div>
+      </div>
+    )}
+
+    {/* Modal: nuevo valor de atributo */}
+    {valueModalAttrId !== null && (() => {
+      const attr = localAttributes.find(a => a.id === valueModalAttrId)
+      if (!attr) return null
+      return (
+        <div
+          className="fixed inset-0 bg-ink/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+          onClick={e => { if (e.target === e.currentTarget) setValueModalAttrId(null) }}
+        >
+          <div className="bg-white rounded-2xl p-6 max-w-sm w-full shadow-2xl">
+            <h3 className="font-semibold text-ink mb-4">Nuevo valor — {attr.name}</h3>
+
+            <label className="block text-xs font-medium text-ink/60 mb-1">Label</label>
+            <input
+              type="text"
+              value={newValueLabel}
+              onChange={e => setNewValueLabel(e.target.value)}
+              placeholder={attr.type === 'color' ? 'Rojo' : 'S'}
+              autoFocus
+              className="w-full rounded-lg border border-ink/20 px-3 py-2 text-sm text-ink mb-3
+                focus:outline-none focus:ring-2 focus:ring-primary/40"
+            />
+
+            {attr.type === 'color' ? (
+              <>
+                <label className="block text-xs font-medium text-ink/60 mb-1">Color</label>
+                <div className="flex items-center gap-3 mb-4">
+                  <input
+                    type="color"
+                    value={/^#[0-9A-Fa-f]{6}$/.test(newValueRaw) ? newValueRaw : '#5BBB2A'}
+                    onChange={e => setNewValueRaw(e.target.value)}
+                    className="w-10 h-10 rounded-lg border border-ink/20 cursor-pointer"
+                  />
+                  <input
+                    type="text"
+                    value={newValueRaw}
+                    onChange={e => setNewValueRaw(e.target.value)}
+                    placeholder="#FF0000"
+                    className="flex-1 rounded-lg border border-ink/20 px-3 py-2 text-sm text-ink
+                      focus:outline-none focus:ring-2 focus:ring-primary/40"
+                  />
+                </div>
+              </>
+            ) : (
+              <>
+                <label className="block text-xs font-medium text-ink/60 mb-1">Valor</label>
+                <input
+                  type="text"
+                  value={newValueRaw}
+                  onChange={e => setNewValueRaw(e.target.value)}
+                  placeholder="S"
+                  className="w-full rounded-lg border border-ink/20 px-3 py-2 text-sm text-ink mb-4
+                    focus:outline-none focus:ring-2 focus:ring-primary/40"
+                />
+              </>
+            )}
+
+            {valueError && <p className="text-xs text-secondary mb-3">{valueError}</p>}
+
+            <div className="flex gap-3 justify-end">
+              <button type="button" onClick={() => setValueModalAttrId(null)}
+                className="px-4 py-2 text-sm text-ink/60 hover:text-ink transition-colors">
+                Cancelar
+              </button>
+              <button type="button" onClick={handleCreateValue} disabled={valueSaving}
+                className="px-4 py-2 bg-primary text-white text-sm rounded-lg
+                  hover:bg-primary/90 disabled:opacity-50 transition-colors font-medium">
+                {valueSaving ? 'Añadiendo…' : 'Añadir valor'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )
+    })()}
+    </>
   )
 }

@@ -1,12 +1,21 @@
 import { Link } from 'react-router-dom'
 import { useCartStore } from '../store/cartStore'
-import type { Product } from '../types/product'
+import ColorSwatch from './ColorSwatch'
+import type { Product, ProductVariant } from '../types/product'
 
 interface Props {
   product: Product
 }
 
 const euros = new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' })
+const MAX_SWATCHES = 4
+
+// Talla legacy si existe, si no la combinación de atributos (p.ej. "Rojo / S")
+function variantLabel(v: ProductVariant): string | null {
+  if (v.size) return v.size
+  const labels = v.attribute_values.map(av => av.label)
+  return labels.length > 0 ? labels.join(' / ') : null
+}
 
 export default function ProductCard({ product }: Props) {
   const addItem = useCartStore(s => s.addItem)
@@ -16,6 +25,7 @@ export default function ProductCard({ product }: Props) {
   const cardSoldOut    = hasVariants ? availableSizes.length === 0 : stock === 0
   const canPreorder    = cardSoldOut && product.allow_preorder
   const promotion      = product.promotion ?? null
+  const colorAttribute = product.attributes.find(a => a.type === 'color')
 
   const img1 = images.find(i => i.position === 1)
   const img2 = images.find(i => i.position === 2)
@@ -100,15 +110,32 @@ export default function ProductCard({ product }: Props) {
             ) : null}
           </div>
 
+          {/* Swatches de color */}
+          {colorAttribute && colorAttribute.values.length > 0 && (
+            <div className="flex items-center gap-1.5 mt-2">
+              {colorAttribute.values.slice(0, MAX_SWATCHES).map(v => (
+                <ColorSwatch key={v.id} color={v.value} label={v.label} size={16} />
+              ))}
+              {colorAttribute.values.length > MAX_SWATCHES && (
+                <span className="text-[11px] text-ink/40 font-medium">
+                  +{colorAttribute.values.length - MAX_SWATCHES}
+                </span>
+              )}
+            </div>
+          )}
+
           {/* Tallas disponibles */}
           {hasVariants && !cardSoldOut && (
             <div className="flex flex-wrap gap-1 mt-2">
-              {availableSizes.map(v => (
-                <span key={v.id}
-                  className="text-[11px] font-medium px-1.5 py-0.5 rounded bg-ink/5 text-ink/60">
-                  {v.size}
-                </span>
-              ))}
+              {availableSizes.map(v => {
+                const label = variantLabel(v)
+                return label ? (
+                  <span key={v.id}
+                    className="text-[11px] font-medium px-1.5 py-0.5 rounded bg-ink/5 text-ink/60">
+                    {label}
+                  </span>
+                ) : null
+              })}
             </div>
           )}
         </div>

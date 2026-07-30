@@ -50,9 +50,12 @@ export function deleteProductImage(productId: number, imageId: number): Promise<
 }
 
 export interface VariantPayload {
-  size: string
+  size?: string | null // legacy — omitir en variantes nuevas basadas en atributos
   stock: number
   is_active?: boolean
+  price_override?: number | null
+  image_url?: string | null
+  attribute_value_ids?: number[]
 }
 
 export function createVariant(productId: number, data: VariantPayload): Promise<ProductVariant> {
