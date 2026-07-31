@@ -147,3 +147,19 @@ Ejemplo:
     antes y después de esta feature)
 26. [x] Verificación manual completa (ver docs/015-variantes-multidimensionales.md)
 27. [x] git commit + push
+
+### Tarea 9 — Bugs encontrados y resueltos durante la verificación manual
+28. [x] `ProductCard` crasheaba la app (`attributes` undefined) — `PromotionController@active`
+    no cargaba atributos; centralizado en `Product::colorAttributesEagerLoad()`
+29. [x] `ProductPage`: Rules of Hooks — `useMemo`/`useEffect` declarados después de un
+    early return; movidos antes de cualquier `return` condicional
+30. [x] `AttributeSelector`/`ColorSwatch`: no se podía deseleccionar un atributo ya
+    elegido — click en el valor seleccionado ahora llama `onSelect(null)`
+31. [x] Una variante sin stock deshabilitaba el selector completo — ahora el selector
+    siempre es navegable; solo el botón "Añadir al carrito" se deshabilita, y solo
+    para la combinación específica sin stock (no para todo el producto)
+32. [x] Precio promocional no se aplicaba cuando el producto tenía variantes —
+    `activeVariant.effective_price` nunca es `undefined`, así que el `??` no
+    llegaba nunca a `product.promotion.discounted_price`; corregido con precedencia
+    explícita en el frontend (Opción A, ver docs)
+33. [x] Selector visual de imagen (miniaturas) en variantes del panel admin
