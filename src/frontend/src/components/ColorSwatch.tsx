@@ -11,18 +11,23 @@ interface Props {
 export default function ColorSwatch({
   color, label, selected = false, outOfStock = false, disabled = false, size = 24, onClick,
 }: Props) {
-  const isDisabled = disabled || outOfStock
-
+  // outOfStock NUNCA deshabilita el swatch — solo lo marca visualmente (tachado +
+  // opacidad reducida). El usuario debe poder seguir navegando/deseleccionando.
+  // Solo `disabled` (uso genérico, no usado hoy para stock) bloquea el click.
   return (
     <button
       type="button"
       onClick={onClick}
-      disabled={isDisabled}
+      disabled={disabled}
       title={label}
       aria-label={label}
       aria-pressed={selected}
       className={`group relative rounded-full flex-shrink-0 transition-transform ${
-        isDisabled ? 'opacity-40 cursor-not-allowed' : 'hover:scale-110 cursor-pointer'
+        disabled
+          ? 'opacity-40 cursor-not-allowed'
+          : outOfStock
+            ? 'opacity-50 hover:scale-110 cursor-pointer'
+            : 'hover:scale-110 cursor-pointer'
       }`}
       style={{
         width:  size,

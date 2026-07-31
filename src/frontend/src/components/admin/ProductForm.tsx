@@ -541,7 +541,7 @@ export default function ProductForm({ product, categories, onSave, onCancel, sav
             </div>
           )}
 
-          <div className="grid grid-cols-3 gap-2 mb-2">
+          <div className="grid grid-cols-2 gap-2 mb-2">
             <input
               type="number"
               min="0"
@@ -561,12 +561,38 @@ export default function ProductForm({ product, categories, onSave, onCancel, sav
               className="rounded-lg border border-ink/20 px-3 py-2 text-sm text-ink
                 focus:outline-none focus:ring-2 focus:ring-primary/40"
             />
+          </div>
+
+          <div className="mb-2">
+            <label className="block text-[11px] font-medium text-ink/50 mb-1">
+              Imagen de la variante (opcional)
+            </label>
+            {localImages.length > 0 && (
+              <div className="flex flex-wrap gap-2 mb-2">
+                {localImages.map(img => {
+                  const isSelected = newVarImageUrl === img.url
+                  return (
+                    <button
+                      key={img.id}
+                      type="button"
+                      onClick={() => setNewVarImageUrl(prev => (prev === img.url ? '' : img.url))}
+                      title={isSelected ? 'Quitar selección' : 'Usar esta imagen'}
+                      className={`w-14 h-14 rounded-lg overflow-hidden border-2 transition-colors flex-shrink-0 ${
+                        isSelected ? 'border-primary' : 'border-transparent hover:border-ink/20'
+                      }`}
+                    >
+                      <img src={img.url} alt="" className="w-full h-full object-cover" />
+                    </button>
+                  )
+                })}
+              </div>
+            )}
             <input
               type="text"
               value={newVarImageUrl}
               onChange={e => setNewVarImageUrl(e.target.value)}
-              placeholder="Primera imagen del producto"
-              className="rounded-lg border border-ink/20 px-3 py-2 text-sm text-ink
+              placeholder="Primera imagen del producto — o pega una URL externa"
+              className="w-full rounded-lg border border-ink/20 px-3 py-2 text-sm text-ink
                 focus:outline-none focus:ring-2 focus:ring-primary/40"
             />
           </div>

@@ -99,11 +99,21 @@ export default function ProductPage() {
   const isSoldOut      = hasVariants
     ? !activeVariants.some(v => v.stock > 0)
     : stock === 0
+  // Sin stock específico de la combinación seleccionada — distinto de isSoldOut,
+  // que solo indica que TODO el producto está agotado.
+  const selectedSoldOut = hasVariants && !!activeVariant && activeVariant.stock === 0
   const canPreorder    = isSoldOut && product.allow_preorder
   const promotion      = product.promotion ?? null
 
-  function handleSelectValue(attributeId: number, valueId: number) {
-    setSelectedValues(prev => ({ ...prev, [attributeId]: valueId }))
+  function handleSelectValue(attributeId: number, valueId: number | null) {
+    setSelectedValues(prev => {
+      if (valueId === null) {
+        const next = { ...prev }
+        delete next[attributeId]
+        return next
+      }
+      return { ...prev, [attributeId]: valueId }
+    })
   }
 
   // Valores sin stock disponible dada la selección actual del resto de atributos
@@ -235,7 +245,7 @@ export default function ProductPage() {
 
             {/* Stock / combinación seleccionada */}
             <div className="flex items-center gap-2">
-              {isSoldOut ? (
+              {isSoldOut || selectedSoldOut ? (
                 <span className="inline-flex items-center gap-1.5 text-sm font-medium text-secondary">
                   <span className="w-2 h-2 rounded-full bg-secondary inline-block" />
                   Agotado
@@ -283,12 +293,12 @@ export default function ProductPage() {
             ) : (
               <button
                 onClick={handleAddToCart}
-                disabled={isSoldOut || (hasVariants && !activeVariant)}
+                disabled={isSoldOut || selectedSoldOut || (hasVariants && !activeVariant)}
                 className="mt-2 w-full py-3 rounded-lg font-semibold text-sm transition-colors
                   bg-primary text-white hover:bg-primary/90
                   disabled:bg-ink/10 disabled:text-ink/30 disabled:cursor-not-allowed"
               >
-                {isSoldOut
+                {isSoldOut || selectedSoldOut
                   ? 'No disponible'
                   : hasVariants && !activeVariant
                     ? 'Selecciona una opción'
