@@ -19,7 +19,7 @@ export default function AttributeSelector({
 
   return (
     <div>
-      <p className="text-xs font-medium text-ink/60 mb-2 uppercase tracking-widest">
+      <p className="label-caps font-medium text-ink/60 mb-2">
         {attribute.name}
       </p>
 
@@ -48,12 +48,12 @@ export default function AttributeSelector({
                 key={v.id}
                 type="button"
                 onClick={() => handleClick(v.id)}
-                className={`px-3.5 py-1.5 rounded-lg border text-sm font-medium transition-colors
+                className={`px-3.5 py-1.5 border text-sm font-medium transition-colors
                   ${selected
-                    ? 'border-primary bg-primary text-white'
+                    ? 'border-ink text-ink'
                     : unavailable
                       ? 'border-ink/10 text-ink/40 bg-ink/[0.02] line-through hover:border-ink/20'
-                      : 'border-ink/20 text-ink hover:border-primary hover:text-primary'
+                      : 'border-ink/20 text-ink hover:border-ink'
                   }`}
               >
                 {v.label}

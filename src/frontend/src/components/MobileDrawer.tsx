@@ -34,7 +34,7 @@ export default function MobileDrawer({ isOpen, onClose, user, onLogout, navLinks
   }, [isOpen])
 
   const linkCls = ({ isActive }: { isActive: boolean }) =>
-    `flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-colors ${
+    `flex items-center gap-3 px-4 py-3 text-sm uppercase tracking-wide transition-colors ${
       isActive
         ? 'bg-primary/15 text-primary'
         : 'text-white/70 hover:text-white hover:bg-white/5'
@@ -61,13 +61,13 @@ export default function MobileDrawer({ isOpen, onClose, user, onLogout, navLinks
       >
         {/* Cabecera del drawer */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-white/5 flex-shrink-0">
-          <Link to="/" onClick={onClose}>
-            <img src="/logo_troncodrilo.PNG" alt="Troncodrilo" className="h-8 w-auto" />
+          <Link to="/" onClick={onClose} className="font-editorial text-lg text-white tracking-wide">
+            TRONCODRILO
           </Link>
           <button
             onClick={onClose}
             aria-label="Cerrar menú"
-            className="p-1.5 text-white/40 hover:text-white transition-colors rounded-lg hover:bg-white/5"
+            className="p-1.5 text-white/40 hover:text-white transition-colors hover:bg-white/5"
           >
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
               strokeWidth="2" strokeLinecap="round" className="w-5 h-5">
@@ -100,8 +100,8 @@ export default function MobileDrawer({ isOpen, onClose, user, onLogout, navLinks
               </NavLink>
               <button
                 onClick={() => { onLogout(); onClose() }}
-                className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm
-                  font-medium text-white/70 hover:text-white hover:bg-white/5 transition-colors"
+                className="w-full flex items-center gap-3 px-4 py-3 text-sm uppercase tracking-wide
+                  text-white/70 hover:text-white hover:bg-white/5 transition-colors"
               >
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
                   strokeWidth="2" strokeLinecap="round" className="w-4 h-4">
@@ -115,7 +115,7 @@ export default function MobileDrawer({ isOpen, onClose, user, onLogout, navLinks
               <Link
                 to="/login"
                 onClick={onClose}
-                className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium
+                className="flex items-center gap-3 px-4 py-3 text-sm uppercase tracking-wide
                   text-white/70 hover:text-white hover:bg-white/5 transition-colors"
               >
                 Iniciar sesión
@@ -123,8 +123,7 @@ export default function MobileDrawer({ isOpen, onClose, user, onLogout, navLinks
               <Link
                 to="/register"
                 onClick={onClose}
-                className="flex items-center justify-center gap-2 mx-1 py-2.5 rounded-xl
-                  text-sm font-medium bg-primary text-white hover:bg-primary/90 transition-colors"
+                className="btn-primary mx-1 flex items-center justify-center"
               >
                 Registrarse
               </Link>

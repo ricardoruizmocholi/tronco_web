@@ -128,7 +128,7 @@ export default function CartDrawer() {
                 <div key={`${item.productId}-${item.variantId ?? ''}`} className="flex gap-3 p-4">
                   {/* Miniatura */}
                   <Link to={`/producto/${item.slug}`} onClick={closeCart}
-                    className="flex-shrink-0 w-16 h-20 rounded-lg overflow-hidden bg-primary/10 block">
+                    className="flex-shrink-0 w-16 h-20 overflow-hidden bg-primary/10 block">
                     {item.image
                       ? <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
                       : <div className="w-full h-full flex items-center justify-center">
@@ -152,7 +152,7 @@ export default function CartDrawer() {
 
                     <div className="flex items-center gap-2 mt-auto pt-1">
                       {/* +/- cantidad */}
-                      <div className="flex items-center border border-ink/15 rounded-lg overflow-hidden">
+                      <div className="flex items-center border border-ink/15 overflow-hidden">
                         <button
                           onClick={() => updateQuantity(item.productId, item.quantity - 1, item.variantId)}
                           aria-label="Reducir cantidad"
@@ -198,10 +198,10 @@ export default function CartDrawer() {
                       const img = p.images.find(i => i.position === 1)
                       return (
                         <div key={p.id}
-                          className="flex items-center gap-3 p-2 rounded-lg hover:bg-white transition-colors group">
+                          className="flex items-center gap-3 p-2 hover:bg-white transition-colors group">
                           {/* Miniatura → ficha */}
                           <Link to={`/producto/${p.slug}`} onClick={closeCart}
-                            className="w-10 h-12 flex-shrink-0 rounded-md overflow-hidden bg-primary/10 block">
+                            className="w-10 h-12 flex-shrink-0 overflow-hidden bg-primary/10 block">
                             {img
                               ? <img src={img.url} alt={p.name} className="w-full h-full object-cover" />
                               : <div className="w-full h-full bg-primary/20" />
@@ -232,7 +232,7 @@ export default function CartDrawer() {
                             })}
                             disabled={p.stock === 0}
                             className="flex-shrink-0 text-[11px] font-medium text-white bg-primary
-                              rounded px-2 py-1 hover:bg-primary/90 transition-colors
+                              uppercase tracking-wide px-2 py-1 hover:bg-primary/90 transition-colors
                               disabled:bg-ink/10 disabled:text-ink/30 disabled:cursor-not-allowed"
                           >
                             {p.stock === 0 ? 'Agotado' : '+ Añadir'}
@@ -278,22 +278,18 @@ export default function CartDrawer() {
               </div>
             )}
             {payError && (
-              <p className="text-xs text-secondary bg-secondary/10 rounded-lg px-3 py-2">
+              <p className="text-xs text-secondary bg-secondary/10 px-3 py-2">
                 {payError}
               </p>
             )}
             <button
               onClick={() => { setPayError(null); setShowShipping(true) }}
               disabled={paying}
-              className="w-full py-3 rounded-lg bg-primary text-white font-semibold text-sm
-                hover:bg-primary/90 transition-colors
-                disabled:bg-primary/50 disabled:cursor-not-allowed"
+              className="btn-primary w-full"
             >
               Ir a pagar
             </button>
-            <button onClick={closeCart}
-              className="w-full py-2.5 rounded-lg border border-ink/20 text-ink text-sm
-                font-medium hover:border-ink/40 transition-colors">
+            <button onClick={closeCart} className="btn-secondary w-full">
               Seguir comprando
             </button>
           </div>

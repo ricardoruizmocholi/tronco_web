@@ -31,7 +31,6 @@ export default function ProductCard({ product }: Props) {
   const colorAttribute = (product.attributes ?? []).find(a => a.type === 'color')
 
   const img1 = images.find(i => i.position === 1)
-  const img2 = images.find(i => i.position === 2)
 
   function handleAddToCart(e: React.MouseEvent) {
     e.preventDefault()
@@ -47,41 +46,60 @@ export default function ProductCard({ product }: Props) {
   }
 
   return (
-    <div className="group flex flex-col rounded-lg border border-ink/10 bg-white overflow-hidden hover:shadow-md transition-shadow">
-      {/* Imagen — enlaza a la ficha */}
-      <Link to={`/producto/${slug}`} className="relative h-48 w-full overflow-hidden block flex-shrink-0">
+    <div className="flex flex-col border border-ink/10 bg-white">
+      {/* Imagen — punto → expansión al hover. CSS puro, sin JS. */}
+      <Link to={`/producto/${slug}`} className="group relative block aspect-[3/4] w-full overflow-hidden">
         {promotion && (
-          <span className="absolute top-2 left-2 z-10 bg-primary text-white text-[10px]
+          <span className="absolute top-2 left-2 z-20 bg-primary text-white text-[10px]
             font-semibold uppercase tracking-wide px-2 py-1">
             Oferta
           </span>
         )}
+
         {img1 ? (
-          <>
-            <img
-              src={img1.url}
-              alt={name}
-              className="absolute inset-0 h-full w-full object-cover transition-opacity duration-300 group-hover:opacity-0"
-            />
-            {img2 && (
-              <img
-                src={img2.url}
-                alt={name}
-                className="absolute inset-0 h-full w-full object-cover opacity-0 transition-opacity duration-300 group-hover:opacity-100"
-              />
-            )}
-          </>
+          <img
+            src={img1.url}
+            alt={name}
+            className="absolute inset-0 h-full w-full object-cover
+              transition-transform duration-300 ease-in-out scale-[0.85] group-hover:scale-100"
+          />
         ) : (
-          <div className="h-full w-full bg-primary/20 flex items-center justify-center">
+          <div className="absolute inset-0 flex items-center justify-center bg-primary/20
+            transition-transform duration-300 ease-in-out scale-[0.85] group-hover:scale-100">
             <span className="text-primary font-semibold text-lg tracking-wide">Troncodrilo</span>
           </div>
         )}
+
+        {/* Overlay "colapsado" — sensación de imagen contraída en reposo */}
+        <div
+          className="absolute inset-0 transition-opacity duration-300 ease-in-out opacity-100 group-hover:opacity-0"
+          style={{ backgroundColor: 'rgba(250,250,248,0.15)' }}
+          aria-hidden="true"
+        />
+
+        {/* Punto central — desaparece al expandirse la imagen */}
+        <div
+          className="absolute inset-0 flex items-center justify-center
+            transition-opacity duration-300 ease-in-out opacity-80 group-hover:opacity-0"
+          aria-hidden="true"
+        >
+          <span className="w-2 h-2 rounded-full bg-canvas" />
+        </div>
+
+        {/* Overlay oscuro + CTA — solo visible con la imagen expandida */}
+        <div
+          className="absolute inset-0 flex items-center justify-center
+            transition-opacity duration-300 ease-in-out opacity-0 group-hover:opacity-100"
+          style={{ backgroundColor: 'rgba(0,0,0,0.15)' }}
+        >
+          <span className="text-canvas text-xs uppercase tracking-widest">Ver producto</span>
+        </div>
       </Link>
 
       {/* Info */}
       <div className="flex flex-col gap-1 p-4 flex-1">
         <Link to={`/producto/${slug}`}
-          className="text-ink font-medium leading-snug hover:text-primary transition-colors">
+          className="font-editorial text-base text-ink leading-snug hover:text-primary transition-colors">
           {name}
         </Link>
         <div className="mt-auto pt-3">
@@ -89,23 +107,23 @@ export default function ProductCard({ product }: Props) {
             {promotion ? (
               <span className="flex items-center gap-1.5">
                 <span className="text-ink/40 text-xs line-through">{euros.format(promotion.original_price / 100)}</span>
-                <span className="text-primary font-bold">{euros.format(promotion.discounted_price / 100)}</span>
+                <span className="text-primary text-sm font-medium">{euros.format(promotion.discounted_price / 100)}</span>
               </span>
             ) : (
-              <span className="text-ink font-bold">{euros.format(price / 100)}</span>
+              <span className="text-ink text-sm font-medium">{euros.format(price / 100)}</span>
             )}
             {cardSoldOut && canPreorder ? (
-              <span className="text-xs font-medium text-white bg-ink rounded px-2 py-0.5">
+              <span className="text-[10px] font-medium text-white uppercase tracking-wide bg-ink px-2 py-0.5">
                 Preorder
               </span>
             ) : cardSoldOut ? (
-              <span className="text-xs font-medium text-white bg-secondary rounded px-2 py-0.5">
+              <span className="text-[10px] font-medium text-white uppercase tracking-wide bg-secondary px-2 py-0.5">
                 Agotado
               </span>
             ) : !hasVariants ? (
               <button
                 onClick={handleAddToCart}
-                className="text-xs font-medium text-white bg-primary rounded px-2.5 py-1
+                className="text-[10px] font-medium text-white uppercase tracking-wide bg-primary px-2.5 py-1
                   hover:bg-primary/90 transition-colors"
               >
                 + Añadir
@@ -134,7 +152,7 @@ export default function ProductCard({ product }: Props) {
                 const label = variantLabel(v)
                 return label ? (
                   <span key={v.id}
-                    className="text-[11px] font-medium px-1.5 py-0.5 rounded bg-ink/5 text-ink/60">
+                    className="text-[11px] font-medium px-1.5 py-0.5 bg-ink/5 text-ink/60">
                     {label}
                   </span>
                 ) : null

@@ -16,7 +16,7 @@ const STATUS_CONFIG: Record<OrderStatus, { label: string; className: string }> =
 function StatusBadge({ status }: { status: OrderStatus }) {
   const { label, className } = STATUS_CONFIG[status] ?? STATUS_CONFIG.pending
   return (
-    <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${className}`}>
+    <span className={`inline-flex items-center px-2.5 py-0.5 text-xs uppercase tracking-wide font-medium ${className}`}>
       {label}
     </span>
   )
@@ -52,7 +52,7 @@ export default function OrdersPage() {
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-10">
-      <h1 className="text-2xl font-bold text-ink mb-8">Mis pedidos</h1>
+      <h1 className="font-editorial text-3xl text-ink mb-8">Mis pedidos</h1>
 
       {orders.length === 0 ? (
         <div className="text-center py-16 space-y-4">
@@ -72,7 +72,7 @@ export default function OrdersPage() {
             return (
               <div
                 key={order.id}
-                className="bg-white rounded-xl border border-ink/10 overflow-hidden"
+                className="bg-white border border-ink/10 overflow-hidden"
               >
                 {/* Cabecera del pedido */}
                 <div className="flex items-center justify-between px-5 py-4 border-b border-ink/5">
@@ -94,7 +94,7 @@ export default function OrdersPage() {
                     <div className="flex flex-col gap-2">
                       {order.items.map(item => (
                         <div key={item.id} className="flex items-center gap-3">
-                          <div className="w-8 h-10 flex-shrink-0 rounded overflow-hidden bg-primary/10">
+                          <div className="w-8 h-10 flex-shrink-0 overflow-hidden bg-primary/10">
                             {item.product?.image_url ? (
                               <img
                                 src={item.product.image_url}

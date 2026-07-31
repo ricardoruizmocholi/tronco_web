@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&display=swap');
 @import "tailwindcss";
 @source "./**/*.{ts,tsx,html}";
 
@@ -7,4 +8,31 @@
   --color-canvas:    #FAFAF8;
   --color-ink:       #1A1A1A;
   --color-dark:      #1C1F1A;
+}
+
+/* ── Rediseño editorial (feature 017) — no aplica a /bola-troncodrilo ── */
+
+.font-editorial {
+  font-family: 'Instrument Serif', serif;
+}
+
+.label-caps {
+  @apply text-xs tracking-widest uppercase;
+}
+
+.btn-primary {
+  @apply bg-primary text-white px-8 py-3 uppercase tracking-wide text-sm text-center
+    transition-colors hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed;
+  border-radius: 2px;
+}
+
+.btn-secondary {
+  @apply border border-ink text-ink px-8 py-3 uppercase tracking-wide text-sm text-center
+    transition-colors hover:bg-ink hover:text-canvas disabled:opacity-50 disabled:cursor-not-allowed;
+  border-radius: 2px;
+}
+
+/* Sin sombras en ningún elemento — estética plana, sin excepciones */
+* {
+  box-shadow: none !important;
 }

@@ -35,7 +35,7 @@ export default function CarouselSection() {
 
   return (
     <section className="max-w-6xl mx-auto px-4 py-16">
-      <p className="text-xs font-semibold uppercase tracking-widest text-ink/40 mb-3">
+      <p className="label-caps font-semibold text-ink/40 mb-3">
         Ofertas y novedades
       </p>
       <div className="h-px w-16 bg-primary mb-6" />

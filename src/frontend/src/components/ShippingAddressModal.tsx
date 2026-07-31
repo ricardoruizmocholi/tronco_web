@@ -287,7 +287,7 @@ export default function ShippingAddressModal({ onConfirm, onClose, paying }: Pro
   }
 
   const inputCls = (field: keyof ShippingAddress) =>
-    `w-full rounded-xl border px-3 py-2.5 text-sm text-ink bg-canvas
+    `w-full border px-3 py-2.5 text-sm text-ink bg-canvas
      focus:outline-none focus:ring-2 focus:ring-primary/40 transition-colors ${
       errors[field]
         ? 'border-secondary/60 focus:ring-secondary/30'
@@ -300,19 +300,19 @@ export default function ShippingAddressModal({ onConfirm, onClose, paying }: Pro
         justify-center p-4"
       onClick={handleBackdrop}
     >
-      <div className="bg-canvas rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh]
+      <div className="bg-canvas border border-ink/10 w-full max-w-lg max-h-[90vh]
         flex flex-col overflow-hidden">
 
         {/* Cabecera */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-ink/10 flex-shrink-0">
           <div>
-            <h2 className="font-semibold text-ink">Dirección de envío</h2>
+            <h2 className="font-editorial text-xl text-ink">Dirección de envío</h2>
             <p className="text-xs text-ink/40 mt-0.5">Todos los campos son obligatorios salvo la línea 2</p>
           </div>
           <button
             onClick={onClose}
             disabled={paying}
-            className="p-1.5 text-ink/40 hover:text-ink transition-colors rounded-lg
+            className="p-1.5 text-ink/40 hover:text-ink transition-colors
               hover:bg-ink/5 disabled:opacity-30"
             aria-label="Cerrar"
           >
@@ -455,9 +455,7 @@ export default function ShippingAddressModal({ onConfirm, onClose, paying }: Pro
             form="shipping-form"
             disabled={paying}
             onClick={handleSubmit}
-            className="flex items-center gap-2 px-5 py-2.5 bg-primary text-white text-sm
-              font-medium rounded-xl hover:bg-primary/90 transition-colors
-              disabled:opacity-60 disabled:cursor-not-allowed"
+            className="btn-primary flex items-center gap-2 px-5 py-2.5"
           >
             {paying ? (
               <>

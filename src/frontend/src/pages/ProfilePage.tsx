@@ -201,7 +201,7 @@ export default function ProfilePage() {
             {/* ── Sección: Datos personales ── */}
             {active === 'datos' && (
               <section aria-label="Datos personales">
-                <h2 className="text-lg font-semibold text-ink mb-9">Datos personales</h2>
+                <h2 className="font-editorial text-2xl text-ink mb-9">Datos personales</h2>
                 <form onSubmit={handleSaveName} noValidate className="space-y-8 max-w-xs">
                   <div>
                     <FieldLabel htmlFor="name">Nombre</FieldLabel>
@@ -246,7 +246,7 @@ export default function ProfilePage() {
             {/* ── Sección: Contraseña ── */}
             {active === 'password' && (
               <section aria-label="Cambiar contraseña">
-                <h2 className="text-lg font-semibold text-ink mb-9">Cambiar contraseña</h2>
+                <h2 className="font-editorial text-2xl text-ink mb-9">Cambiar contraseña</h2>
                 <form onSubmit={handleSavePassword} noValidate className="space-y-8 max-w-xs">
                   <div>
                     <FieldLabel htmlFor="current_password">Contraseña actual</FieldLabel>
@@ -304,7 +304,7 @@ export default function ProfilePage() {
             {/* ── Sección: Pedidos ── */}
             {active === 'pedidos' && (
               <section aria-label="Mis pedidos">
-                <h2 className="text-lg font-semibold text-ink mb-9">Mis pedidos</h2>
+                <h2 className="font-editorial text-2xl text-ink mb-9">Mis pedidos</h2>
                 <ProfileOrdersSection />
               </section>
             )}
@@ -312,7 +312,7 @@ export default function ProfilePage() {
             {/* ── Sección: Comunidad ── */}
             {active === 'comunidad' && (
               <section aria-label="Comunidad">
-                <h2 className="text-lg font-semibold text-ink mb-9">Comunidad</h2>
+                <h2 className="font-editorial text-2xl text-ink mb-9">Comunidad</h2>
                 <div
                   className="flex items-center justify-between gap-6 p-7"
                   style={{ backgroundColor: '#1C1F1A' }}

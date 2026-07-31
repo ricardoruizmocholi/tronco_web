@@ -70,7 +70,7 @@ export default function CheckoutSuccessPage() {
         <div className={`text-5xl mb-4 ${isPaid ? '' : 'opacity-60'}`}>
           {isPaid ? '✓' : '⏳'}
         </div>
-        <h1 className={`text-2xl font-bold mb-2 ${statusInfo.className}`}>
+        <h1 className={`font-editorial text-3xl mb-2 ${statusInfo.className}`}>
           {statusInfo.text}
         </h1>
         <p className="text-ink/50 text-sm">
@@ -84,16 +84,16 @@ export default function CheckoutSuccessPage() {
       </div>
 
       {/* Resumen de items */}
-      <div className="bg-white rounded-xl border border-ink/10 overflow-hidden mb-6">
+      <div className="bg-white border border-ink/10 overflow-hidden mb-6">
         <div className="px-5 py-3 border-b border-ink/10">
-          <p className="text-xs font-semibold text-ink/40 uppercase tracking-widest">
+          <p className="label-caps font-semibold text-ink/40">
             Resumen del pedido
           </p>
         </div>
         <div className="divide-y divide-ink/5">
           {order.items.map(item => (
             <div key={item.id} className="flex items-center gap-3 px-5 py-3">
-              <div className="w-10 h-12 flex-shrink-0 rounded-md overflow-hidden bg-primary/10">
+              <div className="w-10 h-12 flex-shrink-0 overflow-hidden bg-primary/10">
                 {item.product?.image_url ? (
                   <img
                     src={item.product.image_url}
@@ -126,16 +126,10 @@ export default function CheckoutSuccessPage() {
 
       {/* CTAs */}
       <div className="flex flex-col gap-3">
-        <Link
-          to="/mis-pedidos"
-          className="w-full py-3 rounded-lg bg-primary text-white font-semibold text-sm text-center hover:bg-primary/90 transition-colors"
-        >
+        <Link to="/mis-pedidos" className="btn-primary w-full">
           Ver mis pedidos
         </Link>
-        <Link
-          to="/tienda"
-          className="w-full py-2.5 rounded-lg border border-ink/20 text-ink text-sm font-medium text-center hover:border-ink/40 transition-colors"
-        >
+        <Link to="/tienda" className="btn-secondary w-full">
           Seguir comprando
         </Link>
       </div>

@@ -49,11 +49,11 @@ function Lightbox({ image, onClose }: { image: ArtistImage; onClose: () => void 
       className="fixed inset-0 z-[100] m-auto max-w-4xl w-full bg-transparent p-4
         backdrop:bg-black/80 backdrop:backdrop-blur-sm"
     >
-      <div className="relative bg-dark rounded-2xl overflow-hidden">
+      <div className="relative bg-dark overflow-hidden">
         <button
           onClick={onClose}
           className="absolute top-3 right-3 z-10 text-white/60 hover:text-white
-            bg-black/40 rounded-full w-8 h-8 flex items-center justify-center text-lg leading-none"
+            bg-black/40 w-8 h-8 flex items-center justify-center text-lg leading-none"
         >
           ✕
         </button>
@@ -123,12 +123,22 @@ export default function ArtistProfilePage() {
     <div className="min-h-screen bg-canvas">
       {lightbox && <Lightbox image={lightbox} onClose={() => setLightbox(null)} />}
 
-      {/* Hero con avatar */}
-      <div className="bg-dark">
-        <div className="max-w-5xl mx-auto px-4 py-14 flex flex-col sm:flex-row items-center sm:items-end gap-8">
+      {/* Hero — imagen a sangre (el propio avatar), info superpuesta */}
+      <div className="relative bg-dark overflow-hidden min-h-[40vh] flex items-end">
+        {artist.avatar_url && (
+          <div
+            className="absolute inset-0 bg-cover bg-center"
+            style={{ backgroundImage: `url(${artist.avatar_url})` }}
+          />
+        )}
+        {/* Overlay plano — sin gradiente — para legibilidad del texto */}
+        <div className="absolute inset-0 bg-ink/60" />
+
+        <div className="relative max-w-5xl mx-auto px-4 py-14 w-full
+          flex flex-col sm:flex-row items-center sm:items-end gap-8">
           {/* Avatar */}
-          <div className="w-36 h-36 sm:w-44 sm:h-44 flex-shrink-0 rounded-2xl overflow-hidden
-            border-4 border-primary/40 shadow-xl bg-primary/10">
+          <div className="w-36 h-36 sm:w-44 sm:h-44 flex-shrink-0 overflow-hidden
+            border border-white/20 bg-primary/10">
             {artist.avatar_url ? (
               <img src={artist.avatar_url} alt={artist.name} className="w-full h-full object-cover" />
             ) : (
@@ -147,7 +157,7 @@ export default function ArtistProfilePage() {
               <span className="mx-2">/</span>
               <span className="text-white/60">{artist.name}</span>
             </nav>
-            <h1 className="text-3xl sm:text-4xl font-bold text-white">{artist.name}</h1>
+            <h1 className="font-editorial text-3xl sm:text-4xl text-white">{artist.name}</h1>
           </div>
         </div>
       </div>
@@ -164,7 +174,7 @@ export default function ArtistProfilePage() {
         {/* Apóyales desde aquí */}
         {(socials.length > 0 || artist.website_url) && (
           <section>
-            <h2 className="text-xs font-semibold text-ink/40 uppercase tracking-widest mb-5">
+            <h2 className="label-caps font-semibold text-ink/40 mb-5">
               Apóyales desde aquí
             </h2>
             <div className="flex flex-wrap gap-3">
@@ -176,7 +186,7 @@ export default function ArtistProfilePage() {
                     href={url!}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-ink/10
+                    className="inline-flex items-center gap-2 px-4 py-2 border border-ink/10
                       bg-white text-ink/70 text-sm font-medium hover:border-primary/40 hover:text-ink
                       transition-colors"
                   >
@@ -192,7 +202,7 @@ export default function ArtistProfilePage() {
                   href={artist.website_url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-ink/10
+                  className="inline-flex items-center gap-2 px-4 py-2 border border-ink/10
                     bg-white text-ink/70 text-sm font-medium hover:border-primary/40 hover:text-ink transition-colors"
                 >
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-5 h-5 text-primary">
@@ -208,7 +218,7 @@ export default function ArtistProfilePage() {
         {/* Galería */}
         {hasGallery && (
           <section>
-            <h2 className="text-xs font-semibold text-ink/40 uppercase tracking-widest mb-5">
+            <h2 className="label-caps font-semibold text-ink/40 mb-5">
               Galería
             </h2>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
@@ -216,7 +226,7 @@ export default function ArtistProfilePage() {
                 <button
                   key={img.id}
                   onClick={() => setLightbox(img)}
-                  className="group relative aspect-[4/3] rounded-xl overflow-hidden bg-primary/10
+                  className="group relative aspect-[4/3] overflow-hidden bg-primary/10
                     focus:outline-none focus:ring-2 focus:ring-primary"
                 >
                   <img
@@ -225,7 +235,7 @@ export default function ArtistProfilePage() {
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                   />
                   {img.caption && (
-                    <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent
+                    <div className="absolute inset-x-0 bottom-0 bg-ink/70
                       px-3 py-2 opacity-0 group-hover:opacity-100 transition-opacity">
                       <p className="text-white text-xs truncate">{img.caption}</p>
                     </div>
@@ -239,12 +249,12 @@ export default function ArtistProfilePage() {
         {/* Vídeos */}
         {hasVideos && (
           <section>
-            <h2 className="text-xs font-semibold text-ink/40 uppercase tracking-widest mb-5">
+            <h2 className="label-caps font-semibold text-ink/40 mb-5">
               Vídeos
             </h2>
             <div className={`grid gap-4 ${artist.video_urls.length === 1 ? 'grid-cols-1 max-w-2xl' : 'grid-cols-1 sm:grid-cols-2'}`}>
               {artist.video_urls.map((url, i) => (
-                <div key={i} className="aspect-video rounded-xl overflow-hidden bg-dark">
+                <div key={i} className="aspect-video overflow-hidden bg-dark">
                   <iframe
                     src={toEmbedUrl(url)}
                     title={`Vídeo ${i + 1}`}
@@ -261,7 +271,7 @@ export default function ArtistProfilePage() {
         {/* Colaboraciones con Troncodrilo */}
         {hasProducts && (
           <section>
-            <h2 className="text-xs font-semibold text-ink/40 uppercase tracking-widest mb-5">
+            <h2 className="label-caps font-semibold text-ink/40 mb-5">
               Colaboraciones con Troncodrilo
             </h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">

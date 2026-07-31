@@ -25,6 +25,7 @@ export default function ProductPage() {
   // attribute_id -> attribute_value_id seleccionado
   const [selectedValues, setSelectedValues] = useState<Record<number, number>>({})
   const [showPreorder, setShowPreorder]         = useState(false)
+  const [descOpen, setDescOpen]                 = useState(false)
 
   // Hook llamado incondicionalmente — antes de cualquier early return
   const addItem = useCartStore(s => s.addItem)
@@ -38,6 +39,7 @@ export default function ProductPage() {
         setProduct(p)
         setActiveImg(p.images.find(i => i.position === 1) ?? p.images[0] ?? null)
         setSelectedValues({})
+        setDescOpen(false)
       })
       .catch(() => setNotFound(true))
       .finally(() => setLoading(false))
@@ -193,8 +195,8 @@ export default function ProductPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
           {/* Columna izquierda: imágenes */}
           <div className="flex flex-col gap-4">
-            {/* Imagen principal */}
-            <div className="aspect-[3/4] rounded-xl overflow-hidden bg-primary/10">
+            {/* Imagen principal — sin border-radius */}
+            <div className="aspect-[3/4] overflow-hidden bg-primary/10">
               {activeImg ? (
                 <img
                   src={activeImg.url}
@@ -208,16 +210,17 @@ export default function ProductPage() {
               )}
             </div>
 
-            {/* Miniaturas */}
+            {/* Miniaturas — 60×80, borde ink si seleccionada */}
             {images.length > 1 && (
               <div className="flex gap-3">
                 {images.map(img => (
                   <button
                     key={img.id}
                     onClick={() => setActiveImg(img)}
-                    className={`w-20 h-20 rounded-lg overflow-hidden border-2 transition-colors flex-shrink-0 ${
+                    style={{ width: 60, height: 80 }}
+                    className={`overflow-hidden border transition-colors flex-shrink-0 ${
                       activeImg?.id === img.id
-                        ? 'border-primary'
+                        ? 'border-ink'
                         : 'border-transparent hover:border-ink/20'
                     }`}
                   >
@@ -233,21 +236,21 @@ export default function ProductPage() {
             {category && (
               <Link
                 to={`/tienda?category=${category.slug}`}
-                className="text-xs font-medium text-primary uppercase tracking-widest hover:underline"
+                className="label-caps font-medium text-primary hover:underline"
               >
                 {category.name}
               </Link>
             )}
 
-            <h1 className="text-2xl font-bold text-ink leading-tight">{name}</h1>
+            <h1 className="font-editorial text-2xl md:text-3xl text-ink leading-tight">{name}</h1>
 
             {hasDiscount ? (
               <div className="flex items-center gap-3">
-                <p className="text-lg text-ink/40 line-through">{euros.format(originalPrice / 100)}</p>
-                <p className="text-3xl font-bold text-primary">{euros.format(displayPrice / 100)}</p>
+                <p className="text-sm text-ink/40 line-through">{euros.format(originalPrice / 100)}</p>
+                <p className="text-sm font-medium text-primary">{euros.format(displayPrice / 100)}</p>
               </div>
             ) : (
-              <p className="text-3xl font-bold text-ink">{euros.format(displayPrice / 100)}</p>
+              <p className="text-sm font-medium text-ink">{euros.format(displayPrice / 100)}</p>
             )}
 
             {/* Stock / combinación seleccionada */}
@@ -271,7 +274,31 @@ export default function ProductPage() {
               ) : null}
             </div>
 
-            <p className="text-ink/70 text-sm leading-relaxed">{description}</p>
+            {/* Descripción — acordeón minimalista */}
+            <div className="border-t border-ink/10">
+              <button
+                type="button"
+                onClick={() => setDescOpen(o => !o)}
+                aria-expanded={descOpen}
+                className="w-full flex items-center justify-between py-3 text-left"
+              >
+                <span className="label-caps font-medium text-ink">Descripción</span>
+                <svg
+                  viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"
+                  className={`w-4 h-4 text-ink/50 transition-transform duration-200 ${descOpen ? 'rotate-180' : ''}`}
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" d="m6 9 6 6 6-6" />
+                </svg>
+              </button>
+              <div
+                className="grid overflow-hidden transition-[grid-template-rows] duration-200 ease-in-out"
+                style={{ gridTemplateRows: descOpen ? '1fr' : '0fr' }}
+              >
+                <div className="min-h-0 overflow-hidden">
+                  <p className="text-ink/70 text-sm leading-relaxed pb-4">{description}</p>
+                </div>
+              </div>
+            </div>
 
             {/* Selectores por atributo (Color, Talla, ...) */}
             {hasVariants && hasAttributes && (
@@ -292,8 +319,8 @@ export default function ProductPage() {
             {canPreorder ? (
               <button
                 onClick={() => setShowPreorder(true)}
-                className="mt-2 w-full py-3 rounded-lg font-semibold text-sm transition-colors
-                  bg-ink text-white hover:bg-ink/90"
+                className="btn-primary mt-2 w-full"
+                style={{ backgroundColor: '#1A1A1A' }}
               >
                 Reservar plaza
               </button>
@@ -301,9 +328,7 @@ export default function ProductPage() {
               <button
                 onClick={handleAddToCart}
                 disabled={isSoldOut || selectedSoldOut || (hasVariants && !activeVariant)}
-                className="mt-2 w-full py-3 rounded-lg font-semibold text-sm transition-colors
-                  bg-primary text-white hover:bg-primary/90
-                  disabled:bg-ink/10 disabled:text-ink/30 disabled:cursor-not-allowed"
+                className="btn-primary mt-2 w-full disabled:bg-ink/10 disabled:text-ink/30"
               >
                 {isSoldOut || selectedSoldOut
                   ? 'No disponible'

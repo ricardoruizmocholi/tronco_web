@@ -57,45 +57,50 @@ export default function Layout() {
   }
 
   const navCls = ({ isActive }: { isActive: boolean }) =>
-    `text-sm transition-colors ${isActive ? 'text-primary font-medium' : 'text-white/70 hover:text-white'}`
+    `relative pb-1 text-sm uppercase tracking-wide transition-colors
+     after:absolute after:left-0 after:-bottom-px after:h-px after:bg-ink after:transition-all after:duration-150
+     ${isActive
+       ? 'text-ink font-medium after:w-full'
+       : 'text-ink/55 hover:text-ink after:w-0 hover:after:w-full'
+     }`
 
   return (
     <div className="min-h-screen flex flex-col bg-canvas">
-      {/* Header */}
-      <header className={`fixed top-0 w-full z-50 bg-dark border-b border-white/5
+      {/* Header — compacto, fondo sólido, nav centrada (rediseño editorial) */}
+      <header className={`fixed top-0 w-full z-50 bg-canvas border-b border-ink/10
         transition-transform duration-300
         ${scrollDir === 'down' ? '-translate-y-full' : 'translate-y-0'}`}>
-        <div className="max-w-6xl mx-auto px-4 h-16 flex items-center gap-6">
-          {/* Logo */}
-          <Link to="/" className="flex-shrink-0">
-            <img src="/logo_troncodrilo.PNG" alt="Troncodrilo" className="h-9 w-auto" />
+        <div className="max-w-6xl mx-auto px-4 h-12 md:h-14 grid grid-cols-[auto_1fr_auto] md:grid-cols-3 items-center gap-4">
+          {/* Logo — wordmark de texto, editorial */}
+          <Link to="/" className="flex-shrink-0 font-editorial text-lg md:text-xl text-ink tracking-wide">
+            TRONCODRILO
           </Link>
 
-          {/* Nav principal — solo escritorio */}
-          <nav className="hidden md:flex items-center gap-6 flex-1">
+          {/* Nav principal — centrada, solo escritorio */}
+          <nav className="hidden md:flex items-center justify-center gap-8">
             {navLinks.map(({ to, label }) => (
               <NavLink key={to} to={to} className={navCls}>{label}</NavLink>
             ))}
           </nav>
 
           {/* Derecha: carrito + auth (escritorio) + hamburguesa (móvil) */}
-          <div className="ml-auto flex items-center gap-4">
+          <div className="flex items-center justify-end gap-4">
             {/* Carrito — siempre visible */}
             <button
               onClick={openCart}
               aria-label={`Abrir carrito (${totalItems} productos)`}
-              className="relative text-white/70 hover:text-white transition-colors"
+              className="relative text-ink/70 hover:text-ink transition-colors"
             >
               <CartIcon />
               <span className={`absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full
                 text-white text-[10px] font-bold flex items-center justify-center leading-none
-                transition-colors ${totalItems > 0 ? 'bg-primary' : 'bg-white/20'}`}>
+                transition-colors ${totalItems > 0 ? 'bg-primary' : 'bg-ink/20'}`}>
                 {totalItems > 9 ? '9+' : totalItems}
               </span>
             </button>
 
             {/* Auth — solo escritorio */}
-            <div className="hidden md:flex items-center gap-3">
+            <div className="hidden md:flex items-center gap-5">
               {user ? (
                 <>
                   {user.role === 'admin' && (
@@ -123,7 +128,7 @@ export default function Layout() {
                   </NavLink>
                   <button
                     onClick={handleLogout}
-                    className="text-sm text-white/70 hover:text-white transition-colors"
+                    className="text-sm uppercase tracking-wide text-ink/55 hover:text-ink transition-colors"
                   >
                     Salir
                   </button>
@@ -131,12 +136,13 @@ export default function Layout() {
               ) : (
                 <>
                   <Link to="/login"
-                    className="text-sm text-white/70 hover:text-white transition-colors">
+                    className="text-sm uppercase tracking-wide text-ink/55 hover:text-ink transition-colors">
                     Iniciar sesión
                   </Link>
                   <Link to="/register"
-                    className="text-sm bg-primary text-white px-3 py-1.5 rounded-lg
-                      hover:bg-primary/90 transition-colors font-medium">
+                    className="text-sm uppercase tracking-wide bg-primary text-white px-3 py-1.5
+                      hover:bg-primary/90 transition-colors font-medium"
+                    style={{ borderRadius: '2px' }}>
                     Registrarse
                   </Link>
                 </>
@@ -147,7 +153,7 @@ export default function Layout() {
             <button
               onClick={() => setIsDrawerOpen(true)}
               aria-label="Abrir menú"
-              className="md:hidden text-white/70 hover:text-white transition-colors p-1"
+              className="md:hidden text-ink/70 hover:text-ink transition-colors p-1"
             >
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
                 strokeWidth="2" strokeLinecap="round" className="w-6 h-6">
@@ -158,8 +164,8 @@ export default function Layout() {
         </div>
       </header>
 
-      {/* Espaciador: compensa el header fixed (h-16 = 64px) */}
-      <div className="h-16 flex-shrink-0" />
+      {/* Espaciador: compensa el header fixed (48px móvil / 56px escritorio) */}
+      <div className="h-12 md:h-14 flex-shrink-0" />
 
       {/* Drawer de navegación móvil */}
       <MobileDrawer

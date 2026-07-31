@@ -9,23 +9,17 @@ export default function CheckoutCancelPage() {
       <div className="text-5xl opacity-50">✕</div>
 
       <div className="space-y-2">
-        <h1 className="text-2xl font-bold text-ink">Pago cancelado</h1>
+        <h1 className="font-editorial text-3xl text-ink">Pago cancelado</h1>
         <p className="text-ink/50 text-sm max-w-sm">
           No se realizó ningún cargo. Tus productos siguen en el carrito cuando quieras retomarlo.
         </p>
       </div>
 
       <div className="flex flex-col sm:flex-row gap-3">
-        <button
-          onClick={openCart}
-          className="px-6 py-2.5 rounded-lg bg-primary text-white font-semibold text-sm hover:bg-primary/90 transition-colors"
-        >
+        <button onClick={openCart} className="btn-primary px-6 py-2.5">
           Volver al carrito
         </button>
-        <Link
-          to="/tienda"
-          className="px-6 py-2.5 rounded-lg border border-ink/20 text-ink text-sm font-medium hover:border-ink/40 transition-colors"
-        >
+        <Link to="/tienda" className="btn-secondary px-6 py-2.5">
           Ver tienda
         </Link>
       </div>

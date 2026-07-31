@@ -29,9 +29,9 @@ export default function HomePage() {
 
   return (
     <div className="bg-canvas">
-      {/* ── Hero ── */}
-      <section className="relative w-full min-h-[50vh] flex items-center overflow-hidden bg-dark">
-        {/* Imagen de fondo del banner activo */}
+      {/* ── Hero — imagen a sangre ── */}
+      <section className="relative w-full h-[70vh] flex items-center overflow-hidden bg-dark">
+        {/* Imagen de fondo del banner activo — a sangre, object-fit cover */}
         {activeBanner ? (
           <div
             className="absolute inset-0 bg-cover bg-center transition-all duration-700"
@@ -39,28 +39,23 @@ export default function HomePage() {
           />
         ) : null}
 
-        {/* Overlay oscuro — siempre presente para legibilidad */}
-        <div className="absolute inset-0 bg-black/55" />
+        {/* Overlay oscuro plano — siempre presente para legibilidad, sin gradiente */}
+        <div className="absolute inset-0 bg-black/45" />
 
         {/* Contenido centrado */}
-        <div className="relative z-10 w-full max-w-3xl mx-auto px-4 py-20 flex flex-col items-center text-center gap-6">
+        <div className="relative z-10 w-full max-w-3xl mx-auto px-4 flex flex-col items-center text-center gap-5">
           {activeBanner ? (
             <>
-              <h1 className="text-4xl md:text-5xl font-bold text-white tracking-tight leading-tight">
+              <h1 className="font-editorial text-4xl md:text-6xl text-white leading-tight text-balance">
                 {activeBanner.title}
               </h1>
               {activeBanner.subtitle && (
-                <p className="text-lg text-white/70 max-w-xl mx-auto">
+                <p className="text-sm uppercase tracking-widest text-white/70 max-w-xl mx-auto">
                   {activeBanner.subtitle}
                 </p>
               )}
               {activeBanner.cta_text && activeBanner.cta_url && (
-                <Link
-                  to={activeBanner.cta_url}
-                  className="mt-2 inline-flex items-center gap-2 bg-primary text-white
-                    px-7 py-3 rounded-lg font-semibold text-sm hover:bg-primary/90
-                    transition-colors shadow-lg shadow-primary/20"
-                >
+                <Link to={activeBanner.cta_url} className="btn-primary mt-2 inline-flex items-center gap-2">
                   {activeBanner.cta_text}
                   <span aria-hidden>→</span>
                 </Link>
@@ -69,33 +64,21 @@ export default function HomePage() {
           ) : (
             /* Fallback estático cuando no hay banners */
             <>
-              <img
-                src="/logo_troncodrilo.PNG"
-                alt="Troncodrilo"
-                className="h-28 w-auto drop-shadow-2xl"
-              />
-              <div className="space-y-3">
-                <h1 className="text-4xl md:text-5xl font-bold text-white tracking-tight leading-tight">
-                  Bienvenido al pantano
-                </h1>
-                <p className="text-lg text-white/60 max-w-md mx-auto">
-                  Merchandising oficial del cocodrilo más icónico del universo conocido.
-                </p>
-              </div>
-              <Link
-                to="/tienda"
-                className="mt-2 inline-flex items-center gap-2 bg-primary text-white
-                  px-7 py-3 rounded-lg font-semibold text-sm hover:bg-primary/90
-                  transition-colors shadow-lg shadow-primary/20"
-              >
-                Ver tienda
+              <h1 className="font-editorial text-4xl md:text-6xl text-white leading-tight">
+                Bienvenido al pantano
+              </h1>
+              <p className="text-sm uppercase tracking-widest text-white/60 max-w-md mx-auto">
+                Merchandising oficial del cocodrilo más icónico del universo conocido
+              </p>
+              <Link to="/tienda" className="btn-primary mt-2 inline-flex items-center gap-2">
+                Ver colección
                 <span aria-hidden>→</span>
               </Link>
             </>
           )}
         </div>
 
-        {/* Dots indicadores — solo si hay múltiples banners */}
+        {/* Dots indicadores — solo si hay múltiples banners (círculos: excepción semántica) */}
         {banners.length > 1 && (
           <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-10 flex gap-2">
             {banners.map((_, i) => (
@@ -118,16 +101,15 @@ export default function HomePage() {
       <section className="max-w-4xl mx-auto px-4 py-16 grid grid-cols-1 md:grid-cols-2 gap-6">
         <Link
           to="/tienda"
-          className="group relative bg-dark rounded-2xl overflow-hidden
+          className="group relative bg-dark overflow-hidden
             flex flex-col justify-end p-8 min-h-[260px]
-            hover:ring-2 hover:ring-primary/50 transition-all"
+            border border-transparent hover:border-primary/50 transition-colors"
         >
-          <div className="absolute inset-0 bg-gradient-to-t from-dark via-dark/60 to-transparent" />
           <div className="relative z-10 space-y-2">
-            <span className="text-primary text-xs font-semibold uppercase tracking-widest">
+            <span className="label-caps text-primary font-semibold">
               Merchandising
             </span>
-            <h2 className="text-2xl font-bold text-white leading-tight">La Tienda</h2>
+            <h2 className="font-editorial text-2xl text-white leading-tight">La Tienda</h2>
             <p className="text-white/50 text-sm">
               Camisetas, accesorios, pósters y coleccionables del pantano.
             </p>
@@ -140,16 +122,15 @@ export default function HomePage() {
 
         <Link
           to="/bola-troncodrilo"
-          className="group relative bg-dark rounded-2xl overflow-hidden
+          className="group relative bg-dark overflow-hidden
             flex flex-col justify-end p-8 min-h-[260px]
-            hover:ring-2 hover:ring-primary/50 transition-all"
+            border border-transparent hover:border-primary/50 transition-colors"
         >
-          <div className="absolute inset-0 bg-gradient-to-t from-dark via-dark/60 to-transparent" />
           <div className="relative z-10 space-y-2">
-            <span className="text-primary text-xs font-semibold uppercase tracking-widest">
+            <span className="label-caps text-primary font-semibold">
               Mundo interactivo
             </span>
-            <h2 className="text-2xl font-bold text-white leading-tight">Bola Troncodrilo</h2>
+            <h2 className="font-editorial text-2xl text-white leading-tight">Bola Troncodrilo</h2>
             <p className="text-white/50 text-sm">
               Sube tu fanfic y ponlo en el mapa del universo Troncodrilo.
             </p>
@@ -166,10 +147,10 @@ export default function HomePage() {
         <section className="bg-dark/40 border-t border-white/5">
           <div className="max-w-4xl mx-auto px-4 py-16">
             <div className="text-center mb-10">
-              <p className="text-primary text-xs font-semibold uppercase tracking-widest mb-2">
+              <p className="label-caps text-primary font-semibold mb-2">
                 Comunidad
               </p>
-              <h2 className="text-2xl font-bold text-ink">Colaboradores</h2>
+              <h2 className="font-editorial text-2xl text-ink">Colaboradores</h2>
               <p className="text-ink/50 text-sm mt-2">
                 Apóyales — visita sus tiendas y proyectos
               </p>
@@ -183,8 +164,10 @@ export default function HomePage() {
                   target="_blank"
                   rel="noopener noreferrer"
                   style={c.logo_url ? { backgroundImage: `url(${c.logo_url})` } : undefined}
-                  className={`group relative flex flex-col overflow-hidden rounded-2xl min-h-[200px]
-                    bg-cover bg-center hover:ring-2 hover:ring-primary/50 transition-all duration-200
+                  className={`group relative flex flex-col overflow-hidden min-h-[200px]
+                    bg-cover bg-center grayscale hover:grayscale-0
+                    border border-transparent hover:border-primary/50
+                    transition-[filter,border-color] duration-200
                     ${c.logo_url ? '' : 'bg-dark'}`}
                 >
                   {/* Overlay oscuro */}
@@ -202,7 +185,7 @@ export default function HomePage() {
                       </p>
                     )}
                     <span className="mt-2 inline-block text-xs font-medium text-white
-                      border border-white/40 rounded-full px-3 py-1
+                      border border-white/40 px-3 py-1
                       group-hover:border-primary group-hover:text-primary transition-colors">
                       Visitar →
                     </span>

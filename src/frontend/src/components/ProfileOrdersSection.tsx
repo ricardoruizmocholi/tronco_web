@@ -82,7 +82,7 @@ function OrderCard({ order, onCancel, onReturn }: OrderCardProps) {
             <div className="flex flex-col gap-2">
               {order.items.map(item => (
                 <div key={item.id} className="flex items-center gap-3">
-                  <div className="w-8 h-10 flex-shrink-0 rounded overflow-hidden bg-primary/10">
+                  <div className="w-8 h-10 flex-shrink-0 overflow-hidden bg-primary/10">
                     {item.product?.image_url ? (
                       <img
                         src={item.product.image_url}

@@ -22,8 +22,8 @@ export default function PromotionCarousel({ products }: Props) {
         onClick={() => scrollBy(-1)}
         aria-label="Anterior"
         className="hidden md:flex absolute -left-4 top-1/2 -translate-y-1/2 z-10
-          w-10 h-10 items-center justify-center bg-white border border-ink/10
-          rounded-full shadow-md hover:bg-ink/5 transition-colors"
+          w-10 h-10 items-center justify-center bg-white border border-ink/20
+          hover:bg-ink/5 hover:border-ink transition-colors"
       >
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-5 h-5">
           <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
@@ -47,8 +47,8 @@ export default function PromotionCarousel({ products }: Props) {
         onClick={() => scrollBy(1)}
         aria-label="Siguiente"
         className="hidden md:flex absolute -right-4 top-1/2 -translate-y-1/2 z-10
-          w-10 h-10 items-center justify-center bg-white border border-ink/10
-          rounded-full shadow-md hover:bg-ink/5 transition-colors"
+          w-10 h-10 items-center justify-center bg-white border border-ink/20
+          hover:bg-ink/5 hover:border-ink transition-colors"
       >
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-5 h-5">
           <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />

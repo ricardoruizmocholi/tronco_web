@@ -16,8 +16,8 @@ function ArtistCard({ artist }: { artist: Artist }) {
   return (
     <Link
       to={`/artistas/${artist.id}`}
-      className="group flex flex-col bg-white rounded-2xl border border-ink/10
-        hover:shadow-lg hover:border-primary/30 transition-all duration-300 overflow-hidden"
+      className="group flex flex-col bg-white border border-ink/10
+        hover:border-primary/40 transition-colors duration-300 overflow-hidden"
     >
       {/* Avatar */}
       <div className="aspect-square overflow-hidden bg-primary/10 flex-shrink-0">
@@ -36,7 +36,7 @@ function ArtistCard({ artist }: { artist: Artist }) {
 
       {/* Info */}
       <div className="p-5 flex flex-col gap-3 flex-1">
-        <h2 className="font-bold text-ink text-lg leading-snug group-hover:text-primary transition-colors">
+        <h2 className="font-editorial text-xl text-ink leading-snug group-hover:text-primary transition-colors">
           {artist.name}
         </h2>
 
