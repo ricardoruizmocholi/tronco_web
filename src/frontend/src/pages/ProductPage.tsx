@@ -138,8 +138,15 @@ export default function ProductPage() {
       .map(v => v.id)
   }
 
-  const effectivePrice = activeVariant?.effective_price ?? promotion?.discounted_price ?? price
-  const originalPrice  = promotion?.original_price ?? price
+  // No se usa activeVariant.effective_price aquí: ese accessor siempre devuelve
+  // un valor (price_override ?? product.price), así que el `??` nunca llegaría
+  // a la promoción. La precedencia correcta (igual que en CheckoutController) es
+  // price_override de la variante > promoción del producto > precio base.
+  const originalPrice = price
+  const displayPrice   = activeVariant
+    ? (activeVariant.price_override ?? promotion?.discounted_price ?? price)
+    : (promotion?.discounted_price ?? price)
+  const hasDiscount = displayPrice < originalPrice
 
   function handleAddToCart() {
     addItem({
@@ -148,7 +155,7 @@ export default function ProductPage() {
       size:         variantCartLabel(activeVariant),
       name:         product.name,
       slug:         product.slug,
-      price:        effectivePrice,
+      price:        displayPrice,
       stock:        hasVariants ? (activeVariant?.stock ?? 0) : product.stock,
       image:        images.find(i => i.position === 1)?.url ?? null,
       categorySlug: product.category?.slug ?? null,
@@ -234,13 +241,13 @@ export default function ProductPage() {
 
             <h1 className="text-2xl font-bold text-ink leading-tight">{name}</h1>
 
-            {promotion || (activeVariant && activeVariant.price_override !== null) ? (
+            {hasDiscount ? (
               <div className="flex items-center gap-3">
                 <p className="text-lg text-ink/40 line-through">{euros.format(originalPrice / 100)}</p>
-                <p className="text-3xl font-bold text-primary">{euros.format(effectivePrice / 100)}</p>
+                <p className="text-3xl font-bold text-primary">{euros.format(displayPrice / 100)}</p>
               </div>
             ) : (
-              <p className="text-3xl font-bold text-ink">{euros.format(effectivePrice / 100)}</p>
+              <p className="text-3xl font-bold text-ink">{euros.format(displayPrice / 100)}</p>
             )}
 
             {/* Stock / combinación seleccionada */}
