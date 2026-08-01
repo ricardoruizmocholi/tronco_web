@@ -84,7 +84,7 @@ class Product extends Model
 
     public function scopeNewArrivals(Builder $query): Builder
     {
-        return $query->where('created_at', '>=', now()->subDays(30));
+        return $query->where('created_at', '>=', now()->subDays(90));
     }
 
     /**

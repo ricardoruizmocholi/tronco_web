@@ -36,7 +36,13 @@ function ProductsSection() {
   const hasNews   = news.length > 0
   const hasOffers = offers.length > 0
 
-  if (!hasNews && !hasOffers) return null
+  if (!hasNews && !hasOffers) {
+    return (
+      <section className="max-w-6xl mx-auto px-4 py-16 text-center">
+        <p className="text-ink/40 text-sm">Pronto habrá novedades.</p>
+      </section>
+    )
+  }
 
   const active   = tab === 'offers' && hasOffers ? offers : news
   const products = active.slice(0, 12)

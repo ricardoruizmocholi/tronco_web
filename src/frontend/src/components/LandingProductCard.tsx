@@ -99,11 +99,12 @@ export default function LandingProductCard({ product }: Props) {
   }
 
   return (
-    <div className="relative aspect-[3/4] w-full overflow-hidden flex flex-col border border-ink/10 bg-white">
-      {/* Imagen — 80% de la altura */}
+    <div className="relative w-full flex flex-col border border-ink/10 bg-white">
+      {/* Imagen — ratio 3:4 propio (ya no depende de un % de altura del contenedor padre,
+          para que la sección de info pueda crecer sin recortar el nombre del producto) */}
       <Link
         to={`/producto/${slug}`}
-        className="relative block w-full h-[80%] overflow-hidden flex-shrink-0"
+        className="relative block w-full aspect-[3/4] overflow-hidden flex-shrink-0"
         onMouseEnter={handleImageEnter}
         onMouseLeave={handleImageLeave}
       >
@@ -170,14 +171,16 @@ export default function LandingProductCard({ product }: Props) {
         )}
       </Link>
 
-      {/* Info — 20% de la altura */}
+      {/* Info — altura mínima garantizada para 2 líneas de nombre + precio + variantes,
+          en vez de un % fijo de la altura del card (que se quedaba corto en viewports
+          estrechos y forzaba el nombre a una sola línea truncada) */}
       <div
-        className="relative h-[20%] w-full px-2.5 py-2 flex flex-col justify-between gap-1"
+        className="relative w-full min-h-[92px] overflow-hidden px-2.5 py-2 flex flex-col justify-between gap-1"
         onMouseEnter={() => setInfoHovered(true)}
         onMouseLeave={() => setInfoHovered(false)}
       >
         <Link to={`/producto/${slug}`}
-          className="font-editorial text-sm text-ink leading-tight truncate hover:text-primary transition-colors">
+          className="font-editorial text-sm text-ink leading-tight line-clamp-2 hover:text-primary transition-colors">
           {name}
         </Link>
 

@@ -43,19 +43,30 @@ class ProductController extends Controller
         return response()->json($product);
     }
 
-    // GET /api/products/new — creados en los últimos 30 días, para el carrusel de la landing
+    // GET /api/products/new — productos más recientes, para la landing.
+    // Prioriza los creados en los últimos 90 días (scopeNewArrivals); si el catálogo no
+    // tiene altas recientes (p.ej. datos de desarrollo antiguos), cae a mostrar los últimos
+    // N por fecha de creación sin filtro, para que la sección nunca quede vacía sin motivo.
     public function newArrivals(): JsonResponse
     {
-        $products = Product::with([
+        $baseQuery = fn () => Product::with([
             'category', 'images', 'promotion',
             'variants' => fn($q) => $q->where('is_active', true),
             ...Product::colorAttributesEagerLoad(),
-        ])
-            ->where('is_active', true)
+        ])->where('is_active', true);
+
+        $products = $baseQuery()
             ->newArrivals()
             ->orderByDesc('created_at')
             ->limit(20)
             ->get();
+
+        if ($products->isEmpty()) {
+            $products = $baseQuery()
+                ->orderByDesc('created_at')
+                ->limit(20)
+                ->get();
+        }
 
         return response()->json($products);
     }
