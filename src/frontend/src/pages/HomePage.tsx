@@ -26,32 +26,37 @@ function ProductsSection() {
     ]).then(([offerResults, newResults]) => {
       setOffers(offerResults)
       setNews(newResults)
+      // Por defecto se muestra "Novedades"; si no hay, se cae a "En oferta"
+      setTab(newResults.length > 0 ? 'new' : 'offers')
     }).finally(() => setLoading(false))
   }, [])
 
   if (loading) return null
 
+  const hasNews   = news.length > 0
   const hasOffers = offers.length > 0
-  const active    = tab === 'offers' && hasOffers ? offers : news
 
-  if (active.length === 0) return null
+  if (!hasNews && !hasOffers) return null
 
+  const active   = tab === 'offers' && hasOffers ? offers : news
   const products = active.slice(0, 12)
 
   return (
     <section className="max-w-6xl mx-auto px-4 py-16">
       <div className="flex gap-6 mb-8">
-        <button
-          type="button"
-          onClick={() => setTab('new')}
-          className={`label-caps pb-2 border-b-2 transition-colors ${
-            tab === 'new' || !hasOffers
-              ? 'border-primary text-ink font-semibold'
-              : 'border-transparent text-ink/40 hover:text-ink'
-          }`}
-        >
-          Novedades
-        </button>
+        {hasNews && (
+          <button
+            type="button"
+            onClick={() => setTab('new')}
+            className={`label-caps pb-2 border-b-2 transition-colors ${
+              tab === 'new'
+                ? 'border-primary text-ink font-semibold'
+                : 'border-transparent text-ink/40 hover:text-ink'
+            }`}
+          >
+            Novedades
+          </button>
+        )}
         {hasOffers && (
           <button
             type="button"
