@@ -137,6 +137,34 @@ const CARDS = [
       </svg>
     ),
   },
+  {
+    title: 'Hero Slides',
+    description: 'Gestiona las imágenes y vídeos a pantalla completa del hero de la home.',
+    href: '/admin/hero',
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-7 h-7">
+        <path strokeLinecap="round" strokeLinejoin="round"
+          d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409
+             a2.25 2.25 0 013.182 0l2.909 2.909M3 3.75h18A2.25 2.25 0 0121 6v12A2.25 2.25 0
+             0118.75 20.25H5.25A2.25 2.25 0 013 18V6A2.25 2.25 0 015.25 3.75zm13.5 8.25a.75.75
+             0 11-1.5 0 .75.75 0 011.5 0z" />
+      </svg>
+    ),
+  },
+  {
+    title: 'Newsletter',
+    description: 'Consulta los subscriptores de la newsletter y exporta el listado en CSV.',
+    href: '/admin/newsletter',
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-7 h-7">
+        <path strokeLinecap="round" strokeLinejoin="round"
+          d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5
+             0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0
+             01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07
+             -1.916V6.75" />
+      </svg>
+    ),
+  },
 ]
 
 export default function AdminDashboardPage() {

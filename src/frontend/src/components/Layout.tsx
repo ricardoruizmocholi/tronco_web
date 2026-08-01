@@ -1,12 +1,13 @@
 import { useEffect, useState } from 'react'
 import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
-import { useScrollDirection } from '../hooks/useScrollDirection'
+import { useHeaderState } from '../hooks/useHeaderState'
 import { useCartStore } from '../store/cartStore'
 import { getPendingCount } from '../api/adminOrders'
 import { getPendingReturnsCount } from '../api/returns'
 import CartDrawer from './CartDrawer'
 import MobileDrawer from './MobileDrawer'
+import Footer from './Footer'
 
 function CartIcon() {
   return (
@@ -29,7 +30,8 @@ const navLinks = [
 export default function Layout() {
   const { user, logout } = useAuth()
   const navigate = useNavigate()
-  const scrollDir = useScrollDirection()
+  const headerState = useHeaderState()
+  const isSolid = headerState === 'solid'
   const { getTotalItems, openCart } = useCartStore()
   const [isDrawerOpen, setIsDrawerOpen] = useState(false)
   const [pendingOrders,  setPendingOrders]  = useState(0)
@@ -57,23 +59,37 @@ export default function Layout() {
   }
 
   const navCls = ({ isActive }: { isActive: boolean }) =>
-    `relative pb-1 text-sm uppercase tracking-wide transition-colors
-     after:absolute after:left-0 after:-bottom-px after:h-px after:bg-ink after:transition-all after:duration-150
+    `relative pb-1 text-sm uppercase tracking-wide transition-colors duration-300
+     after:absolute after:left-0 after:-bottom-px after:h-px after:transition-all after:duration-150
+     ${isSolid ? 'after:bg-ink' : 'after:bg-canvas'}
      ${isActive
-       ? 'text-ink font-medium after:w-full'
-       : 'text-ink/55 hover:text-ink after:w-0 hover:after:w-full'
+       ? `${isSolid ? 'text-ink' : 'text-canvas'} font-medium after:w-full`
+       : `${isSolid ? 'text-ink/55 hover:text-ink' : 'text-canvas/70 hover:text-canvas'} after:w-0 hover:after:w-full`
      }`
+
+  const iconCls = `transition-colors duration-300 ${isSolid ? 'text-ink/70 hover:text-ink' : 'text-canvas/90 hover:text-canvas'}`
+  const authLinkCls = `text-sm uppercase tracking-wide transition-colors duration-300 ${isSolid ? 'text-ink/55 hover:text-ink' : 'text-canvas/70 hover:text-canvas'}`
 
   return (
     <div className="min-h-screen flex flex-col bg-canvas">
-      {/* Header — compacto, fondo sólido, nav centrada (rediseño editorial) */}
-      <header className={`fixed top-0 w-full z-50 bg-canvas border-b border-ink/10
-        transition-transform duration-300
-        ${scrollDir === 'down' ? '-translate-y-full' : 'translate-y-0'}`}>
+      {/* Header — dinámico: transparente al cargar/bajar, sólido al subir */}
+      <header className={`fixed top-0 w-full z-50 border-b transition-all duration-300
+        ${isSolid ? 'bg-canvas border-ink/10' : 'bg-transparent border-transparent'}`}>
         <div className="max-w-6xl mx-auto px-4 h-12 md:h-14 grid grid-cols-[auto_1fr_auto] md:grid-cols-3 items-center gap-4">
-          {/* Logo — wordmark de texto, editorial */}
-          <Link to="/" className="flex-shrink-0 font-editorial text-lg md:text-xl text-ink tracking-wide">
-            TRONCODRILO
+          {/* Logo — wordmark, oscuro sobre header sólido / blanco sobre header transparente */}
+          <Link to="/" className="relative flex-shrink-0 block h-6 md:h-7 w-[190px] md:w-[220px]">
+            <img
+              src="/Troncodrilo_cabeceza_blanco.png"
+              alt="Troncodrilo"
+              className={`absolute inset-0 h-full w-full object-contain object-left
+                transition-opacity duration-300 ${isSolid ? 'opacity-0' : 'opacity-100'}`}
+            />
+            <img
+              src="/Troncomundo_cabecera.png"
+              alt="Troncodrilo"
+              className={`absolute inset-0 h-full w-full object-contain object-left
+                transition-opacity duration-300 ${isSolid ? 'opacity-100' : 'opacity-0'}`}
+            />
           </Link>
 
           {/* Nav principal — centrada, solo escritorio */}
@@ -89,7 +105,7 @@ export default function Layout() {
             <button
               onClick={openCart}
               aria-label={`Abrir carrito (${totalItems} productos)`}
-              className="relative text-ink/70 hover:text-ink transition-colors"
+              className={`relative ${iconCls}`}
             >
               <CartIcon />
               <span className={`absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full
@@ -126,17 +142,13 @@ export default function Layout() {
                   <NavLink to="/perfil" className={navCls}>
                     {user.name}
                   </NavLink>
-                  <button
-                    onClick={handleLogout}
-                    className="text-sm uppercase tracking-wide text-ink/55 hover:text-ink transition-colors"
-                  >
+                  <button onClick={handleLogout} className={authLinkCls}>
                     Salir
                   </button>
                 </>
               ) : (
                 <>
-                  <Link to="/login"
-                    className="text-sm uppercase tracking-wide text-ink/55 hover:text-ink transition-colors">
+                  <Link to="/login" className={authLinkCls}>
                     Iniciar sesión
                   </Link>
                   <Link to="/register"
@@ -153,7 +165,7 @@ export default function Layout() {
             <button
               onClick={() => setIsDrawerOpen(true)}
               aria-label="Abrir menú"
-              className="md:hidden text-ink/70 hover:text-ink transition-colors p-1"
+              className={`md:hidden p-1 ${iconCls}`}
             >
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
                 strokeWidth="2" strokeLinecap="round" className="w-6 h-6">
@@ -164,8 +176,8 @@ export default function Layout() {
         </div>
       </header>
 
-      {/* Espaciador: compensa el header fixed (48px móvil / 56px escritorio) */}
-      <div className="h-12 md:h-14 flex-shrink-0" />
+      {/* Sin espaciador: el header flota transparente sobre el contenido de cada página;
+          se vuelve sólido al hacer scroll hacia arriba (comportamiento intencional en toda la app) */}
 
       {/* Drawer de navegación móvil */}
       <MobileDrawer
@@ -184,25 +196,7 @@ export default function Layout() {
         <Outlet />
       </main>
 
-      {/* Footer */}
-      <footer className="bg-dark border-t border-white/5">
-        <div className="max-w-6xl mx-auto px-4 py-10 flex flex-col items-center gap-6">
-          <Link to="/">
-            <img src="/logo_troncodrilo.PNG" alt="Troncodrilo" className="h-8 w-auto opacity-80" />
-          </Link>
-          <nav className="flex flex-wrap justify-center gap-6">
-            {navLinks.map(({ to, label }) => (
-              <Link key={to} to={to}
-                className="text-sm text-white/50 hover:text-white/80 transition-colors">
-                {label}
-              </Link>
-            ))}
-          </nav>
-          <p className="text-white/30 text-xs">
-            © 2025 Troncodrilo. Todos los derechos reservados.
-          </p>
-        </div>
-      </footer>
+      <Footer />
     </div>
   )
 }

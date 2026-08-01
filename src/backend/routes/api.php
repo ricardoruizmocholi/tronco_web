@@ -2,11 +2,15 @@
 
 use App\Http\Controllers\AdminCancellationController;
 use App\Http\Controllers\AdminFanficController;
+use App\Http\Controllers\AdminHeroController;
+use App\Http\Controllers\AdminNewsletterController;
 use App\Http\Controllers\AdminOrderController;
 use App\Http\Controllers\AdminPreorderController;
 use App\Http\Controllers\AdminPromotionController;
 use App\Http\Controllers\AdminReturnController;
 use App\Http\Controllers\CancellationController;
+use App\Http\Controllers\HeroSlideController;
+use App\Http\Controllers\NewsletterController;
 use App\Http\Controllers\PreorderController;
 use App\Http\Controllers\ReturnRequestController;
 use App\Http\Controllers\ArtistController;
@@ -72,6 +76,12 @@ Route::get('/shipping-rates', [ShippingRateController::class, 'publicIndex']);
 // Banners y colaboradores — públicos
 Route::get('/banners',       [BannerController::class,       'publicIndex']);
 Route::get('/collaborators', [CollaboratorController::class, 'publicIndex']);
+
+// Hero slides — público
+Route::get('/hero-slides', [HeroSlideController::class, 'publicIndex']);
+
+// Newsletter — público
+Route::post('/newsletter/subscribe', [NewsletterController::class, 'subscribe']);
 
 // Fanfics — globo público
 Route::get('/fanfics', [FanficController::class, 'publicIndex']);
@@ -149,6 +159,17 @@ Route::middleware(['auth:sanctum', 'admin'])->prefix('admin')->group(function ()
     Route::post('/collaborators',                  [CollaboratorController::class, 'store']);
     Route::put('/collaborators/{collaborator}',    [CollaboratorController::class, 'update']);
     Route::delete('/collaborators/{collaborator}', [CollaboratorController::class, 'destroy']);
+
+    // Hero slides admin — /reorder ANTES que {heroSlide} para evitar conflictos
+    Route::put('/hero-slides/reorder',       [AdminHeroController::class, 'reorder']);
+    Route::get('/hero-slides',               [AdminHeroController::class, 'index']);
+    Route::post('/hero-slides',              [AdminHeroController::class, 'store']);
+    Route::put('/hero-slides/{heroSlide}',   [AdminHeroController::class, 'update']);
+    Route::delete('/hero-slides/{heroSlide}', [AdminHeroController::class, 'destroy']);
+
+    // Newsletter admin — /export ANTES que rutas dinámicas (no las hay, pero mismo criterio)
+    Route::get('/newsletter/export',      [AdminNewsletterController::class, 'export']);
+    Route::get('/newsletter/subscribers', [AdminNewsletterController::class, 'index']);
 
     Route::put('/orders/{order}/cancel',   [AdminCancellationController::class, 'cancel']);
 
