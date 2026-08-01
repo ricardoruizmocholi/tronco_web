@@ -2,10 +2,10 @@ import { useEffect, useState } from 'react'
 
 export type HeaderState = 'transparent' | 'solid'
 
-// transparent: al cargar (scrollY < threshold) o mientras el usuario baja
-// solid: al detectar scroll hacia arriba
+// solid: en el top (scrollY < threshold) o al detectar scroll hacia arriba
+// transparent: solo mientras el usuario baja y ya no está en el top
 export function useHeaderState(threshold = 10): HeaderState {
-  const [state, setState] = useState<HeaderState>('transparent')
+  const [state, setState] = useState<HeaderState>('solid')
 
   useEffect(() => {
     let lastY = window.scrollY
@@ -14,7 +14,7 @@ export function useHeaderState(threshold = 10): HeaderState {
       const currentY = window.scrollY
 
       if (currentY < threshold) {
-        setState('transparent')
+        setState('solid')
         lastY = currentY
         return
       }

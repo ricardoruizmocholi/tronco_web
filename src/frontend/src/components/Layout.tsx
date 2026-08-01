@@ -31,7 +31,8 @@ export default function Layout() {
   const { user, logout } = useAuth()
   const navigate = useNavigate()
   const headerState = useHeaderState()
-  const isSolid = headerState === 'solid'
+  const [isHovered, setIsHovered] = useState(false)
+  const isSolid = headerState === 'solid' || isHovered
   const { getTotalItems, openCart } = useCartStore()
   const [isDrawerOpen, setIsDrawerOpen] = useState(false)
   const [pendingOrders,  setPendingOrders]  = useState(0)
@@ -72,8 +73,11 @@ export default function Layout() {
 
   return (
     <div className="min-h-screen flex flex-col bg-canvas">
-      {/* Header — dinámico: transparente al cargar/bajar, sólido al subir */}
-      <header className={`fixed top-0 w-full z-50 border-b transition-all duration-300
+      {/* Header — dinámico: sólido en el top/al subir/con hover, transparente solo al bajar */}
+      <header
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+        className={`fixed top-0 w-full z-50 border-b transition-all duration-300
         ${isSolid ? 'bg-canvas border-ink/10' : 'bg-transparent border-transparent'}`}>
         <div className="max-w-6xl mx-auto px-4 h-12 md:h-14 grid grid-cols-[auto_1fr_auto] md:grid-cols-3 items-center gap-4">
           {/* Logo — wordmark, oscuro sobre header sólido / blanco sobre header transparente */}
