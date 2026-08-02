@@ -9,8 +9,10 @@ import {
   togglePreorder,
   updateProduct,
 } from '../../api/products'
+import { getAdminArtists } from '../../api/artists'
 import ProductForm from '../../components/admin/ProductForm'
 import type { Category, Product, ProductFormData } from '../../types/product'
+import type { Artist } from '../../types/artist'
 
 const euros = new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' })
 
@@ -19,6 +21,7 @@ type FormMode = { type: 'create' } | { type: 'edit'; product: Product } | null
 export default function AdminProductsPage() {
   const [products, setProducts]   = useState<Product[]>([])
   const [categories, setCategories] = useState<Category[]>([])
+  const [artists, setArtists]     = useState<Artist[]>([])
   const [loading, setLoading]     = useState(true)
   const [formMode, setFormMode]   = useState<FormMode>(null)
   const [saving, setSaving]       = useState(false)
@@ -29,7 +32,7 @@ export default function AdminProductsPage() {
   }
 
   useEffect(() => {
-    Promise.all([loadProducts(), getCategories().then(setCategories)])
+    Promise.all([loadProducts(), getCategories().then(setCategories), getAdminArtists().then(setArtists)])
       .catch(() => setError('Error al cargar los productos.'))
       .finally(() => setLoading(false))
   }, [])
@@ -114,6 +117,7 @@ export default function AdminProductsPage() {
           <ProductForm
             product={formMode.type === 'edit' ? formMode.product : undefined}
             categories={categories}
+            artists={artists}
             onSave={handleSave}
             onCancel={() => { setFormMode(null); setError(null) }}
             saving={saving}

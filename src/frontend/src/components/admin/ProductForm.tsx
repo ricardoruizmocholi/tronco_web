@@ -7,12 +7,14 @@ import { uploadImage } from '../../api/upload'
 import type {
   AttributeType, Category, Product, ProductAttribute, ProductFormData, ProductImage, ProductVariant,
 } from '../../types/product'
+import type { Artist } from '../../types/artist'
 
 const euros = new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' })
 
 interface Props {
   product?: Product
   categories: Category[]
+  artists: Artist[]
   onSave: (data: ProductFormData, pendingImageUrls?: string[]) => void
   onCancel: () => void
   saving: boolean
@@ -24,6 +26,7 @@ interface FormState {
   priceEuros: string
   stock: string
   category_id: string
+  artist_id: string
   is_active: boolean
 }
 
@@ -33,6 +36,7 @@ const empty: FormState = {
   priceEuros: '',
   stock: '0',
   category_id: '',
+  artist_id: '',
   is_active: true,
 }
 
@@ -43,11 +47,12 @@ function toFormState(p: Product): FormState {
     priceEuros:  (p.price / 100).toFixed(2),
     stock:       String(p.stock),
     category_id: p.category_id ? String(p.category_id) : '',
+    artist_id:   p.artist_id ? String(p.artist_id) : '',
     is_active:   p.is_active,
   }
 }
 
-export default function ProductForm({ product, categories, onSave, onCancel, saving }: Props) {
+export default function ProductForm({ product, categories, artists, onSave, onCancel, saving }: Props) {
   const [form, setForm]     = useState<FormState>(product ? toFormState(product) : empty)
   const [errors, setErrors] = useState<Partial<Record<keyof FormState, string>>>({})
 
@@ -126,6 +131,7 @@ export default function ProductForm({ product, categories, onSave, onCancel, sav
       price:       Math.round(parseFloat(form.priceEuros) * 100),
       stock:       parseInt(form.stock, 10),
       category_id: form.category_id ? parseInt(form.category_id, 10) : null,
+      artist_id:   form.artist_id ? parseInt(form.artist_id, 10) : null,
       is_active:   form.is_active,
     }, pendingImages)
   }
@@ -374,6 +380,19 @@ export default function ProductForm({ product, categories, onSave, onCancel, sav
           <option value="">Sin categoría</option>
           {categories.map(cat => (
             <option key={cat.id} value={String(cat.id)}>{cat.name}</option>
+          ))}
+        </select>
+      </div>
+
+      {/* Artista colaborador — vincula el producto para que aparezca en el
+          filtro "Colaboradores" de la tienda y en el perfil del artista */}
+      <div>
+        <label className="block text-xs font-medium text-ink/60 mb-1">Artista colaborador</label>
+        <select value={form.artist_id} onChange={e => set('artist_id', e.target.value)}
+          className={inputCls('artist_id')}>
+          <option value="">Sin artista</option>
+          {artists.map(artist => (
+            <option key={artist.id} value={String(artist.id)}>{artist.name}</option>
           ))}
         </select>
       </div>

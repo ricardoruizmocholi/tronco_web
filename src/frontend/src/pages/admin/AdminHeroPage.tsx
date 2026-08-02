@@ -3,7 +3,9 @@ import {
   createHeroSlide, deleteHeroSlide, getAdminHeroSlides, reorderHeroSlides, updateHeroSlide,
 } from '../../api/heroSlides'
 import type { HeroSlide, HeroSlideType } from '../../types/heroSlide'
-import { uploadImage } from '../../api/upload'
+import { uploadImage, uploadVideo } from '../../api/upload'
+
+type VideoSource = 'file' | 'url'
 
 interface FormState {
   type:      HeroSlideType
@@ -53,7 +55,10 @@ export default function AdminHeroPage() {
   const [uploading, setUploading] = useState(false)
   const [error, setError]       = useState<string | null>(null)
   const [dragIndex, setDragIndex] = useState<number | null>(null)
+  const [videoSource, setVideoSource] = useState<VideoSource>('url')
+  const [uploadingVideo, setUploadingVideo] = useState(false)
   const fileRef                 = useRef<HTMLInputElement>(null)
+  const videoFileRef            = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     getAdminHeroSlides()
@@ -65,12 +70,14 @@ export default function AdminHeroPage() {
   function openCreate() {
     setForm(empty)
     setFormMode({ type: 'create' })
+    setVideoSource('url')
     setError(null)
   }
 
   function openEdit(slide: HeroSlide) {
     setForm(toFormState(slide))
     setFormMode({ type: 'edit', slide })
+    setVideoSource('url')
     setError(null)
   }
 
@@ -94,6 +101,21 @@ export default function AdminHeroPage() {
       setError('No se pudo subir la imagen.')
     } finally {
       setUploading(false)
+      e.target.value = ''
+    }
+  }
+
+  async function handleVideoFileUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setUploadingVideo(true)
+    try {
+      const url = await uploadVideo(file)
+      setForm(f => ({ ...f, url }))
+    } catch {
+      setError('No se pudo subir el vídeo.')
+    } finally {
+      setUploadingVideo(false)
       e.target.value = ''
     }
   }
@@ -227,15 +249,44 @@ export default function AdminHeroPage() {
             </div>
           </div>
 
-          {/* URL — imagen: subir o pegar / vídeo: solo URL */}
+          {/* URL / archivo — imagen: subir o pegar / vídeo: subir archivo o URL externa */}
           <div>
             <label className="block text-xs font-medium text-ink/60 mb-1">
-              {form.type === 'video' ? 'URL del vídeo' : 'Imagen'} <span className="text-secondary">*</span>
+              {form.type === 'video' ? 'Vídeo' : 'Imagen'} <span className="text-secondary">*</span>
             </label>
+
+            {form.type === 'video' && (
+              <div className="flex gap-4 mb-2">
+                <label className="flex items-center gap-1.5 text-sm text-ink cursor-pointer">
+                  <input type="radio" checked={videoSource === 'file'}
+                    onChange={() => setVideoSource('file')} className="accent-primary" />
+                  Subir archivo
+                </label>
+                <label className="flex items-center gap-1.5 text-sm text-ink cursor-pointer">
+                  <input type="radio" checked={videoSource === 'url'}
+                    onChange={() => setVideoSource('url')} className="accent-primary" />
+                  URL externa
+                </label>
+              </div>
+            )}
+
             <div className="flex gap-2">
-              <input type="text" value={form.url} onChange={e => set('url', e.target.value)}
-                className={`${inputCls} flex-1`}
-                placeholder={form.type === 'video' ? 'https://.../video.mp4' : 'https://...'} />
+              {form.type === 'video' && videoSource === 'file' ? (
+                <label className="flex-1 flex items-center gap-1.5 px-3 py-2 rounded-lg border border-ink/20
+                  text-sm text-ink/60 hover:text-primary hover:border-primary cursor-pointer transition-colors">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-4 h-4 flex-shrink-0">
+                    <path strokeLinecap="round" strokeLinejoin="round"
+                      d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
+                  </svg>
+                  {uploadingVideo ? 'Subiendo…' : form.url ? 'Cambiar archivo de vídeo' : 'Elegir archivo de vídeo (máx. 100 MB)'}
+                  <input ref={videoFileRef} type="file" accept="video/mp4,video/webm,video/ogg"
+                    className="sr-only" onChange={handleVideoFileUpload} disabled={uploadingVideo} />
+                </label>
+              ) : (
+                <input type="text" value={form.url} onChange={e => set('url', e.target.value)}
+                  className={`${inputCls} flex-1`}
+                  placeholder={form.type === 'video' ? 'https://.../video.mp4' : 'https://...'} />
+              )}
               {form.type === 'image' && (
                 <label className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-ink/20
                   text-sm text-ink/60 hover:text-primary hover:border-primary cursor-pointer transition-colors flex-shrink-0">
@@ -256,7 +307,7 @@ export default function AdminHeroPage() {
             )}
             {form.url && form.type === 'video' && (
               <div className="mt-2 h-24 rounded-lg overflow-hidden border border-ink/10 bg-ink/5">
-                <video src={form.url} className="w-full h-full object-cover" muted />
+                <video src={form.url} className="w-full h-full object-cover" muted controls />
               </div>
             )}
           </div>
@@ -307,7 +358,7 @@ export default function AdminHeroPage() {
           </div>
 
           <div className="flex gap-3 pt-2">
-            <button type="submit" disabled={saving}
+            <button type="submit" disabled={saving || uploading || uploadingVideo}
               className="px-5 py-2 rounded-lg bg-primary text-white text-sm font-medium
                 hover:bg-primary/90 transition-colors disabled:opacity-50">
               {saving ? 'Guardando…' : formMode.type === 'create' ? 'Crear slide' : 'Guardar cambios'}

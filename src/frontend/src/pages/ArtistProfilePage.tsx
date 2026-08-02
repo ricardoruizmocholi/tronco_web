@@ -123,8 +123,9 @@ export default function ArtistProfilePage() {
     <div className="min-h-screen bg-canvas">
       {lightbox && <Lightbox image={lightbox} onClose={() => setLightbox(null)} />}
 
-      {/* Hero — imagen a sangre (el propio avatar), info superpuesta */}
-      <div className="relative bg-dark overflow-hidden min-h-[40vh] flex items-end">
+      {/* Hero — imagen a sangre (el propio avatar), info superpuesta.
+          -mt cancela el pt-12 md:pt-14 que <main> aplica en Layout.tsx */}
+      <div className="relative bg-dark overflow-hidden min-h-[40vh] flex items-end -mt-12 md:-mt-14">
         {artist.avatar_url && (
           <div
             className="absolute inset-0 bg-cover bg-center"

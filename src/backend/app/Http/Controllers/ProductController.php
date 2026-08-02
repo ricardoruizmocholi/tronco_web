@@ -12,7 +12,8 @@ use Illuminate\Support\Str;
 
 class ProductController extends Controller
 {
-    // GET /api/products  (?category=slug)
+    // GET /api/products  (?category=slug — "colaboradores" es un filtro virtual,
+    // no una categoría real: devuelve productos vinculados a un artista colaborador)
     public function index(): JsonResponse
     {
         $query = Product::with([
@@ -22,7 +23,11 @@ class ProductController extends Controller
         ])->where('is_active', true);
 
         if ($slug = request()->query('category')) {
-            $query->whereHas('category', fn($q) => $q->where('slug', $slug));
+            if ($slug === 'colaboradores') {
+                $query->whereNotNull('artist_id');
+            } else {
+                $query->whereHas('category', fn($q) => $q->where('slug', $slug));
+            }
         }
 
         return response()->json($query->orderBy('name')->paginate(12));

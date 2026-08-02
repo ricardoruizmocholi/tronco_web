@@ -180,9 +180,6 @@ export default function Layout() {
         </div>
       </header>
 
-      {/* Sin espaciador: el header flota transparente sobre el contenido de cada página;
-          se vuelve sólido al hacer scroll hacia arriba (comportamiento intencional en toda la app) */}
-
       {/* Drawer de navegación móvil */}
       <MobileDrawer
         isOpen={isDrawerOpen}
@@ -195,8 +192,11 @@ export default function Layout() {
       {/* Drawer del carrito */}
       <CartDrawer />
 
-      {/* Contenido de la página */}
-      <main className="flex-1">
+      {/* Contenido de la página — padding-top igual a la altura del header fijo
+          (48px móvil / 56px escritorio) para que no tape el contenido superior.
+          HomePage cancela este padding con un margin-top negativo para que su
+          hero siga ocupando 100vh a sangre desde el top real. */}
+      <main className="flex-1 pt-12 md:pt-14">
         <Outlet />
       </main>
 

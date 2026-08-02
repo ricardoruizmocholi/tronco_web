@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { getCategories, getProducts } from '../api/products'
-import ProductCard from '../components/ProductCard'
+import LandingProductCard from '../components/LandingProductCard'
 import type { Category, Product } from '../types/product'
 
 export default function StorePage() {
@@ -74,7 +74,7 @@ export default function StorePage() {
         <p className="mt-2 text-white/70 text-sm">Merchandising oficial de Troncodrilo</p>
       </header>
 
-      <main className="max-w-6xl mx-auto px-4 md:px-8 lg:px-16 py-8">
+      <main className="w-full px-4 md:px-6 lg:px-8 py-8">
         {/* Filtro por categoría — chips planos, borde inferior activo */}
         <div className="flex flex-wrap gap-6 mb-10 border-b border-ink/10">
           <button
@@ -100,6 +100,17 @@ export default function StorePage() {
               {cat.name}
             </button>
           ))}
+          {/* Filtro virtual — productos vinculados a un artista colaborador (artist_id no nulo) */}
+          <button
+            onClick={() => selectCategory('colaboradores')}
+            className={`pb-3 text-xs uppercase tracking-wide border-b-2 -mb-px transition-colors ${
+              activeCategory === 'colaboradores'
+                ? 'border-primary text-ink font-medium'
+                : 'border-transparent text-ink/50 hover:text-ink'
+            }`}
+          >
+            Colaboradores
+          </button>
         </div>
 
         {/* Estado: cargando primera página */}
@@ -124,7 +135,7 @@ export default function StorePage() {
           <>
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
               {products.map(product => (
-                <ProductCard key={product.id} product={product} />
+                <LandingProductCard key={product.id} product={product} />
               ))}
             </div>
 

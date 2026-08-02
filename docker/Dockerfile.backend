@@ -22,7 +22,7 @@ COPY . .
 RUN composer install --no-interaction --optimize-autoloader
 
 # Límites de subida (el archivo de referencia vive en docker/php.ini)
-RUN printf 'upload_max_filesize = 10M\npost_max_size = 12M\n' \
+RUN printf 'upload_max_filesize = 110M\npost_max_size = 120M\n' \
     > /usr/local/etc/php/conf.d/uploads.ini
 
 # Entrypoint: garantiza permisos de storage antes de arrancar PHP-FPM

@@ -99,7 +99,8 @@ export default function LandingProductCard({ product }: Props) {
   }
 
   return (
-    <div className="relative w-full flex flex-col border border-ink/10 bg-white">
+    <div className="relative w-full flex flex-col border border-ink/10 bg-white
+      transition-transform duration-200 hover:-translate-y-1">
       {/* Imagen — ratio 3:4 propio (ya no depende de un % de altura del contenedor padre,
           para que la sección de info pueda crecer sin recortar el nombre del producto) */}
       <Link

@@ -274,8 +274,9 @@ export default function HomePage() {
 
   return (
     <div className="bg-canvas">
-      {/* ── Hero — 100vh exacto, imagen o vídeo gestionado desde admin, sin overlay ── */}
-      <section className="relative w-full overflow-hidden bg-dark" style={{ height: '100vh' }}>
+      {/* ── Hero — 100vh exacto a sangre bajo el header fijo. -mt cancela el
+          pt-12 md:pt-14 que <main> aplica en Layout.tsx para el resto de páginas ── */}
+      <section className="relative w-full overflow-hidden bg-dark -mt-12 md:-mt-14" style={{ height: '100vh' }}>
         {activeSlide ? (
           activeSlide.type === 'video' ? (
             <video

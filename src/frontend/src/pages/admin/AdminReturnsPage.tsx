@@ -162,6 +162,14 @@ export default function AdminReturnsPage() {
     }
   }
 
+  function closeDetail() {
+    setDetail(null)
+  }
+
+  function handleBackdropClick(e: React.MouseEvent<HTMLDivElement>) {
+    if (e.target === e.currentTarget) closeDetail()
+  }
+
   function refreshList() {
     getAdminReturns(filters, page).then(data => {
       setReturns(data.data)
@@ -307,10 +315,13 @@ export default function AdminReturnsPage() {
 
       {/* Detail modal */}
       {(detail || detailLoading) && (
-        <div className="fixed inset-0 z-50 flex items-start justify-center p-4 bg-ink/40 overflow-y-auto">
+        <div
+          className="fixed inset-0 z-50 flex items-start justify-center p-4 bg-ink/40 overflow-y-auto"
+          onClick={handleBackdropClick}
+        >
           <div className="bg-canvas w-full max-w-2xl my-8 relative">
             <button
-              onClick={() => setDetail(null)}
+              onClick={closeDetail}
               aria-label="Cerrar"
               className="absolute top-4 right-4 text-ink/40 hover:text-ink transition-colors z-10"
             >

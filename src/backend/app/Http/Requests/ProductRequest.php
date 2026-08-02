@@ -19,7 +19,7 @@ class ProductRequest extends FormRequest
             'price'       => ['required', 'integer', 'min:1'],
             'stock'       => ['sometimes', 'integer', 'min:0'],
             'category_id' => ['nullable', 'integer', 'exists:categories,id'],
-            'artist_id'   => ['nullable', 'integer'],
+            'artist_id'   => ['nullable', 'integer', 'exists:artists,id'],
             'image_url'   => ['nullable', 'string', 'url', 'max:2048'],
             'is_active'   => ['sometimes', 'boolean'],
         ];
@@ -31,6 +31,7 @@ class ProductRequest extends FormRequest
             'price.min'          => 'El precio debe ser al menos 1 céntimo.',
             'stock.min'          => 'El stock no puede ser negativo.',
             'category_id.exists' => 'La categoría seleccionada no existe.',
+            'artist_id.exists'   => 'El artista seleccionado no existe.',
         ];
     }
 }

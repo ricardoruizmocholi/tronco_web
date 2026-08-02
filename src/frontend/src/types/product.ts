@@ -78,6 +78,7 @@ export interface ProductFormData {
   price: number
   stock: number
   category_id: number | null
+  artist_id?: number | null
   is_active?: boolean
 }
 

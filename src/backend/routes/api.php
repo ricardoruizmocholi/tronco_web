@@ -28,6 +28,7 @@ use App\Http\Controllers\ProductVariantController;
 use App\Http\Controllers\PromotionController;
 use App\Http\Controllers\ShippingRateController;
 use App\Http\Controllers\StripeWebhookController;
+use App\Http\Controllers\VideoUploadController;
 use Illuminate\Support\Facades\Route;
 
 Route::post('/register', [AuthController::class, 'register']);
@@ -99,6 +100,8 @@ Route::middleware('auth:sanctum')->group(function () {
 
 // Gestión admin (productos + artistas + fanfics)
 Route::middleware(['auth:sanctum', 'admin'])->prefix('admin')->group(function () {
+    Route::post('/upload-video', [VideoUploadController::class, 'store']);
+
     Route::get('/products',                        [ProductController::class, 'adminIndex']);
     Route::post('/products',                       [ProductController::class, 'store']);
     Route::put('/products/{product}',              [ProductController::class, 'update']);
