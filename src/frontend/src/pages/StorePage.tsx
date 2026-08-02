@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { useSearchParams } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import { getCategories, getProducts } from '../api/products'
 import LandingProductCard from '../components/LandingProductCard'
 import type { Category, Product } from '../types/product'
@@ -100,17 +100,14 @@ export default function StorePage() {
               {cat.name}
             </button>
           ))}
-          {/* Filtro virtual — productos vinculados a un artista colaborador (artist_id no nulo) */}
-          <button
-            onClick={() => selectCategory('colaboradores')}
-            className={`pb-3 text-xs uppercase tracking-wide border-b-2 -mb-px transition-colors ${
-              activeCategory === 'colaboradores'
-                ? 'border-primary text-ink font-medium'
-                : 'border-transparent text-ink/50 hover:text-ink'
-            }`}
+          {/* No filtra productos — navega a la página de artistas colaboradores */}
+          <Link
+            to="/artistas"
+            className="pb-3 text-xs uppercase tracking-wide border-b-2 -mb-px transition-colors
+              border-transparent text-ink/50 hover:text-ink"
           >
             Colaboradores
-          </button>
+          </Link>
         </div>
 
         {/* Estado: cargando primera página */}

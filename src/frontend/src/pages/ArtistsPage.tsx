@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
 import { getArtists } from '../api/artists'
 import type { Artist } from '../types/artist'
 
@@ -14,8 +13,10 @@ function ArtistCard({ artist }: { artist: Artist }) {
   const socialCount = Object.values(artist.social_links ?? {}).filter(Boolean).length
 
   return (
-    <Link
-      to={`/artistas/${artist.id}`}
+    <a
+      href={`/artistas/${artist.id}`}
+      target="_blank"
+      rel="noopener noreferrer"
       className="group flex flex-col bg-white border border-ink/10
         hover:border-primary/40 transition-colors duration-300 overflow-hidden"
     >
@@ -73,7 +74,7 @@ function ArtistCard({ artist }: { artist: Artist }) {
           )}
         </div>
       </div>
-    </Link>
+    </a>
   )
 }
 
