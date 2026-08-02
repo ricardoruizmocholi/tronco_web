@@ -48,13 +48,21 @@ class AdminOrderController extends Controller
     // GET /api/admin/orders/{order}
     public function show(Order $order): JsonResponse
     {
+        return response()->json($this->formatDetail($order));
+    }
+
+    // Formatea un pedido con las mismas relaciones/forma que consume AdminOrdersPage.tsx
+    // (usado tanto por show() como por updateTracking(), para que ambos devuelvan un
+    // AdminOrderDetail completo y el frontend nunca se quede sin `items`/`user`)
+    private function formatDetail(Order $order): array
+    {
         $order->load([
             'user:id,name,email',
             'items.product:id,name,slug',
             'items.variant:id,size',
         ]);
 
-        $data = [
+        return [
             'id'                   => $order->id,
             'status'               => $order->status,
             'total'                => $order->total,
@@ -66,7 +74,7 @@ class AdminOrderController extends Controller
             'tracking_updated_at'  => $order->tracking_updated_at,
             'created_at'           => $order->created_at,
             'user'                 => $order->user,
-            'items'            => $order->items->map(fn ($item) => [
+            'items'                => $order->items->map(fn ($item) => [
                 'id'           => $item->id,
                 'product_name' => $item->product?->name ?? '—',
                 'product_slug' => $item->product?->slug,
@@ -76,8 +84,6 @@ class AdminOrderController extends Controller
                 'subtotal'     => $item->unit_price * $item->quantity,
             ]),
         ];
-
-        return response()->json($data);
     }
 
     // PUT /api/admin/orders/{order}/status
@@ -102,7 +108,7 @@ class AdminOrderController extends Controller
 
         $order->update([...$data, 'tracking_updated_at' => now()]);
 
-        return response()->json($order);
+        return response()->json($this->formatDetail($order));
     }
 
     // GET /api/admin/orders/stats

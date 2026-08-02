@@ -37,7 +37,15 @@ class AdminReturnController extends Controller
 
     public function show(int $id): JsonResponse
     {
-        $rr = ReturnRequest::with([
+        return response()->json($this->findWithDetail($id));
+    }
+
+    // Carga las mismas relaciones que consume AdminReturnsPage.tsx (usado tanto por
+    // show() como por updateTracking(), para que ambos devuelvan el detalle completo
+    // y el frontend nunca se quede sin `order`/`items`/`history`)
+    private function findWithDetail(int $id): ReturnRequest
+    {
+        return ReturnRequest::with([
             'order.items.product',
             'order.items.variant',
             'user',
@@ -45,8 +53,6 @@ class AdminReturnController extends Controller
             'items.orderItem.product',
             'items.orderItem.variant',
         ])->findOrFail($id);
-
-        return response()->json($rr);
     }
 
     public function approve(Request $request, int $id): JsonResponse
@@ -228,6 +234,6 @@ class AdminReturnController extends Controller
 
         $rr->update([...$data, 'return_tracking_updated_at' => now()]);
 
-        return response()->json($rr);
+        return response()->json($this->findWithDetail($id));
     }
 }
