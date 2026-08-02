@@ -6,8 +6,10 @@ import {
   getAdminReturn,
   getAdminReturns,
   rejectReturn,
+  updateReturnTracking,
 } from '../../api/returns'
 import ReturnStatusBadge from '../../components/ReturnStatusBadge'
+import TrackingPanel from '../../components/TrackingPanel'
 import type { AdminReturnsFilters, ReturnRequest, ReturnStatus } from '../../types/returnRequest'
 
 const euros = new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' })
@@ -581,6 +583,29 @@ export default function AdminReturnsPage() {
                         </button>
                       </div>
                     </div>
+                  )}
+
+                  {/* Seguimiento del paquete de vuelta — el cliente solo puede estar
+                      enviándolo (o haberlo enviado) a partir de que se aprueba la devolución */}
+                  {['approved', 'received', 'refunded'].includes(detail.status) && (
+                    <TrackingPanel
+                      title="Seguimiento del paquete de vuelta"
+                      variant="flat"
+                      data={{
+                        number:    detail.return_tracking_number,
+                        url:       detail.return_tracking_url,
+                        carrier:   detail.return_carrier,
+                        updatedAt: detail.return_tracking_updated_at,
+                      }}
+                      onSave={async payload => {
+                        const updated = await updateReturnTracking(detail.id, {
+                          return_tracking_number: payload.number,
+                          return_tracking_url:    payload.url,
+                          return_carrier:          payload.carrier,
+                        })
+                        setDetail(updated)
+                      }}
+                    />
                   )}
                 </div>
               </div>

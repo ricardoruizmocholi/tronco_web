@@ -17,6 +17,10 @@ class Order extends Model
         'stripe_payment_intent_id',
         'shipping_address',
         'shipping_cost',
+        'tracking_number',
+        'tracking_url',
+        'carrier',
+        'tracking_updated_at',
     ];
 
     protected $attributes = [
@@ -26,9 +30,10 @@ class Order extends Model
     protected function casts(): array
     {
         return [
-            'total'            => 'integer',
-            'shipping_cost'    => 'integer',
-            'shipping_address' => 'array',
+            'total'                => 'integer',
+            'shipping_cost'        => 'integer',
+            'shipping_address'     => 'array',
+            'tracking_updated_at'  => 'datetime',
         ];
     }
 

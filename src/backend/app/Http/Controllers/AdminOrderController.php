@@ -55,13 +55,17 @@ class AdminOrderController extends Controller
         ]);
 
         $data = [
-            'id'               => $order->id,
-            'status'           => $order->status,
-            'total'            => $order->total,
-            'shipping_cost'    => $order->shipping_cost ?? 0,
-            'shipping_address' => $order->shipping_address,
-            'created_at'       => $order->created_at,
-            'user'             => $order->user,
+            'id'                   => $order->id,
+            'status'               => $order->status,
+            'total'                => $order->total,
+            'shipping_cost'        => $order->shipping_cost ?? 0,
+            'shipping_address'     => $order->shipping_address,
+            'tracking_number'      => $order->tracking_number,
+            'tracking_url'         => $order->tracking_url,
+            'carrier'              => $order->carrier,
+            'tracking_updated_at'  => $order->tracking_updated_at,
+            'created_at'           => $order->created_at,
+            'user'                 => $order->user,
             'items'            => $order->items->map(fn ($item) => [
                 'id'           => $item->id,
                 'product_name' => $item->product?->name ?? '—',
@@ -85,6 +89,20 @@ class AdminOrderController extends Controller
             'id'     => $order->id,
             'status' => $order->status,
         ]);
+    }
+
+    // PUT /api/admin/orders/{order}/tracking
+    public function updateTracking(Request $request, Order $order): JsonResponse
+    {
+        $data = $request->validate([
+            'tracking_number' => ['nullable', 'string', 'max:255'],
+            'tracking_url'    => ['nullable', 'url', 'max:2048'],
+            'carrier'         => ['nullable', 'string', 'max:255'],
+        ]);
+
+        $order->update([...$data, 'tracking_updated_at' => now()]);
+
+        return response()->json($order);
     }
 
     // GET /api/admin/orders/stats

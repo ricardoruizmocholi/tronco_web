@@ -38,6 +38,19 @@ export function updateOrderStatus(
   return api.put(`/api/admin/orders/${id}/status`, { status }).then(r => r.data)
 }
 
+export interface OrderTrackingPayload {
+  tracking_number: string
+  tracking_url: string
+  carrier: string
+}
+
+export function updateOrderTracking(
+  id: number,
+  payload: OrderTrackingPayload,
+): Promise<AdminOrderDetail> {
+  return api.put<AdminOrderDetail>(`/api/admin/orders/${id}/tracking`, payload).then(r => r.data)
+}
+
 export function getOrderStats(): Promise<OrderStats> {
   return api.get<OrderStats>('/api/admin/orders/stats').then(r => r.data)
 }

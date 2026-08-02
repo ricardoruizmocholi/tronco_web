@@ -29,14 +29,18 @@ export interface AdminOrderItem {
 }
 
 export interface AdminOrderDetail {
-  id:               number
-  status:           OrderStatus
-  total:            number
-  shipping_cost:    number
-  shipping_address: Record<string, string> | null
-  created_at:       string
-  user:             AdminOrderUser | null
-  items:            AdminOrderItem[]
+  id:                   number
+  status:               OrderStatus
+  total:                number
+  shipping_cost:        number
+  shipping_address:     Record<string, string> | null
+  tracking_number:      string | null
+  tracking_url:         string | null
+  carrier:              string | null
+  tracking_updated_at:  string | null
+  created_at:           string
+  user:                 AdminOrderUser | null
+  items:                AdminOrderItem[]
 }
 
 export interface OrderStats {

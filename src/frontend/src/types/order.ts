@@ -33,6 +33,10 @@ export interface Order {
   shipping_cost: number | null
   stripe_session_id: string | null
   shipping_address: Record<string, string> | null
+  tracking_number: string | null
+  tracking_url: string | null
+  carrier: string | null
+  tracking_updated_at: string | null
   items: OrderItem[]
   return_request?: ReturnRequest | null
   created_at: string

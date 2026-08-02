@@ -67,3 +67,13 @@ export function confirmReturnReceived(id: number, refund_amount?: number): Promi
 export function getPendingReturnsCount(): Promise<number> {
   return api.get<{ count: number }>('/api/admin/returns/pending-count').then(r => r.data.count)
 }
+
+export interface ReturnTrackingPayload {
+  return_tracking_number: string
+  return_tracking_url: string
+  return_carrier: string
+}
+
+export function updateReturnTracking(id: number, payload: ReturnTrackingPayload): Promise<ReturnRequest> {
+  return api.put<ReturnRequest>(`/api/admin/returns/${id}/tracking`, payload).then(r => r.data)
+}

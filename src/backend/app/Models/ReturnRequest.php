@@ -23,6 +23,10 @@ class ReturnRequest extends Model
         'rejected_at',
         'received_at',
         'refunded_at',
+        'return_tracking_number',
+        'return_tracking_url',
+        'return_carrier',
+        'return_tracking_updated_at',
     ];
 
     protected function casts(): array
@@ -34,6 +38,7 @@ class ReturnRequest extends Model
             'rejected_at'   => 'datetime',
             'received_at'   => 'datetime',
             'refunded_at'   => 'datetime',
+            'return_tracking_updated_at' => 'datetime',
         ];
     }
 

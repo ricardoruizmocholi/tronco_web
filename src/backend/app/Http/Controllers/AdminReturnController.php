@@ -214,4 +214,20 @@ class AdminReturnController extends Controller
         $count = ReturnRequest::where('status', 'pending')->count();
         return response()->json(['count' => $count]);
     }
+
+    // PUT /api/admin/returns/{return}/tracking
+    public function updateTracking(Request $request, int $id): JsonResponse
+    {
+        $rr = ReturnRequest::findOrFail($id);
+
+        $data = $request->validate([
+            'return_tracking_number' => ['nullable', 'string', 'max:255'],
+            'return_tracking_url'    => ['nullable', 'url', 'max:2048'],
+            'return_carrier'         => ['nullable', 'string', 'max:255'],
+        ]);
+
+        $rr->update([...$data, 'return_tracking_updated_at' => now()]);
+
+        return response()->json($rr);
+    }
 }

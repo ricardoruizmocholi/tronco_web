@@ -128,10 +128,49 @@ function OrderCard({ order, onCancel, onReturn }: OrderCardProps) {
             </div>
           )}
 
+          {order.tracking_number && (
+            <div className="pt-3 border-t border-ink/5">
+              <p className="text-xs font-medium text-ink/50 uppercase tracking-wide mb-1">Seguimiento</p>
+              <p className="text-sm text-ink">
+                {order.carrier && <span className="text-ink/60">{order.carrier} · </span>}
+                <span className="font-mono">{order.tracking_number}</span>
+              </p>
+              {order.tracking_url && (
+                <a
+                  href={order.tracking_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-block mt-1 text-xs text-primary hover:text-primary/70 transition-colors"
+                >
+                  Rastrear paquete →
+                </a>
+              )}
+            </div>
+          )}
+
           {order.return_request && (
             <div className="pt-3 border-t border-ink/5">
               <p className="text-xs font-medium text-ink/50 mb-1">Estado de devolución</p>
               <ReturnStatusBadge status={order.return_request.status} />
+
+              {order.return_request.return_tracking_number && (
+                <div className="mt-2">
+                  <p className="text-xs text-ink/50">
+                    Tu número de seguimiento del envío de vuelta:{' '}
+                    <span className="font-mono text-ink">{order.return_request.return_tracking_number}</span>
+                  </p>
+                  {order.return_request.return_tracking_url && (
+                    <a
+                      href={order.return_request.return_tracking_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-block mt-1 text-xs text-primary hover:text-primary/70 transition-colors"
+                    >
+                      Rastrear →
+                    </a>
+                  )}
+                </div>
+              )}
             </div>
           )}
 
@@ -200,6 +239,8 @@ export default function ProfileOrdersSection() {
                 admin_notes: null, stripe_refund_id: null, refund_amount: null,
                 requested_at: null, approved_at: null, rejected_at: null,
                 received_at: null, refunded_at: null,
+                return_tracking_number: null, return_tracking_url: null,
+                return_carrier: null, return_tracking_updated_at: null,
                 created_at: new Date().toISOString(),
                 updated_at: new Date().toISOString(),
                 history: [],

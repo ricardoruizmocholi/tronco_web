@@ -147,6 +147,7 @@ Route::middleware(['auth:sanctum', 'admin'])->prefix('admin')->group(function ()
     Route::get('/orders',                    [AdminOrderController::class, 'index']);
     Route::get('/orders/{order}',            [AdminOrderController::class, 'show']);
     Route::put('/orders/{order}/status',     [AdminOrderController::class, 'updateStatus']);
+    Route::put('/orders/{order}/tracking',   [AdminOrderController::class, 'updateTracking']);
 
     Route::get('/shipping-rates',             [ShippingRateController::class, 'index']);
     Route::post('/shipping-rates',            [ShippingRateController::class, 'store']);
@@ -183,6 +184,7 @@ Route::middleware(['auth:sanctum', 'admin'])->prefix('admin')->group(function ()
     Route::put('/returns/{return}/approve', [AdminReturnController::class, 'approve']);
     Route::put('/returns/{return}/reject',  [AdminReturnController::class, 'reject']);
     Route::put('/returns/{return}/receive', [AdminReturnController::class, 'receive']);
+    Route::put('/returns/{return}/tracking', [AdminReturnController::class, 'updateTracking']);
 
     // Toggle allow_preorder en producto
     Route::patch('/products/{product}/toggle-preorder', [ProductController::class, 'togglePreorder']);

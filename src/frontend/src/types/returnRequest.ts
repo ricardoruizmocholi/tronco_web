@@ -39,6 +39,10 @@ export interface ReturnRequest {
   rejected_at: string | null
   received_at: string | null
   refunded_at: string | null
+  return_tracking_number: string | null
+  return_tracking_url: string | null
+  return_carrier: string | null
+  return_tracking_updated_at: string | null
   created_at: string
   updated_at: string
   order?: Order

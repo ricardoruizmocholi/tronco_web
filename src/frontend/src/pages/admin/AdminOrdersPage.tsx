@@ -6,7 +6,9 @@ import {
   getAdminOrders,
   getOrderStats,
   updateOrderStatus,
+  updateOrderTracking,
 } from '../../api/adminOrders'
+import TrackingPanel from '../../components/TrackingPanel'
 import type {
   AdminOrder,
   AdminOrderDetail,
@@ -253,6 +255,25 @@ function OrderDetailModal({
                 </div>
               </div>
             )}
+
+            {/* Seguimiento */}
+            <TrackingPanel
+              title="Seguimiento"
+              data={{
+                number:    order.tracking_number,
+                url:       order.tracking_url,
+                carrier:   order.carrier,
+                updatedAt: order.tracking_updated_at,
+              }}
+              onSave={async payload => {
+                const updated = await updateOrderTracking(order.id, {
+                  tracking_number: payload.number,
+                  tracking_url:    payload.url,
+                  carrier:         payload.carrier,
+                })
+                setOrder(updated)
+              }}
+            />
 
           </div>
         ) : (
