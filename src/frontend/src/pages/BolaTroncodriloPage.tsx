@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import Globe from 'react-globe.gl'
 import { getAllFanfics } from '../api/fanfics'
 import StarField from '../components/StarField'
+import { useAuth } from '../hooks/useAuth'
 import type { Fanfic } from '../types/fanfic'
 
 const GLOBE_IMG = '//unpkg.com/three-globe/example/img/earth-dark.jpg'
@@ -76,19 +77,61 @@ type PanelState =
   | { mode: 'list'; cluster: FanficCluster }
   | { mode: 'detail'; cluster: FanficCluster; fanfic: Fanfic }
 
-function PanelHeader({ label, onClose }: { label: string; onClose: () => void }) {
+const scrollbarStyle: React.CSSProperties = {
+  scrollbarWidth: 'thin',
+  scrollbarColor: '#5BBB2A #1C1F1A',
+}
+
+function PinIcon() {
   return (
-    <div className="flex items-center justify-between gap-4 px-6 py-5 border-b border-white/10 flex-shrink-0">
-      <p className="label-caps text-white/70">{label}</p>
+    <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2" className="flex-shrink-0">
+      <path d="M12 21s-7-7.5-7-12a7 7 0 1114 0c0 4.5-7 12-7 12z" />
+      <circle cx="12" cy="9" r="2.5" />
+    </svg>
+  )
+}
+
+function BackArrowIcon() {
+  return (
+    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor"
+      strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M15 18l-6-6 6-6" />
+    </svg>
+  )
+}
+
+function CloseIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
+      strokeLinecap="round" className="w-5 h-5">
+      <path d="M18 6L6 18M6 6l12 12" />
+    </svg>
+  )
+}
+
+// Header del panel: botón "← volver" (si hay una lista a la que volver) a la
+// izquierda, X para cerrar a la derecha. Sin título — el contexto (ciudad,
+// cantidad) vive en el propio contenido de cada vista.
+function PanelTopBar({
+  onBack, onClose,
+}: { onBack: (() => void) | null; onClose: () => void }) {
+  return (
+    <div className="flex items-center justify-between pb-3 border-b border-canvas/10 flex-shrink-0">
+      {onBack ? (
+        <button
+          onClick={onBack}
+          aria-label="Volver a la lista"
+          className="p-1.5 -ml-1.5 text-canvas/70 hover:text-canvas transition-colors"
+        >
+          <BackArrowIcon />
+        </button>
+      ) : <span />}
       <button
         onClick={onClose}
         aria-label="Cerrar panel"
-        className="p-1.5 -mr-1.5 text-white/50 hover:text-white transition-colors"
+        className="p-1.5 -mr-1.5 text-canvas/50 hover:text-canvas transition-colors"
       >
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
-          strokeLinecap="round" className="w-5 h-5">
-          <path d="M18 6L6 18M6 6l12 12" />
-        </svg>
+        <CloseIcon />
       </button>
     </div>
   )
@@ -96,6 +139,7 @@ function PanelHeader({ label, onClose }: { label: string; onClose: () => void })
 
 export default function BolaTroncodriloPage() {
   const navigate                    = useNavigate()
+  const { user }                    = useAuth()
   const containerRef                = useRef<HTMLDivElement>(null)
   const globeRef                    = useRef<any>(null)  // react-globe.gl instance — no typed export
   const [size, setSize]             = useState({ w: 0, h: 0 })
@@ -164,8 +208,15 @@ export default function BolaTroncodriloPage() {
     setPanel({ mode: 'closed' })
   }
 
-  const panelOpen       = panel.mode !== 'closed'
-  const selectedFanfic  = panel.mode === 'detail' ? panel.fanfic : null
+  const panelOpen      = panel.mode !== 'closed'
+  const selectedFanfic = panel.mode === 'detail' ? panel.fanfic : null
+
+  // Cambia en cada vista/selección distinta — usado como `key` para remontar
+  // el contenido (dispara el fade de 150ms y resetea el scroll al top).
+  const contentKey =
+    panel.mode === 'list'   ? `list-${panel.cluster.id}` :
+    panel.mode === 'detail' ? `detail-${panel.fanfic.id}` :
+    'closed'
 
   return (
     <div
@@ -244,8 +295,8 @@ export default function BolaTroncodriloPage() {
 
       {/* ── Panel lateral ── */}
       <div
-        className={`fixed top-0 right-0 z-10 h-screen w-full sm:w-[380px]
-          bg-dark flex flex-col
+        className={`fixed top-0 right-0 z-10 h-screen w-full sm:w-[320px]
+          bg-dark text-canvas flex flex-col p-4
           transform transition-transform duration-300 ease-out
           ${panelOpen ? 'translate-x-0' : 'translate-x-full'}`}
         onClick={e => e.stopPropagation()}
@@ -256,74 +307,99 @@ export default function BolaTroncodriloPage() {
       >
         {panel.mode === 'list' && (
           <>
-            <PanelHeader label={`Fanfics en ${panel.cluster.cityLabel}`} onClose={closePanel} />
-            <div className="flex-1 overflow-y-auto divide-y divide-white/10">
-              {panel.cluster.fanfics.map(f => (
-                <button
-                  key={f.id}
-                  onClick={() => setPanel({ mode: 'detail', cluster: panel.cluster, fanfic: f })}
-                  className="w-full flex items-center gap-3 px-6 py-3 text-left hover:bg-white/5 transition-colors"
-                >
-                  <img src={f.image_url} alt="" className="w-[60px] h-[60px] object-cover flex-shrink-0" />
-                  <div className="min-w-0">
-                    <p className="font-editorial text-sm text-white truncate">
-                      {f.author?.name ?? 'Anónimo'}
-                    </p>
-                    <p className="label-caps text-primary text-[10px] mt-0.5">{f.city_name}</p>
-                    <p className="text-xs text-white/50 mt-0.5">
-                      {formatDate(f.reviewed_at ?? f.created_at)}
-                    </p>
-                  </div>
-                </button>
-              ))}
+            <PanelTopBar onBack={null} onClose={closePanel} />
+            <div key={contentKey} className="pt-4 flex-1 min-h-0 flex flex-col animate-[fade-in_150ms_ease-in-out]">
+              <div className="flex-shrink-0 mb-1">
+                <p className="label-caps text-canvas/70">{panel.cluster.cityLabel}</p>
+                <p className="text-xs text-canvas/50 mt-0.5">
+                  {panel.cluster.fanfics.length} fanfics
+                </p>
+              </div>
+              <div className="flex-1 min-h-0 overflow-y-auto divide-y divide-canvas/10" style={scrollbarStyle}>
+                {panel.cluster.fanfics.map(f => (
+                  <button
+                    key={f.id}
+                    onClick={() => setPanel({ mode: 'detail', cluster: panel.cluster, fanfic: f })}
+                    className="w-full h-[80px] flex items-center gap-3 text-left hover:bg-white/5 transition-colors"
+                  >
+                    <img
+                      src={f.image_url}
+                      alt=""
+                      className="w-16 h-16 object-cover flex-shrink-0 rounded-[2px]"
+                    />
+                    <div className="min-w-0">
+                      <p className="text-sm font-medium text-canvas truncate">
+                        {f.author?.name ?? 'Anónimo'}
+                      </p>
+                      <p className="text-xs text-primary mt-0.5">{f.city_name}</p>
+                      <p className="text-xs text-canvas/50 mt-0.5">
+                        {formatDate(f.reviewed_at ?? f.created_at)}
+                      </p>
+                    </div>
+                  </button>
+                ))}
+              </div>
             </div>
           </>
         )}
 
         {panel.mode === 'detail' && (
           <>
-            <PanelHeader label={`Fanfic en ${panel.fanfic.city_name}`} onClose={closePanel} />
-            <div className="flex-1 overflow-y-auto">
-              {panel.cluster.fanfics.length > 1 && (
-                <button
-                  onClick={() => setPanel({ mode: 'list', cluster: panel.cluster })}
-                  className="flex items-center gap-1.5 px-6 py-3 text-xs text-white/50 hover:text-white transition-colors"
-                >
-                  ← Volver
-                </button>
-              )}
+            <PanelTopBar
+              onBack={panel.cluster.fanfics.length > 1 ? () => setPanel({ mode: 'list', cluster: panel.cluster }) : null}
+              onClose={closePanel}
+            />
+            <div key={contentKey} className="pt-4 flex-1 min-h-0 overflow-y-auto animate-[fade-in_150ms_ease-in-out]" style={scrollbarStyle}>
+              <img
+                src={panel.fanfic.image_url}
+                alt={panel.fanfic.city_name}
+                className="w-full h-[200px] object-cover"
+              />
 
-              <div className="relative">
-                <img
-                  src={panel.fanfic.image_url}
-                  alt={panel.fanfic.city_name}
-                  className="w-full aspect-[3/4] object-cover"
-                />
+              <div className="pt-4 space-y-2">
+                <p className="font-editorial text-base text-canvas">
+                  {panel.fanfic.author?.name ?? 'Anónimo'}
+                </p>
+                <p className="label-caps text-xs text-primary flex items-center gap-1.5">
+                  <PinIcon />
+                  {panel.fanfic.city_name}
+                </p>
+                <p className="text-xs text-canvas/50">
+                  {formatDate(panel.fanfic.reviewed_at ?? panel.fanfic.created_at)}
+                </p>
+
+                {panel.fanfic.caption && (
+                  <p className="text-sm text-canvas/70 leading-relaxed italic border-l-2 border-primary/40 pl-3">
+                    {panel.fanfic.caption}
+                  </p>
+                )}
+
                 <button
                   onClick={() => setFullscreen(true)}
-                  aria-label="Ver imagen completa"
-                  className="absolute bottom-3 right-3 w-9 h-9 bg-dark/60 backdrop-blur-sm
-                    flex items-center justify-center text-white/70 hover:text-white
-                    hover:bg-dark/80 transition-colors"
+                  className="block text-xs uppercase tracking-wide pb-0.5 text-primary border-b border-primary transition-colors"
                 >
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                    strokeWidth="2" strokeLinecap="round" className="w-4 h-4">
-                    <path d="M15 3h6m0 0v6m0-6-7 7M9 21H3m0 0v-6m0 6 7-7" />
-                  </svg>
+                  Ver imagen completa
                 </button>
               </div>
 
-              <div className="p-6 space-y-3">
-                <p className="font-editorial text-lg text-white">
-                  {panel.fanfic.author?.name ?? 'Anónimo'}
-                </p>
-                <p className="label-caps text-primary">{panel.fanfic.city_name}</p>
-                <p className="text-sm text-white/60">
-                  {formatDate(panel.fanfic.reviewed_at ?? panel.fanfic.created_at)}
-                </p>
-                {panel.fanfic.caption && (
-                  <p className="text-sm text-white/70 leading-relaxed italic border-l-2 border-primary/40 pl-3">
-                    {panel.fanfic.caption}
+              <div className="mt-4 pt-4 border-t border-canvas/20">
+                <p className="font-editorial text-base text-canvas mb-1">¿Tienes tu propio Troncodrilo?</p>
+                <p className="text-xs text-canvas/60 mb-3">Comparte tu fanfic en el mapa</p>
+
+                {user ? (
+                  <button
+                    onClick={() => navigate('/mi-fanfic')}
+                    className="bg-primary text-white px-8 py-2 uppercase tracking-wide text-sm
+                      text-center transition-colors hover:bg-primary/90 rounded-[2px]"
+                  >
+                    Subir fanfic
+                  </button>
+                ) : (
+                  <p className="text-xs text-canvas/60">
+                    <Link to="/login" className="text-primary transition-colors hover:text-primary/70">
+                      Inicia sesión
+                    </Link>
+                    {' '}para participar
                   </p>
                 )}
               </div>

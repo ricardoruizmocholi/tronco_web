@@ -10,7 +10,8 @@
   --color-dark:      #1C1F1A;
 }
 
-/* ── Rediseño editorial (feature 017) — no aplica a /bola-troncodrilo ── */
+/* ── Rediseño editorial (feature 017) — no aplica al globo 3D ni a StarField.tsx,
+   sí al panel lateral de fanfics en /bola-troncodrilo ── */
 
 .font-editorial {
   font-family: 'Instrument Serif', serif;
@@ -35,4 +36,11 @@
 /* Sin sombras en ningún elemento — estética plana, sin excepciones */
 * {
   box-shadow: none !important;
+}
+
+/* Fade de contenido al cambiar de vista (p.ej. lista ↔ detalle en el panel
+   de /bola-troncodrilo) — se dispara remontando el bloque con un `key` distinto. */
+@keyframes fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
 }

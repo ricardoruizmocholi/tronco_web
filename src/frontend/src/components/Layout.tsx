@@ -25,7 +25,7 @@ function CartIcon() {
 const navLinks = [
   { to: '/tienda',           label: 'Tienda' },
   { to: '/artistas',         label: 'Artistas' },
-  { to: '/mapa-troncodrilo', label: 'Mapa Troncodrilo' },
+  { to: '/bola-troncodrilo', label: 'Bola Troncodrilo' },
 ]
 
 export default function Layout() {

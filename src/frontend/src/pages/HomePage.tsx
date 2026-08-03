@@ -145,7 +145,7 @@ function SplitHalf({
   )
 }
 
-function ArtistsMapSplitSection({ firstArtist }: { firstArtist: Artist | null }) {
+function ArtistsBolaSplitSection({ firstArtist }: { firstArtist: Artist | null }) {
   const stars = useStarfield(70)
   const artistImage = firstArtist?.images[0]?.url ?? firstArtist?.avatar_url ?? null
 
@@ -159,11 +159,11 @@ function ArtistsMapSplitSection({ firstArtist }: { firstArtist: Artist | null })
       />
 
       <SplitHalf
-        to="/mapa-troncodrilo"
-        label="Mapa Troncodrilo"
-        subtitle="Descubre dónde vive nuestra comunidad"
+        to="/bola-troncodrilo"
+        label="Bola Troncodrilo"
+        subtitle="El mapa de fans de Troncodrilo"
       >
-        {/* Textura de estrellas — solo hay fallback CSS, no existe imagen estática del mapa */}
+        {/* Textura de estrellas — solo hay fallback CSS, no existe imagen estática de la bola */}
         <div className="absolute inset-0 overflow-hidden" aria-hidden="true">
           {stars.map((s, i) => (
             <span
@@ -335,8 +335,8 @@ export default function HomePage() {
       {/* ── Productos: novedades / en oferta ── */}
       <ProductsSection />
 
-      {/* ── Artistas / Mapa Troncodrilo — 50vh partido en dos mitades ── */}
-      <ArtistsMapSplitSection firstArtist={firstArtist} />
+      {/* ── Artistas / Bola Troncodrilo — 50vh partido en dos mitades ── */}
+      <ArtistsBolaSplitSection firstArtist={firstArtist} />
 
       {/* ── Colaboradores ── */}
       {collaborators.length > 0 && (
