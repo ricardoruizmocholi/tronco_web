@@ -68,6 +68,18 @@ export function getPendingReturnsCount(): Promise<number> {
   return api.get<{ count: number }>('/api/admin/returns/pending-count').then(r => r.data.count)
 }
 
+export function exportReturns(filters: AdminReturnsFilters = {}): Promise<Blob> {
+  const q = new URLSearchParams()
+  if (filters.status)     q.set('status',     filters.status)
+  if (filters.user_email) q.set('user_email', filters.user_email)
+  if (filters.date_from)  q.set('date_from',  filters.date_from)
+  if (filters.date_to)    q.set('date_to',    filters.date_to)
+
+  return api
+    .get(`/api/admin/returns/export?${q}`, { responseType: 'blob' })
+    .then(r => r.data)
+}
+
 export interface ReturnTrackingPayload {
   return_tracking_number: string
   return_tracking_url: string

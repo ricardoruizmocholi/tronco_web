@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import {
   approveReturn,
   confirmReturnReceived,
+  exportReturns,
   getAdminReturn,
   getAdminReturns,
   rejectReturn,
@@ -73,6 +74,7 @@ export default function AdminReturnsPage() {
   const [filters, setFilters]     = useState<AdminReturnsFilters>({})
   const [detail, setDetail]       = useState<ReturnRequest | null>(null)
   const [detailLoading, setDetailLoading] = useState(false)
+  const [exporting, setExporting] = useState(false)
 
   // Detail modal action state
   const [actionLoading, setActionLoading] = useState(false)
@@ -184,6 +186,21 @@ export default function AdminReturnsPage() {
       ?? 'Ha ocurrido un error.'
   }
 
+  async function handleExport() {
+    setExporting(true)
+    try {
+      const blob = await exportReturns(filters)
+      const url  = URL.createObjectURL(blob)
+      const a    = document.createElement('a')
+      a.href     = url
+      a.download = `devoluciones_${new Date().toISOString().slice(0, 10)}.xlsx`
+      a.click()
+      URL.revokeObjectURL(url)
+    } finally {
+      setExporting(false)
+    }
+  }
+
   const statuses = returns.reduce((acc, r) => {
     acc[r.status] = (acc[r.status] ?? 0) + 1
     return acc
@@ -191,8 +208,24 @@ export default function AdminReturnsPage() {
 
   return (
     <div className="max-w-5xl mx-auto px-4 py-12">
-      <h1 className="text-2xl font-bold text-ink mb-2">Devoluciones</h1>
-      <p className="text-ink/50 text-sm mb-8">Gestiona las solicitudes de devolución de los clientes.</p>
+      <div className="flex items-start justify-between gap-4 mb-8 flex-wrap">
+        <div>
+          <h1 className="text-2xl font-bold text-ink mb-2">Devoluciones</h1>
+          <p className="text-ink/50 text-sm">Gestiona las solicitudes de devolución de los clientes.</p>
+        </div>
+        <button
+          onClick={handleExport}
+          disabled={exporting}
+          className="flex items-center gap-2 px-4 py-2 bg-ink text-white text-sm font-medium
+            rounded-xl hover:bg-ink/90 disabled:opacity-50 transition-colors"
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
+            strokeLinecap="round" className="w-4 h-4">
+            <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3" />
+          </svg>
+          {exporting ? 'Exportando…' : 'Exportar Excel'}
+        </button>
+      </div>
 
       {/* Stats */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
