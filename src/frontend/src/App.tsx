@@ -24,6 +24,7 @@ import AdminHeroPage from './pages/admin/AdminHeroPage'
 import AdminNewsletterPage from './pages/admin/AdminNewsletterPage'
 import ArtistsPage from './pages/ArtistsPage'
 import BolaTroncodriloPage from './pages/BolaTroncodriloPage'
+import MapaTroncodriloPage from './pages/MapaTroncodriloPage'
 import MiFanficPage from './pages/MiFanficPage'
 import ArtistProfilePage from './pages/ArtistProfilePage'
 import CheckoutSuccessPage from './pages/checkout/CheckoutSuccessPage'
@@ -51,6 +52,7 @@ function App() {
             <Route path="/artistas"          element={<ArtistsPage />} />
             <Route path="/artistas/:id"      element={<ArtistProfilePage />} />
             <Route path="/bola-troncodrilo"  element={<BolaTroncodriloPage />} />
+            <Route path="/mapa-troncodrilo"  element={<MapaTroncodriloPage />} />
 
             <Route path="/politica-privacidad"
               element={<PolicyPlaceholderPage title="Política de privacidad" />} />

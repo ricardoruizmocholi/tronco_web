@@ -9,6 +9,23 @@ export function getFanfics(cursor?: string): Promise<{
   return api.get(`/api/fanfics${params}`).then(r => r.data)
 }
 
+// El mapa necesita todos los fanfics aprobados a la vez (no una página) — recorre la
+// paginación por cursor de getFanfics() hasta agotarla.
+export async function getAllFanfics(): Promise<Fanfic[]> {
+  const all: Fanfic[] = []
+  let cursor: string | undefined
+
+  do {
+    const page = await getFanfics(cursor)
+    all.push(...page.data)
+    cursor = page.next_page_url
+      ? new URL(page.next_page_url).searchParams.get('cursor') ?? undefined
+      : undefined
+  } while (cursor)
+
+  return all
+}
+
 export function getMyFanfic(): Promise<Fanfic> {
   return api.get<Fanfic>('/api/fanfics/mine').then(r => r.data)
 }

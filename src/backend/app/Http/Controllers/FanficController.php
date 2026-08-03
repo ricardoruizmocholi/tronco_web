@@ -16,7 +16,7 @@ class FanficController extends Controller
         return Fanfic::approved()
             ->with('author:id,name')
             ->select(['id', 'user_id', 'image_url', 'caption', 'city_name',
-                      'latitude', 'longitude', 'is_featured', 'created_at'])
+                      'latitude', 'longitude', 'is_featured', 'created_at', 'reviewed_at'])
             ->orderByDesc('is_featured')
             ->orderByDesc('created_at')
             ->orderByDesc('id')
