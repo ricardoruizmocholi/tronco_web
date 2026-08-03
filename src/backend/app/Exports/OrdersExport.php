@@ -3,17 +3,28 @@
 namespace App\Exports;
 
 use App\Models\Order;
-use Illuminate\Support\Collection;
-use Maatwebsite\Excel\Concerns\FromCollection;
-use Maatwebsite\Excel\Concerns\WithHeadings;
-use Maatwebsite\Excel\Concerns\WithMapping;
-use Maatwebsite\Excel\Concerns\ShouldAutoSize;
+use Maatwebsite\Excel\Concerns\WithMultipleSheets;
 
-class OrdersExport implements FromCollection, WithHeadings, WithMapping, ShouldAutoSize
+// Orquestador: consulta los pedidos UNA sola vez y reparte la misma colección a las dos hojas.
+// Evita una segunda consulta idéntica en OrdersSummarySheet y, sobre todo, permite que el
+// Resumen use rangos de fórmula EXACTOS (Pedidos!H2:H37) en vez de un rango genérico enorme
+// (H2:H100000) — PhpSpreadsheet evalúa las fórmulas en PHP puro al autoajustar columnas, y un
+// rango de 100.000 filas por fórmula agota la memoria (probado: OOM real con ese enfoque).
+class OrdersExport implements WithMultipleSheets
 {
     public function __construct(private array $filters = []) {}
 
-    public function collection(): Collection
+    public function sheets(): array
+    {
+        $orders = $this->query()->get();
+
+        return [
+            new OrdersDataSheet($orders),
+            new OrdersSummarySheet($orders),
+        ];
+    }
+
+    private function query()
     {
         $query = Order::with(['user:id,name,email', 'items'])
             ->orderBy('created_at', 'desc');
@@ -37,25 +48,6 @@ class OrdersExport implements FromCollection, WithHeadings, WithMapping, ShouldA
             $query->where('total', '<=', (int) ($this->filters['max_amount'] * 100));
         }
 
-        return $query->get();
-    }
-
-    public function headings(): array
-    {
-        return ['ID', 'Usuario', 'Email', 'Estado', 'Total (€)', 'Envío (€)', 'Artículos', 'Fecha'];
-    }
-
-    public function map($order): array
-    {
-        return [
-            $order->id,
-            $order->user?->name ?? '—',
-            $order->user?->email ?? '—',
-            $order->status,
-            number_format($order->total / 100, 2, '.', ''),
-            number_format(($order->shipping_cost ?? 0) / 100, 2, '.', ''),
-            $order->items->sum('quantity'),
-            $order->created_at->format('d/m/Y H:i'),
-        ];
+        return $query;
     }
 }

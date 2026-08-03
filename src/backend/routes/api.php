@@ -179,6 +179,7 @@ Route::middleware(['auth:sanctum', 'admin'])->prefix('admin')->group(function ()
 
     // Devoluciones admin — estáticas ANTES que {return} para evitar conflictos
     Route::get('/returns/pending-count',    [AdminReturnController::class, 'pendingCount']);
+    Route::get('/returns/export',           [AdminReturnController::class, 'export']);
     Route::get('/returns',                  [AdminReturnController::class, 'index']);
     Route::get('/returns/{return}',         [AdminReturnController::class, 'show']);
     Route::put('/returns/{return}/approve', [AdminReturnController::class, 'approve']);

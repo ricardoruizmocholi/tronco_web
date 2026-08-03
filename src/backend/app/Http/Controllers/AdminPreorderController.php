@@ -2,10 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Exports\PreordersExport;
 use App\Models\Preorder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Symfony\Component\HttpFoundation\StreamedResponse;
+use Maatwebsite\Excel\Facades\Excel;
 
 class AdminPreorderController extends Controller
 {
@@ -68,43 +69,12 @@ class AdminPreorderController extends Controller
         return response()->json($preorder);
     }
 
-    public function export(Request $request): StreamedResponse
+    public function export(Request $request)
     {
-        $query = Preorder::with(['product:id,name', 'variant:id,size'])
-            ->orderByDesc('created_at');
+        $filters = $request->only(['product_id', 'status']);
 
-        if ($request->filled('product_id')) {
-            $query->where('product_id', $request->product_id);
-        }
-        if ($request->filled('status')) {
-            $query->where('status', $request->status);
-        }
+        $filename = 'preorders_' . now()->format('Y-m-d') . '.xlsx';
 
-        $filename = 'preorders_' . now()->format('Ymd_His') . '.csv';
-
-        return response()->streamDownload(function () use ($query) {
-            $handle = fopen('php://output', 'w');
-
-            fputcsv($handle, ['ID', 'Email', 'Nombre', 'Producto', 'Talla', 'Estado', 'Fecha']);
-
-            $query->chunk(200, function ($rows) use ($handle) {
-                foreach ($rows as $p) {
-                    fputcsv($handle, [
-                        $p->id,
-                        $p->email,
-                        $p->name ?? '—',
-                        $p->product?->name ?? '—',
-                        $p->variant?->size ?? '—',
-                        $p->status,
-                        $p->created_at->format('d/m/Y H:i'),
-                    ]);
-                }
-            });
-
-            fclose($handle);
-        }, $filename, [
-            'Content-Type'        => 'text/csv; charset=UTF-8',
-            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
-        ]);
+        return Excel::download(new PreordersExport($filters), $filename);
     }
 }

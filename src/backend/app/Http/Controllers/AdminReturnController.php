@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Exports\ReturnsExport;
 use App\Models\ReturnRequest;
 use App\Models\ReturnStatusHistory;
 use App\Services\StripeRefundService;
@@ -9,6 +10,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Maatwebsite\Excel\Facades\Excel;
 
 class AdminReturnController extends Controller
 {
@@ -219,6 +221,16 @@ class AdminReturnController extends Controller
     {
         $count = ReturnRequest::where('status', 'pending')->count();
         return response()->json(['count' => $count]);
+    }
+
+    // GET /api/admin/returns/export
+    public function export(Request $request)
+    {
+        $filters = $request->only(['status', 'user_email', 'date_from', 'date_to']);
+
+        $filename = 'devoluciones_' . now()->format('Y-m-d') . '.xlsx';
+
+        return Excel::download(new ReturnsExport($filters), $filename);
     }
 
     // PUT /api/admin/returns/{return}/tracking

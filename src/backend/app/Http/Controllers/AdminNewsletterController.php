@@ -2,9 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Exports\NewsletterExport;
 use App\Models\NewsletterSubscriber;
 use Illuminate\Http\JsonResponse;
-use Symfony\Component\HttpFoundation\StreamedResponse;
+use Maatwebsite\Excel\Facades\Excel;
 
 class AdminNewsletterController extends Controller
 {
@@ -17,28 +18,10 @@ class AdminNewsletterController extends Controller
     }
 
     // GET /api/admin/newsletter/export
-    public function export(): StreamedResponse
+    public function export()
     {
-        $filename = 'newsletter_' . now()->format('Ymd_His') . '.csv';
+        $filename = 'newsletter_' . now()->format('Y-m-d') . '.xlsx';
 
-        return response()->streamDownload(function () {
-            $handle = fopen('php://output', 'w');
-
-            fputcsv($handle, ['ID', 'Email', 'Nombre', 'Fecha de alta']);
-
-            NewsletterSubscriber::orderByDesc('created_at')
-                ->chunk(200, function ($rows) use ($handle) {
-                    foreach ($rows as $s) {
-                        fputcsv($handle, [
-                            $s->id,
-                            $s->email,
-                            $s->name ?? '—',
-                            $s->created_at->format('Y-m-d H:i'),
-                        ]);
-                    }
-                });
-
-            fclose($handle);
-        }, $filename, ['Content-Type' => 'text/csv']);
+        return Excel::download(new NewsletterExport(), $filename);
     }
 }
