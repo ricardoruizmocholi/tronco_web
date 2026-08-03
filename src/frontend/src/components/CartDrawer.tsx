@@ -5,9 +5,12 @@ import { getProducts } from '../api/products'
 import { getPublicShippingRates, type ShippingRate as ShippingRateType } from '../api/shipping'
 import ShippingAddressModal from './ShippingAddressModal'
 import { useCartStore } from '../store/cartStore'
+import { useCurrency } from '../hooks/useCurrency'
 import type { Product } from '../types/product'
 
-const euros = new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' })
+// El cobro real en Stripe siempre es en EUR — formateador fijo, independiente
+// de la divisa seleccionada, usado solo en el aviso bajo el total.
+const eurFormatter = new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' })
 
 function XIcon({ size = 16 }: { size?: number }) {
   return (
@@ -24,6 +27,7 @@ export default function CartDrawer() {
     addItem, removeItem, updateQuantity,
     getSubtotal, getTotalItems,
   } = useCartStore()
+  const { formatPrice, selectedCurrency } = useCurrency()
 
   const [recommendations, setRecommendations]   = useState<Product[]>([])
   const [shippingRates, setShippingRates]       = useState<ShippingRateType[]>([])
@@ -144,7 +148,7 @@ export default function CartDrawer() {
                       {item.name}
                     </Link>
                     <p className="text-xs text-ink/50">
-                      {euros.format(item.price / 100)} / ud.
+                      {formatPrice(item.price)} / ud.
                       {item.size && (
                         <span className="ml-2 font-medium text-ink/70">Talla: {item.size}</span>
                       )}
@@ -171,7 +175,7 @@ export default function CartDrawer() {
 
                       {/* Subtotal del item */}
                       <span className="text-sm font-semibold text-ink ml-auto">
-                        {euros.format((item.price * item.quantity) / 100)}
+                        {formatPrice(item.price * item.quantity)}
                       </span>
                     </div>
                   </div>
@@ -215,7 +219,7 @@ export default function CartDrawer() {
                               {p.name}
                             </Link>
                             <p className="text-xs text-ink/50 mt-0.5">
-                              {euros.format(p.price / 100)}
+                              {formatPrice(p.price)}
                             </p>
                           </div>
 
@@ -253,9 +257,15 @@ export default function CartDrawer() {
             <div className="flex items-baseline justify-between">
               <span className="text-sm text-ink/60">Subtotal</span>
               <span className="text-xl font-bold text-ink">
-                {euros.format(getSubtotal() / 100)}
+                {formatPrice(getSubtotal())}
               </span>
             </div>
+            {selectedCurrency.code !== 'EUR' && (
+              <p className="text-[10px] text-ink/30 leading-relaxed">
+                El cobro se realizará en EUR ({eurFormatter.format(getSubtotal() / 100)}).
+                La conversión es orientativa.
+              </p>
+            )}
             {shippingRates.length > 0 && (
               <div className="space-y-1.5 py-2 border-t border-ink/5">
                 <p className="text-[11px] font-semibold text-ink/40 uppercase tracking-widest">
@@ -267,7 +277,7 @@ export default function CartDrawer() {
                     <span className="font-medium text-ink">
                       {r.free_above !== null && getSubtotal() >= r.free_above
                         ? <span className="text-primary">Gratis</span>
-                        : euros.format(r.rate / 100)
+                        : formatPrice(r.rate)
                       }
                     </span>
                   </div>

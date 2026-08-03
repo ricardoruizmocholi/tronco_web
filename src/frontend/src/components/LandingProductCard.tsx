@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
+import { useCurrency } from '../hooks/useCurrency'
 import ColorSwatch from './ColorSwatch'
 import type { Product, ProductVariant } from '../types/product'
 
@@ -8,7 +9,6 @@ interface Props {
   product: Product
 }
 
-const euros = new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' })
 const MAX_SWATCHES = 4
 const FAVORITES_KEY = 'troncodrilo_favorites'
 
@@ -56,6 +56,7 @@ function ArrowIcon({ direction }: { direction: 'left' | 'right' }) {
 
 export default function LandingProductCard({ product }: Props) {
   const { user } = useAuth()
+  const { formatPrice } = useCurrency()
   const { name, slug, price, stock, images } = product
   const hasVariants    = product.variants.length > 0
   const availableSizes = product.variants.filter(v => v.is_active && v.stock > 0)
@@ -188,11 +189,11 @@ export default function LandingProductCard({ product }: Props) {
         <div className="flex items-center justify-between gap-2">
           {promotion ? (
             <span className="flex items-center gap-1.5 min-w-0">
-              <span className="text-ink/40 text-[10px] line-through">{euros.format(promotion.original_price / 100)}</span>
-              <span className="text-primary text-xs font-medium">{euros.format(promotion.discounted_price / 100)}</span>
+              <span className="text-ink/40 text-[10px] line-through">{formatPrice(promotion.original_price)}</span>
+              <span className="text-primary text-xs font-medium">{formatPrice(promotion.discounted_price)}</span>
             </span>
           ) : (
-            <span className="text-ink text-xs font-medium">{euros.format(price / 100)}</span>
+            <span className="text-ink text-xs font-medium">{formatPrice(price)}</span>
           )}
         </div>
 

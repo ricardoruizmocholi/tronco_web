@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import { useCartStore } from '../store/cartStore'
+import { useCurrency } from '../hooks/useCurrency'
 import ColorSwatch from './ColorSwatch'
 import type { Product, ProductVariant } from '../types/product'
 
@@ -7,7 +8,6 @@ interface Props {
   product: Product
 }
 
-const euros = new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' })
 const MAX_SWATCHES = 4
 
 // Talla legacy si existe, si no la combinación de atributos (p.ej. "Rojo / S")
@@ -19,6 +19,7 @@ function variantLabel(v: ProductVariant): string | null {
 
 export default function ProductCard({ product }: Props) {
   const addItem = useCartStore(s => s.addItem)
+  const { formatPrice } = useCurrency()
   const { name, slug, price, stock, images } = product
   const hasVariants    = product.variants.length > 0
   const availableSizes = product.variants.filter(v => v.is_active && v.stock > 0)
@@ -106,11 +107,11 @@ export default function ProductCard({ product }: Props) {
           <div className="flex items-center justify-between">
             {promotion ? (
               <span className="flex items-center gap-1.5">
-                <span className="text-ink/40 text-xs line-through">{euros.format(promotion.original_price / 100)}</span>
-                <span className="text-primary text-sm font-medium">{euros.format(promotion.discounted_price / 100)}</span>
+                <span className="text-ink/40 text-xs line-through">{formatPrice(promotion.original_price)}</span>
+                <span className="text-primary text-sm font-medium">{formatPrice(promotion.discounted_price)}</span>
               </span>
             ) : (
-              <span className="text-ink text-sm font-medium">{euros.format(price / 100)}</span>
+              <span className="text-ink text-sm font-medium">{formatPrice(price)}</span>
             )}
             {cardSoldOut && canPreorder ? (
               <span className="text-[10px] font-medium text-white uppercase tracking-wide bg-ink px-2 py-0.5">

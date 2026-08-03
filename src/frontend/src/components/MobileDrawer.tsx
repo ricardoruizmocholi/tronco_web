@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
 import { Link, NavLink, useLocation } from 'react-router-dom'
+import CurrencySelector from './CurrencySelector'
 
 interface NavLink {
   to: string
@@ -74,6 +75,13 @@ export default function MobileDrawer({ isOpen, onClose, user, onLogout, navLinks
               <path d="M18 6L6 18M6 6l12 12" />
             </svg>
           </button>
+        </div>
+
+        {/* Selector de divisa — fuera de la nav con scroll para que el
+            desplegable tenga sitio de sobra para abrirse */}
+        <div className="flex-shrink-0 px-5 py-3 border-b border-white/5 flex items-center justify-between">
+          <span className="text-xs uppercase tracking-wide text-white/40">Divisa</span>
+          <CurrencySelector triggerClassName="text-white/70 hover:text-white" align="right" />
         </div>
 
         {/* Navegación */}

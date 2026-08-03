@@ -1,12 +1,11 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { getOrders, cancelOrder } from '../api/orders'
+import { useCurrency } from '../hooks/useCurrency'
 import type { Order, OrderStatus } from '../types/order'
 import CancelOrderModal from './CancelOrderModal'
 import ReturnRequestModal from './ReturnRequestModal'
 import ReturnStatusBadge from './ReturnStatusBadge'
-
-const euros = new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' })
 
 const STATUS_CONFIG: Record<OrderStatus, { label: string; className: string }> = {
   pending:          { label: 'Pendiente',           className: 'text-ink/50' },
@@ -39,6 +38,8 @@ interface OrderCardProps {
 
 function OrderCard({ order, onCancel, onReturn }: OrderCardProps) {
   const [open, setOpen] = useState(false)
+  const { formatPrice, selectedCurrency } = useCurrency()
+  const isApproximate = selectedCurrency.code !== 'EUR'
 
   const date = new Date(order.created_at).toLocaleDateString('es-ES', {
     day: 'numeric', month: 'long', year: 'numeric',
@@ -61,7 +62,7 @@ function OrderCard({ order, onCancel, onReturn }: OrderCardProps) {
         </div>
         <div className="flex items-center gap-4">
           <div className="text-right">
-            <p className="text-sm font-bold text-ink">{euros.format(order.total / 100)}</p>
+            <p className="text-sm font-bold text-ink">{formatPrice(order.total)}</p>
             <p className="text-xs text-ink/40">{date}</p>
           </div>
           <svg
@@ -76,6 +77,11 @@ function OrderCard({ order, onCancel, onReturn }: OrderCardProps) {
 
       {open && (
         <div className="px-5 py-4 space-y-4">
+          {isApproximate && (
+            <p className="text-[11px] text-ink/40 italic">
+              Los precios históricos son aproximados en {selectedCurrency.code}.
+            </p>
+          )}
           {order.items.length === 0 ? (
             <p className="text-xs text-ink/40">Sin artículos</p>
           ) : (
@@ -106,7 +112,7 @@ function OrderCard({ order, onCancel, onReturn }: OrderCardProps) {
                     )}
                   </div>
                   <p className="text-xs text-ink/50 flex-shrink-0">
-                    {item.quantity} × {euros.format(item.unit_price / 100)}
+                    {item.quantity} × {formatPrice(item.unit_price)}
                   </p>
                 </div>
               ))}

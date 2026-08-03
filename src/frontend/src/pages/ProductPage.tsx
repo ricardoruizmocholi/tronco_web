@@ -2,11 +2,10 @@ import { useEffect, useMemo, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { getProduct } from '../api/products'
 import { useCartStore } from '../store/cartStore'
+import { useCurrency } from '../hooks/useCurrency'
 import PreorderModal from '../components/PreorderModal'
 import AttributeSelector from '../components/AttributeSelector'
 import type { Product, ProductImage, ProductVariant } from '../types/product'
-
-const euros = new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' })
 
 // Etiqueta legible para el carrito: talla legacy si existe, si no la combinación de atributos
 function variantCartLabel(variant: ProductVariant | null): string | undefined {
@@ -27,8 +26,9 @@ export default function ProductPage() {
   const [showPreorder, setShowPreorder]         = useState(false)
   const [descOpen, setDescOpen]                 = useState(false)
 
-  // Hook llamado incondicionalmente — antes de cualquier early return
+  // Hooks llamados incondicionalmente — antes de cualquier early return
   const addItem = useCartStore(s => s.addItem)
+  const { formatPrice } = useCurrency()
 
   useEffect(() => {
     if (!slug) return
@@ -246,11 +246,11 @@ export default function ProductPage() {
 
             {hasDiscount ? (
               <div className="flex items-center gap-3">
-                <p className="text-sm text-ink/40 line-through">{euros.format(originalPrice / 100)}</p>
-                <p className="text-sm font-medium text-primary">{euros.format(displayPrice / 100)}</p>
+                <p className="text-sm text-ink/40 line-through">{formatPrice(originalPrice)}</p>
+                <p className="text-sm font-medium text-primary">{formatPrice(displayPrice)}</p>
               </div>
             ) : (
-              <p className="text-sm font-medium text-ink">{euros.format(displayPrice / 100)}</p>
+              <p className="text-sm font-medium text-ink">{formatPrice(displayPrice)}</p>
             )}
 
             {/* Stock / combinación seleccionada */}

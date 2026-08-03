@@ -1,5 +1,6 @@
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import { AuthProvider } from './context/AuthContext'
+import { CurrencyProvider } from './context/CurrencyContext'
 import Layout from './components/Layout'
 import AdminRoute from './components/AdminRoute'
 import ProtectedRoute from './components/ProtectedRoute'
@@ -35,6 +36,7 @@ import PolicyPlaceholderPage from './pages/policies/PolicyPlaceholderPage'
 function App() {
   return (
     <BrowserRouter>
+      <CurrencyProvider>
       <AuthProvider>
         <Routes>
           {/* Sin layout: auth a pantalla completa */}
@@ -87,6 +89,7 @@ function App() {
           </Route>
         </Routes>
       </AuthProvider>
+      </CurrencyProvider>
     </BrowserRouter>
   )
 }

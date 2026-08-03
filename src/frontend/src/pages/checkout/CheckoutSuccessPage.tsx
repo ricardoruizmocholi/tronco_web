@@ -2,9 +2,8 @@ import { useEffect, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { getOrder } from '../../api/orders'
 import { useCartStore } from '../../store/cartStore'
+import { useCurrency } from '../../hooks/useCurrency'
 import type { Order } from '../../types/order'
-
-const euros = new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' })
 
 const STATUS_LABEL: Record<string, { text: string; className: string }> = {
   paid:      { text: '¡Pago completado!',                  className: 'text-primary' },
@@ -23,6 +22,7 @@ export default function CheckoutSuccessPage() {
   const [error, setError]   = useState(false)
 
   const clearCart = useCartStore(s => s.clearCart)
+  const { formatPrice } = useCurrency()
 
   // Vacía el carrito al aterrizar en la página de éxito, independientemente del status
   useEffect(() => {
@@ -109,18 +109,18 @@ export default function CheckoutSuccessPage() {
                   {item.product?.name ?? `Producto #${item.product_id}`}
                 </p>
                 <p className="text-xs text-ink/50">
-                  {item.quantity} × {euros.format(item.unit_price / 100)}
+                  {item.quantity} × {formatPrice(item.unit_price)}
                 </p>
               </div>
               <span className="text-sm font-semibold text-ink flex-shrink-0">
-                {euros.format((item.unit_price * item.quantity) / 100)}
+                {formatPrice(item.unit_price * item.quantity)}
               </span>
             </div>
           ))}
         </div>
         <div className="px-5 py-4 border-t border-ink/10 flex justify-between items-baseline">
           <span className="text-sm text-ink/60">Total</span>
-          <span className="text-xl font-bold text-ink">{euros.format(order.total / 100)}</span>
+          <span className="text-xl font-bold text-ink">{formatPrice(order.total)}</span>
         </div>
       </div>
 

@@ -7,6 +7,7 @@ import { getPendingCount } from '../api/adminOrders'
 import { getPendingReturnsCount } from '../api/returns'
 import CartDrawer from './CartDrawer'
 import MobileDrawer from './MobileDrawer'
+import CurrencySelector from './CurrencySelector'
 import Footer from './Footer'
 
 function CartIcon() {
@@ -121,6 +122,7 @@ export default function Layout() {
 
             {/* Auth — solo escritorio */}
             <div className="hidden md:flex items-center gap-5">
+              <CurrencySelector triggerClassName={authLinkCls} />
               {user ? (
                 <>
                   {user.role === 'admin' && (
