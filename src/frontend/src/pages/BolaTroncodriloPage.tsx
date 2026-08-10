@@ -129,7 +129,7 @@ function PanelTopBar({
       <button
         onClick={onClose}
         aria-label="Cerrar panel"
-        className="p-1.5 -mr-1.5 text-canvas/50 hover:text-canvas transition-colors"
+        className="p-1.5 -mr-1.5 text-canvas hover:opacity-60 transition-opacity"
       >
         <CloseIcon />
       </button>
@@ -292,20 +292,27 @@ export default function BolaTroncodriloPage() {
         </div>
       )}
 
-      {/* ── Leyenda ── */}
+      {/* ── Contador de fanfics — fijo arriba a la izquierda, bajo el header ── */}
       {!loading && (
-        <div className="absolute bottom-6 left-6 z-[2] bg-dark/70 backdrop-blur-sm rounded-xl px-4 py-2.5
-          text-white/50 text-xs pointer-events-none select-none">
-          {fanfics.length} fanfic{fanfics.length !== 1 ? 's' : ''} en el globo
+        <div
+          className="fixed z-[5] label-caps pointer-events-none select-none"
+          style={{
+            top: '80px', left: '24px',
+            background: 'rgba(28,31,26,0.8)', color: '#FAFAF8',
+            padding: '8px 12px', borderRadius: '2px',
+          }}
+        >
+          {fanfics.length} fanfic{fanfics.length !== 1 ? 's' : ''} en el mapa
         </div>
       )}
 
       {/* ── Panel lateral ── */}
       <div
         className={`fixed top-0 right-0 z-10 h-screen w-full sm:w-[320px]
-          bg-dark text-canvas flex flex-col p-4
+          text-canvas flex flex-col p-4
           transform transition-transform duration-300 ease-out
           ${panelOpen ? 'translate-x-0' : 'translate-x-full'}`}
+        style={{ backgroundColor: '#111411', borderLeft: '1px solid rgba(91,187,42,0.3)' }}
         onClick={e => e.stopPropagation()}
         role="dialog"
         aria-modal="true"
@@ -435,19 +442,20 @@ export default function BolaTroncodriloPage() {
         </div>
       )}
 
-      {/* ── CTA flotante ── */}
-      <button
-        onClick={() => navigate('/mi-fanfic')}
-        className="absolute bottom-6 right-6 z-20 flex items-center gap-2
-          bg-primary text-white font-medium text-sm px-5 py-3 rounded-full
-          shadow-lg hover:bg-primary/90 transition-colors"
-      >
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
-          strokeWidth="2.5" strokeLinecap="round" className="w-4 h-4">
-          <path d="M12 5v14M5 12h14" />
-        </svg>
-        Sé parte de la comunidad
-      </button>
+      {/* ── CTA flotante — fijo abajo a la izquierda, oculto con el panel abierto ── */}
+      {!panelOpen && (
+        <button
+          onClick={() => navigate('/mi-fanfic')}
+          className="btn-primary fixed z-[5] flex items-center gap-2 !px-5 !py-2.5"
+          style={{ bottom: '24px', left: '24px' }}
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+            strokeWidth="2.5" strokeLinecap="round" className="w-4 h-4">
+            <path d="M12 5v14M5 12h14" />
+          </svg>
+          Sé parte de la comunidad
+        </button>
+      )}
     </div>
   )
 }
