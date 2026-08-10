@@ -1,15 +1,13 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { getHeroSlides } from '../api/heroSlides'
 import { getPublicCollaborators } from '../api/collaborators'
 import { getActivePromotions, getNewProducts } from '../api/promotions'
-import { getArtists } from '../api/artists'
 import { subscribeNewsletter } from '../api/newsletter'
 import LandingProductCard from '../components/LandingProductCard'
 import type { HeroSlide } from '../types/heroSlide'
 import type { Collaborator } from '../api/collaborators'
 import type { Product } from '../types/product'
-import type { Artist } from '../types/artist'
 
 type ProductsTab = 'new' | 'offers'
 
@@ -90,94 +88,6 @@ function ProductsSection() {
   )
 }
 
-interface Star {
-  top: string
-  left: string
-  size: number
-  opacity: number
-}
-
-// Textura de estrellas CSS pura — puntos posicionados una única vez al montar,
-// sin canvas ni animación (distinta de StarField.tsx, propia de /bola-troncodrilo)
-function useStarfield(count: number): Star[] {
-  return useMemo(() => Array.from({ length: count }, () => ({
-    top:     `${Math.random() * 100}%`,
-    left:    `${Math.random() * 100}%`,
-    size:    Math.random() < 0.15 ? 2 : 1,
-    opacity: 0.3 + Math.random() * 0.7,
-  })), [count])
-}
-
-function SplitHalf({
-  to, label, subtitle, backgroundImage, children,
-}: {
-  to: string
-  label: string
-  subtitle: string
-  backgroundImage?: string | null
-  children?: React.ReactNode
-}) {
-  return (
-    <Link
-      to={to}
-      className="group relative w-full md:w-1/2 h-[40vh] md:h-[50vh]
-        flex items-center justify-center overflow-hidden bg-dark flex-shrink-0"
-      style={backgroundImage ? {
-        backgroundImage: `url(${backgroundImage})`,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-      } : undefined}
-    >
-      {children}
-
-      {/* Overlay: 0.4 en reposo (dos capas de 0.2), 0.2 al hover (la capa superior se desvanece) */}
-      <div className="absolute inset-0" style={{ backgroundColor: 'rgba(0,0,0,0.2)' }} />
-      <div
-        className="absolute inset-0 transition-opacity duration-300 group-hover:opacity-0"
-        style={{ backgroundColor: 'rgba(0,0,0,0.2)' }}
-      />
-
-      <div className="relative z-10 text-center px-4">
-        <p className="label-caps text-canvas font-semibold mb-2">{label}</p>
-        <p className="text-canvas/70 text-sm">{subtitle}</p>
-      </div>
-    </Link>
-  )
-}
-
-function ArtistsBolaSplitSection({ firstArtist }: { firstArtist: Artist | null }) {
-  const stars = useStarfield(70)
-  const artistImage = firstArtist?.images[0]?.url ?? firstArtist?.avatar_url ?? null
-
-  return (
-    <section className="relative w-full flex flex-col md:flex-row">
-      <SplitHalf
-        to="/artistas"
-        label="Artistas colaboradores"
-        subtitle="Descubre a los artistas detrás de Troncodrilo"
-        backgroundImage={artistImage}
-      />
-
-      <SplitHalf
-        to="/bola-troncodrilo"
-        label="Bola Troncodrilo"
-        subtitle="El mapa de fans de Troncodrilo"
-      >
-        {/* Textura de estrellas — solo hay fallback CSS, no existe imagen estática de la bola */}
-        <div className="absolute inset-0 overflow-hidden" aria-hidden="true">
-          {stars.map((s, i) => (
-            <span
-              key={i}
-              className="absolute rounded-full bg-canvas"
-              style={{ top: s.top, left: s.left, width: s.size, height: s.size, opacity: s.opacity }}
-            />
-          ))}
-        </div>
-      </SplitHalf>
-    </section>
-  )
-}
-
 type SubscribeStatus = 'idle' | 'loading' | 'success' | 'error'
 
 interface ApiErrorShape {
@@ -252,13 +162,11 @@ function NewsletterSection() {
 export default function HomePage() {
   const [slides, setSlides]               = useState<HeroSlide[]>([])
   const [collaborators, setCollaborators] = useState<Collaborator[]>([])
-  const [firstArtist, setFirstArtist]     = useState<Artist | null>(null)
   const [activeIndex, setActiveIndex]     = useState(0)
 
   useEffect(() => {
     getHeroSlides().then(setSlides).catch(() => {})
     getPublicCollaborators().then(setCollaborators).catch(() => {})
-    getArtists().then(artists => setFirstArtist(artists[0] ?? null)).catch(() => {})
   }, [])
 
   // Rotación automática cada 5 s cuando hay múltiples slides
@@ -334,9 +242,6 @@ export default function HomePage() {
 
       {/* ── Productos: novedades / en oferta ── */}
       <ProductsSection />
-
-      {/* ── Artistas / Bola Troncodrilo — 50vh partido en dos mitades ── */}
-      <ArtistsBolaSplitSection firstArtist={firstArtist} />
 
       {/* ── Colaboradores ── */}
       {collaborators.length > 0 && (

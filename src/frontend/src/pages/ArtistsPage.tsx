@@ -79,8 +79,9 @@ function ArtistCard({ artist }: { artist: Artist }) {
 }
 
 export default function ArtistsPage() {
-  const [artists, setArtists]   = useState<Artist[]>([])
-  const [loading, setLoading]   = useState(true)
+  const [artists, setArtists]         = useState<Artist[]>([])
+  const [loading, setLoading]         = useState(true)
+  const [heroImageUrl, setHeroImageUrl] = useState<string | null>(null)
 
   useEffect(() => {
     getArtists()
@@ -88,17 +89,35 @@ export default function ArtistsPage() {
       .finally(() => setLoading(false))
   }, [])
 
+  // Imagen aleatoria de fondo del hero — Math.random() es un efecto secundario
+  // (elección impura), no pertenece al cuerpo de un useMemo; se resuelve una vez
+  // por montaje cuando `artists` pasa de [] al resultado real del fetch, y no persiste
+  // entre recargas (no hay localStorage/sessionStorage de por medio).
+  useEffect(() => {
+    const allImageUrls = artists.flatMap(a => a.images.map(img => img.url))
+    if (allImageUrls.length === 0) return
+    setHeroImageUrl(allImageUrls[Math.floor(Math.random() * allImageUrls.length)])
+  }, [artists])
+
   return (
     <div className="min-h-screen bg-canvas">
-      {/* Hero */}
-      <div className="bg-dark text-white px-4 py-16 text-center">
-        <p className="text-primary text-xs font-semibold uppercase tracking-widest mb-3">
-          Universo Troncodrilo
-        </p>
-        <h1 className="text-4xl font-bold mb-4">Artistas colaboradores</h1>
-        <p className="text-white/60 text-base max-w-md mx-auto">
-          Las personas que dan vida al mundo de Troncodrilo con su arte, música y diseño.
-        </p>
+      {/* Hero — fondo con una imagen aleatoria entre todas las galerías de artistas,
+          o #1C1F1A sólido si ninguno tiene imágenes todavía */}
+      <div
+        className="relative bg-dark px-4 py-16 text-center overflow-hidden"
+        style={heroImageUrl ? {
+          backgroundImage: `url(${heroImageUrl})`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+        } : undefined}
+      >
+        <div className="absolute inset-0" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }} />
+        <div className="relative z-10">
+          <h1 className="label-caps text-canvas">Artistas colaboradores</h1>
+          <p className="text-canvas/70 text-sm mt-3">
+            Descubre a los artistas detrás de Troncodrilo
+          </p>
+        </div>
       </div>
 
       <main className="max-w-5xl mx-auto px-4 py-12">
