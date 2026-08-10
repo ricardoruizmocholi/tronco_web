@@ -177,6 +177,13 @@ export default function BolaTroncodriloPage() {
       .finally(() => setLoading(false))
   }, [])
 
+  // ── Bloquea el scroll del body mientras el panel está abierto — sin esto,
+  //    el scroll dentro del panel se propaga al documento y mueve la página. ──
+  useEffect(() => {
+    document.body.style.overflow = panel.mode !== 'closed' ? 'hidden' : ''
+    return () => { document.body.style.overflow = '' }
+  }, [panel.mode])
+
   // ── Azimut del globo — solo para el parallax de StarField ──────────────────
   useEffect(() => {
     const controls = globeRef.current?.controls()
@@ -349,40 +356,45 @@ export default function BolaTroncodriloPage() {
               onBack={panel.cluster.fanfics.length > 1 ? () => setPanel({ mode: 'list', cluster: panel.cluster }) : null}
               onClose={closePanel}
             />
-            <div key={contentKey} className="pt-4 flex-1 min-h-0 overflow-y-auto animate-[fade-in_150ms_ease-in-out]" style={scrollbarStyle}>
-              <img
-                src={panel.fanfic.image_url}
-                alt={panel.fanfic.city_name}
-                className="w-full h-[200px] object-cover"
-              />
+            <div
+              key={contentKey}
+              className="pt-4 flex-1 min-h-0 flex flex-col animate-[fade-in_150ms_ease-in-out]"
+            >
+              <div className="flex-1 min-h-0 overflow-y-auto" style={scrollbarStyle}>
+                <img
+                  src={panel.fanfic.image_url}
+                  alt={panel.fanfic.city_name}
+                  className="w-full h-[200px] object-cover"
+                />
 
-              <div className="pt-4 space-y-2">
-                <p className="font-editorial text-base text-canvas">
-                  {panel.fanfic.author?.name ?? 'Anónimo'}
-                </p>
-                <p className="label-caps text-xs text-primary flex items-center gap-1.5">
-                  <PinIcon />
-                  {panel.fanfic.city_name}
-                </p>
-                <p className="text-xs text-canvas/50">
-                  {formatDate(panel.fanfic.reviewed_at ?? panel.fanfic.created_at)}
-                </p>
-
-                {panel.fanfic.caption && (
-                  <p className="text-sm text-canvas/70 leading-relaxed italic border-l-2 border-primary/40 pl-3">
-                    {panel.fanfic.caption}
+                <div className="pt-4 space-y-2">
+                  <p className="font-editorial text-base text-canvas">
+                    {panel.fanfic.author?.name ?? 'Anónimo'}
                   </p>
-                )}
+                  <p className="label-caps text-xs text-primary flex items-center gap-1.5">
+                    <PinIcon />
+                    {panel.fanfic.city_name}
+                  </p>
+                  <p className="text-xs text-canvas/50">
+                    {formatDate(panel.fanfic.reviewed_at ?? panel.fanfic.created_at)}
+                  </p>
 
-                <button
-                  onClick={() => setFullscreen(true)}
-                  className="block text-xs uppercase tracking-wide pb-0.5 text-primary border-b border-primary transition-colors"
-                >
-                  Ver imagen completa
-                </button>
+                  {panel.fanfic.caption && (
+                    <p className="text-sm text-canvas/70 leading-relaxed italic border-l-2 border-primary/40 pl-3">
+                      {panel.fanfic.caption}
+                    </p>
+                  )}
+
+                  <button
+                    onClick={() => setFullscreen(true)}
+                    className="block text-xs uppercase tracking-wide pb-0.5 text-primary border-b border-primary transition-colors"
+                  >
+                    Ver imagen completa
+                  </button>
+                </div>
               </div>
 
-              <div className="mt-4 pt-4 border-t border-canvas/20">
+              <div className="flex-shrink-0 mt-4 pt-4 border-t border-canvas/20">
                 <p className="font-editorial text-base text-canvas mb-1">¿Tienes tu propio Troncodrilo?</p>
                 <p className="text-xs text-canvas/60 mb-3">Comparte tu fanfic en el mapa</p>
 
