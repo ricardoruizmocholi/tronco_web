@@ -38,6 +38,18 @@ const SPAWN_MIN_FRAMES = 60
 const SPAWN_MAX_FRAMES = 120
 const SPRITE_SRC = '/FaviconFullHD_troncodrilo.png'
 const HIGH_SCORE_KEY = 'troncodrilo_highscore'
+const IDLE_BREATH_PERIOD_MS = 1000
+const IDLE_BREATH_SCALE = 0.05
+
+const GAME_OVER_MESSAGES = [
+  '¡El tronco ganó esta vez!',
+  '¡Troncodrilo necesita más práctica!',
+  '¡Casi! ¿Lo intentas otra vez?',
+]
+
+function randomGameOverMessage(): string {
+  return GAME_OVER_MESSAGES[Math.floor(Math.random() * GAME_OVER_MESSAGES.length)]
+}
 
 function loadHighScore(): number {
   try {
@@ -160,7 +172,22 @@ function render(ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement, state:
   }
 
   if (sprite.complete && sprite.naturalWidth > 0) {
-    ctx.drawImage(sprite, CHAR_X, state.troncodriloY, SPRITE_SIZE, SPRITE_SIZE)
+    if (state.phase === 'idle') {
+      // "Respiración" sutil en reposo: escala 1.0–1.05 anclada al borde inferior
+      // del sprite (no al centro) para que los pies no se hundan en el suelo
+      // al crecer.
+      const t = performance.now() / IDLE_BREATH_PERIOD_MS
+      const scale = 1 + IDLE_BREATH_SCALE * (0.5 + 0.5 * Math.sin(2 * Math.PI * t))
+      const anchorX = CHAR_X + SPRITE_SIZE / 2
+      const anchorY = state.troncodriloY + SPRITE_SIZE
+      ctx.save()
+      ctx.translate(anchorX, anchorY)
+      ctx.scale(scale, scale)
+      ctx.drawImage(sprite, -SPRITE_SIZE / 2, -SPRITE_SIZE, SPRITE_SIZE, SPRITE_SIZE)
+      ctx.restore()
+    } else {
+      ctx.drawImage(sprite, CHAR_X, state.troncodriloY, SPRITE_SIZE, SPRITE_SIZE)
+    }
   }
 }
 
@@ -169,6 +196,7 @@ export default function NotFoundPage() {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const idleOverlayRef = useRef<HTMLDivElement>(null)
   const gameOverOverlayRef = useRef<HTMLDivElement>(null)
+  const gameOverMessageRef = useRef<HTMLParagraphElement>(null)
   const finalScoreRef = useRef<HTMLParagraphElement>(null)
   const bestScoreRef = useRef<HTMLParagraphElement>(null)
   const scoreCounterRef = useRef<HTMLDivElement>(null)
@@ -235,6 +263,7 @@ export default function NotFoundPage() {
 
         if (wasPlaying && state.phase === 'gameover') {
           showOverlay(gameOverOverlayRef.current, true)
+          if (gameOverMessageRef.current) gameOverMessageRef.current.textContent = randomGameOverMessage()
           if (finalScoreRef.current) finalScoreRef.current.textContent = `Puntuación: ${String(state.score).padStart(3, '0')}`
           if (bestScoreRef.current) bestScoreRef.current.textContent = `Mejor puntuación: ${String(state.highScore).padStart(3, '0')}`
         }
@@ -260,9 +289,15 @@ export default function NotFoundPage() {
   return (
     <div className="min-h-dvh bg-canvas flex flex-col items-center justify-center px-4 gap-8 py-12">
       <div className="text-center">
-        <h1 className="font-editorial text-8xl text-ink">404</h1>
-        <p className="label-caps text-ink/60 mt-3">Esta página se ha perdido en el pantano</p>
-        <p className="text-xs text-ink/40 mt-1.5">Pulsa ESPACIO o toca la pantalla para jugar</p>
+        <h1 className="font-editorial text-3xl md:text-4xl text-ink text-balance my-6">
+          ¡Uy! Parece que Troncodrilo se ha perdido en el pantano
+        </h1>
+        <p className="text-sm text-ink/60 text-center max-w-[400px] mx-auto">
+          No hemos encontrado lo que buscas... pero puedes ayudar a Troncodrilo a escapar
+        </p>
+        <p className="label-caps text-ink/60 animate-pulse mt-3">
+          ¡Salta sobre los troncos! — Pulsa ESPACIO o toca la pantalla
+        </p>
       </div>
 
       <div ref={containerRef} className="relative w-full max-w-[600px]">
@@ -275,8 +310,9 @@ export default function NotFoundPage() {
           style={{ height: CANVAS_HEIGHT, background: '#FAFAF8' }}
         />
 
-        <div ref={idleOverlayRef} className="absolute inset-0 flex items-center justify-center pointer-events-none">
-          <p className="label-caps text-ink/60">Pulsa espacio para empezar</p>
+        <div ref={idleOverlayRef} className="absolute inset-0 flex flex-col items-center justify-center gap-1.5 pointer-events-none">
+          <span className="text-2xl" aria-hidden="true">🐾</span>
+          <p className="label-caps text-ink/60">¡Toca para empezar la aventura!</p>
         </div>
 
         <div
@@ -284,10 +320,10 @@ export default function NotFoundPage() {
           className="absolute inset-0 flex-col items-center justify-center gap-1"
           style={{ display: 'none', backgroundColor: 'rgba(250,250,248,0.8)' }}
         >
-          <p className="font-editorial text-2xl text-ink">FIN DEL PANTANO</p>
+          <p ref={gameOverMessageRef} className="font-editorial text-2xl text-ink">¡Casi! ¿Lo intentas otra vez?</p>
           <p ref={finalScoreRef} className="text-sm text-ink mt-1">Puntuación: 000</p>
           <p ref={bestScoreRef} className="text-xs text-ink/60">Mejor puntuación: 000</p>
-          <p className="text-xs text-ink/40 mt-2">ESPACIO o toca para reiniciar</p>
+          <p className="text-xs text-ink/40 mt-2">Toca o pulsa ESPACIO para vengarte</p>
         </div>
 
         <div
