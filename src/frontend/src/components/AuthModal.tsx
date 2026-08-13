@@ -156,7 +156,7 @@ function AuthModalContent({ defaultTab, closeModal }: ContentProps) {
   async function handleGoogleClick() {
     setGoogleError('')
     try {
-      const { data } = await api.get<{ url: string }>('/api/auth/google')
+      const { data } = await api.get<{ url: string }>('/auth/google')
       window.location.href = data.url
     } catch {
       setGoogleError('No se pudo conectar con Google. Inténtalo de nuevo.')

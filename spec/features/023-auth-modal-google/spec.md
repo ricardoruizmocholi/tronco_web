@@ -16,10 +16,13 @@ email/password.
 - [x] Login con email/password funciona desde el modal
 - [x] Registro con email/password funciona desde el modal
 - [x] Click en "Continuar con Google" → redirige a Google
-- [x] Tras autenticarse con Google → vuelve a la app logueado (verificado hasta el punto en que
-      Google exige credenciales reales — el redirect con `client_id`/`redirect_uri`/`scope`
-      correctos está confirmado con Playwright; el `?auth=success` → `refreshUser()` →
-      `closeModal()` también se verificó simulando el retorno directamente)
+- [x] Tras autenticarse con Google → vuelve a la app logueado — el callback llegó a fallar con
+      `Session store not set on request.` al probarlo con una cuenta real (las rutas estaban en
+      `api.php`); corregido moviéndolas a `web.php` + nginx + `.env`, con test de regresión
+      (`SocialAuthTest.php`) que reproduce la petición exacta de Google sin necesitar credenciales
+      reales. **Pendiente un paso manual externo**: actualizar la "URI de redirección autorizada"
+      en Google Cloud Console a `http://localhost/auth/google/callback` — hasta entonces Google
+      devuelve `redirect_uri_mismatch` en un login real. Ver `docs/023-auth-modal-google.md`.
 - [x] Usuario creado con Google aparece en la BD con `google_id` (lógica del controller cubierta;
       pendiente de una cuenta Google real para verse en datos, ver nota en Tasks)
 - [x] `ProtectedRoute`: acceder a /perfil sin sesión → abre modal (no página dedicada)
@@ -48,8 +51,10 @@ email/password.
     existe por email sin `google_id` lo vincula; si no existe lo crea
     (password aleatorio, `email_verified_at` = now); `Auth::login()` +
     regenerar sesión; redirige a `{frontend_url}/?auth=success`
-- Rutas públicas `GET /api/auth/google` y `GET /api/auth/google/callback`,
-  fuera del grupo `auth:sanctum`
+- Rutas públicas `GET /auth/google` y `GET /auth/google/callback`, en
+  `routes/web.php` (no `api.php` — el callback de Google no trae el header
+  `Origin`/`Referer` que el grupo `api` necesita para tener sesión disponible;
+  ver `docs/023-auth-modal-google.md` § "Bug post-implementación")
 - `AuthController` (login/register/logout/user) — sin cambios
 
 ### Frontend (React)

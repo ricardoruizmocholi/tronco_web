@@ -17,6 +17,7 @@ sesión es idéntico al de email/password.
 |---------|-------------|
 | `app/Http/Controllers/SocialAuthController.php` | `redirectToGoogle()` (devuelve la URL de Google en JSON) y `handleGoogleCallback()` (busca/vincula/crea el usuario, inicia sesión, redirige al frontend) |
 | `database/migrations/2026_08_13_092127_add_google_id_to_users_table.php` | Columna `google_id` (nullable, unique, después de `email`) |
+| `tests/Feature/SocialAuthTest.php` | Reproduce la petición del callback tal y como la envía Google (Socialite mockeado, sin Origin/Referer de localhost) — ver "Bug post-implementación" más abajo |
 | `src/components/AuthModal.tsx` | El modal: overlay con blur, tabs, formularios de login/registro, botón de Google |
 | `src/context/AuthModalContext.tsx` | Estado global del modal — `isOpen`, `defaultTab`, `openModal()`, `closeModal()`, hook `useAuthModal()` |
 
@@ -27,7 +28,9 @@ sesión es idéntico al de email/password.
 | `config/services.php` | Bloque `google` (`client_id`, `client_secret`, `redirect`) |
 | `config/app.php` | Nueva key `frontend_url` — usada para construir el redirect de vuelta al SPA |
 | `app/Models/User.php` | `google_id` añadido a `$fillable` |
-| `routes/api.php` | `GET /api/auth/google` y `GET /api/auth/google/callback`, públicas, fuera de `auth:sanctum` |
+| `routes/web.php` | `GET /auth/google` y `GET /auth/google/callback` — **no** en `api.php`, ver más abajo por qué |
+| `docker/nginx.conf` | `location ~ ^/(api\|sanctum\|auth)(/.*)?$` — añadido `auth` para que esas dos rutas lleguen al backend |
+| `.env` | `GOOGLE_REDIRECT_URI` → `http://localhost/auth/google/callback` (ya no lleva `/api`) |
 | `src/context/AuthContext.tsx` | Nuevo método `refreshUser()` — no existía; hace falta porque la sesión de Google se crea en el backend sin pasar por `login()`/`register()` |
 | `src/App.tsx` | `AuthModalProvider`, montaje único de `<AuthModal />`, `AuthCallbackHandler` (detecta `?auth=success`) |
 | `src/pages/LoginPage.tsx` / `RegisterPage.tsx` | Pasan de página completa a shim: abren el modal en el tab correspondiente y redirigen a `/` |
@@ -54,13 +57,13 @@ sequenceDiagram
     participant G as Google
 
     U->>F: Click "Continuar con Google"
-    F->>B: GET /api/auth/google (axios, misma cookie de sesión)
+    F->>B: GET /auth/google (axios, misma cookie de sesión)
     B->>B: Socialite::driver('google')->redirect()
     B-->>F: JSON { url: "https://accounts.google.com/..." }
     F->>U: window.location.href = url (navegación completa, sale del SPA)
     U->>G: Pantalla de consentimiento de Google
     U->>G: El usuario acepta
-    G->>B: Redirect a GOOGLE_REDIRECT_URI (/api/auth/google/callback?code=...)
+    G->>B: Redirect a GOOGLE_REDIRECT_URI (/auth/google/callback?code=...)
     B->>G: Socialite intercambia el code por el perfil del usuario
     G-->>B: id, nombre, email de Google
     B->>B: Busca User por google_id o email
@@ -76,13 +79,15 @@ sequenceDiagram
 
 Puntos clave de la implementación:
 
-- **`GET /api/auth/google` nunca redirige directamente** — el frontend es una SPA y necesita la
+- **`GET /auth/google` nunca redirige directamente** — el frontend es una SPA y necesita la
   URL como dato (JSON) para poder hacer `window.location.href = url` él mismo. `Socialite::driver('google')->redirect()->getTargetUrl()` genera la URL de Google **y** guarda el
   parámetro `state` (protección CSRF de OAuth) en la sesión activa, sin enviar ninguna respuesta
   HTTP de redirección.
 - **Por qué no hace falta CORS especial para el callback**: Google redirige el navegador
-  directamente a `/api/auth/google/callback` — es una navegación completa de primer nivel, no una
+  directamente a `/auth/google/callback` — es una navegación completa de primer nivel, no una
   petición `fetch`/`axios` desde el origen del frontend, así que no pasa por el middleware CORS.
+- **Por qué estas dos rutas viven en `web.php` y no en `api.php`** — ver la sección "Bug
+  post-implementación" más abajo; es la parte no obvia de todo el flujo.
 - **Por qué la cookie de sesión sobrevive el viaje de ida y vuelta a Google**: la cookie de sesión
   de Laravel es `SameSite=Lax` por defecto, y `Lax` sí se envía en navegaciones GET de nivel
   superior iniciadas por un sitio externo (que es exactamente este caso) — solo bloquea peticiones
@@ -106,7 +111,8 @@ Necesario si se despliega en otro dominio, se rota el secreto, o se clona el pro
    - Tipo de aplicación: **Aplicación web**.
    - **Orígenes autorizados de JavaScript**: `http://localhost` (o el dominio de producción).
    - **URIs de redireccionamiento autorizados**: debe coincidir **exactamente** con
-     `GOOGLE_REDIRECT_URI` — `http://localhost/api/auth/google/callback` en desarrollo.
+     `GOOGLE_REDIRECT_URI` — `http://localhost/auth/google/callback` en desarrollo (sin `/api`,
+     ver "Bug post-implementación").
 4. Copiar el **Client ID** y el **Client secret** generados.
 5. Pegarlos en `src/backend/.env` (ver variables abajo) y `php artisan config:clear` si el config
    estaba cacheado.
@@ -117,7 +123,7 @@ Necesario si se despliega en otro dominio, se rota el secreto, o se clona el pro
 |----------|--------------|---------|
 | `GOOGLE_CLIENT_ID` | `config/services.php` → `services.google.client_id` | `123...apps.googleusercontent.com` |
 | `GOOGLE_CLIENT_SECRET` | `config/services.php` → `services.google.client_secret` | `GOCSPX-...` |
-| `GOOGLE_REDIRECT_URI` | `config/services.php` → `services.google.redirect` | `http://localhost/api/auth/google/callback` |
+| `GOOGLE_REDIRECT_URI` | `config/services.php` → `services.google.redirect` | `http://localhost/auth/google/callback` |
 | `FRONTEND_URL` | `config/app.php` → `app.frontend_url`, destino del redirect final | `http://localhost` |
 
 Las cuatro deben coincidir entre sí y con lo configurado en Google Cloud Console — un
@@ -224,7 +230,63 @@ Docker/Nginx en `http://localhost`, hace click en los flujos reales (abrir modal
 cerrar por backdrop/X, click en "Continuar con Google", `/login`, `/perfil` sin sesión,
 `?auth=success`) y compara capturas de pantalla y estado del DOM contra lo esperado — no solo
 `tsc`/`eslint` estáticos. El script vive fuera del repo (carpeta temporal de la sesión), no se ha
-commiteado.
+commiteado. **Lo que ese script no pudo probar**: el tramo final del callback real de Google, que
+requiere completar un login con una cuenta real — precisamente donde apareció el bug de la
+siguiente sección.
+
+---
+
+## Bug post-implementación: `Session store not set on request.`
+
+Al probar con una cuenta real, `handleGoogleCallback()` lanzaba
+`RuntimeException: Session store not set on request.`.
+
+**Causa raíz**: las rutas de Google vivían en `api.php`, cuyo grupo de middleware solo obtiene
+sesión cuando `Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful::fromFrontend()`
+devuelve `true` — y esa función mira el header `Origin` (o `Referer` si no hay `Origin`) y compara
+su dominio contra `SANCTUM_STATEFUL_DOMAINS`. El callback de Google llega como una navegación GET
+normal iniciada por `accounts.google.com`, sin ningún header que apunte a `localhost`, así que
+`fromFrontend()` devuelve `false`, ninguna sesión se inyecta, y tanto `Auth::login()` (el guard
+`web` escribe en sesión) como el `$request->session()->regenerate()` explícito revientan. El
+propio proyecto ya documentaba este mecanismo antes de esta feature —
+`tests/Feature/AuthTest.php::fromBrowser()` añade el header `Origin` a mano en cada test
+precisamente por esto.
+
+**Por qué `->stateless()` solo, sin mover las rutas, no basta** — se verificó de forma empírica,
+no solo por lectura de código: `tests/Feature/SocialAuthTest.php` reproduce la petición exacta que
+manda Google (mismo verbo, misma ausencia de `Origin`/`Referer`, con Socialite mockeado para no
+depender de credenciales reales) y sirvió para probarlo en ambas direcciones:
+
+1. Contra el código original (rutas en `api.php`, sin `stateless()`) → el test falla con el mismo
+   `Session store not set on request.` en la misma línea, reproduciendo el bug reportado.
+2. Añadiendo `->stateless()` a `redirect()` y a `user()` **sin mover las rutas** → el test sigue
+   fallando, con el **mismo** error y la **misma** línea. `stateless()` solo evita que *Socialite*
+   toque la sesión al validar el `state` CSRF — no tiene ningún efecto sobre `Auth::login()` ni
+   sobre el `$request->session()->regenerate()` explícito del controller, que son los que de
+   verdad revientan. Además, `stateless()` de verdad (sin sesión en ningún punto) sería
+   incompatible con el requisito explícito de esta feature: el login de Google tiene que acabar en
+   una sesión Sanctum real, igual que email/password.
+
+**Fix aplicado — mover las dos rutas a `web.php`** (routes/web.php, docker/nginx.conf,
+`GOOGLE_REDIRECT_URI`, `AuthModal.tsx`; ver tabla de archivos modificados arriba). El grupo `web`
+tiene sesión disponible siempre, sin la condición de `Origin`/`Referer` — es lo que de verdad
+soluciona el problema de raíz, no solo el síntoma de Socialite. Confirmado con
+`tests/Feature/SocialAuthTest.php` en verde (ambas direcciones) y con una petición `curl` real
+contra el stack en marcha (`GET http://localhost/auth/google` → `200` con la URL de Google y el
+`redirect_uri` correcto).
+
+### ⚠️ Paso manual pendiente — Google Cloud Console
+
+El código ya construye y sirve la URL de Google con
+`redirect_uri=http://localhost/auth/google/callback` (verificado con Playwright contra el stack
+real), pero Google la rechaza con `redirect_uri_mismatch` porque el proyecto de Google Cloud
+Console todavía tiene registrada la URI **antigua** (`.../api/auth/google/callback`) en "URIs de
+redirección autorizados". Esto no es algo que se pueda arreglar desde el código — hace falta
+entrar a [Google Cloud Console](https://console.cloud.google.com/) → **APIs y servicios →
+Credenciales** → el cliente OAuth de este proyecto → sustituir
+`http://localhost/api/auth/google/callback` por `http://localhost/auth/google/callback` en "URIs
+de redireccionamiento autorizados" → Guardar. Sin ese cambio, un login real con Google seguirá
+fallando aunque el resto del flujo esté correcto.
 
 ---
 

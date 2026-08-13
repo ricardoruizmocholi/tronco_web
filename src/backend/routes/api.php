@@ -17,7 +17,6 @@ use App\Http\Controllers\ArtistController;
 use App\Http\Controllers\BannerController;
 use App\Http\Controllers\CollaboratorController;
 use App\Http\Controllers\AuthController;
-use App\Http\Controllers\SocialAuthController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\FanficController;
 use App\Http\Controllers\CheckoutController;
@@ -35,9 +34,10 @@ use Illuminate\Support\Facades\Route;
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login',    [AuthController::class, 'login']);
 
-// Google OAuth — público, fuera del grupo auth:sanctum
-Route::get('/auth/google',          [SocialAuthController::class, 'redirectToGoogle']);
-Route::get('/auth/google/callback', [SocialAuthController::class, 'handleGoogleCallback']);
+// Las rutas de Google OAuth viven en routes/web.php, no aquí — ver el
+// comentario en ese archivo (necesitan sesión disponible incondicionalmente,
+// cosa que el grupo "api" solo da cuando la petición viene con Origin/Referer
+// de localhost, y el callback de Google no lo trae).
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout',            [AuthController::class, 'logout']);
