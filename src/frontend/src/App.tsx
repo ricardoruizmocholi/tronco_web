@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
+import { BrowserRouter, Route, Routes } from 'react-router-dom'
 import { AuthProvider } from './context/AuthContext'
 import { AuthModalProvider, useAuthModal } from './context/AuthModalContext'
 import { CurrencyProvider } from './context/CurrencyContext'
@@ -11,6 +11,7 @@ import ProtectedRoute from './components/ProtectedRoute'
 import HomePage from './pages/HomePage'
 import LoginPage from './pages/LoginPage'
 import RegisterPage from './pages/RegisterPage'
+import NotFoundPage from './pages/NotFoundPage'
 import StorePage from './pages/StorePage'
 import ProductPage from './pages/ProductPage'
 import AdminDashboardPage from './pages/admin/AdminDashboardPage'
@@ -68,6 +69,9 @@ function App() {
           <Route path="/login"    element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
 
+          {/* Sin layout: 404 a pantalla completa, con su propio minijuego */}
+          <Route path="*" element={<NotFoundPage />} />
+
           {/* Con layout: Header sticky + Footer */}
           <Route element={<Layout />}>
             <Route path="/"                element={<HomePage />} />
@@ -110,8 +114,6 @@ function App() {
               <Route path="/admin/hero"          element={<AdminHeroPage />} />
               <Route path="/admin/newsletter"    element={<AdminNewsletterPage />} />
             </Route>
-
-            <Route path="*" element={<Navigate to="/" replace />} />
           </Route>
         </Routes>
         <AuthModal />
