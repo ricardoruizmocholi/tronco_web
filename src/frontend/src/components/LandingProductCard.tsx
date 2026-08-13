@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
+import { useAuthModal } from '../context/AuthModalContext'
 import { useCurrency } from '../hooks/useCurrency'
 import ColorSwatch from './ColorSwatch'
 import type { Product, ProductVariant } from '../types/product'
@@ -56,6 +57,7 @@ function ArrowIcon({ direction }: { direction: 'left' | 'right' }) {
 
 export default function LandingProductCard({ product }: Props) {
   const { user } = useAuth()
+  const { openModal } = useAuthModal()
   const { formatPrice } = useCurrency()
   const { name, slug, price, stock, images } = product
   const hasVariants    = product.variants.length > 0
@@ -70,7 +72,6 @@ export default function LandingProductCard({ product }: Props) {
   const [imageHovered, setImageHovered] = useState(false)
   const [infoHovered, setInfoHovered] = useState(false)
   const [isFavorite, setIsFavorite]   = useState(() => getFavorites().includes(product.id))
-  const [showLoginModal, setShowLoginModal] = useState(false)
 
   function handleImageEnter() {
     setImageHovered(true)
@@ -92,7 +93,7 @@ export default function LandingProductCard({ product }: Props) {
     e.preventDefault()
     e.stopPropagation()
     if (!user) {
-      setShowLoginModal(true)
+      openModal('login')
       return
     }
     const next = toggleFavorite(product.id)
@@ -223,27 +224,6 @@ export default function LandingProductCard({ product }: Props) {
         </div>
       </div>
 
-      {/* Modal: inicia sesión para guardar favoritos */}
-      {showLoginModal && (
-        <div
-          className="fixed inset-0 z-[60] bg-black/50 backdrop-blur-sm flex items-center justify-center p-4"
-          onClick={e => { e.preventDefault(); setShowLoginModal(false) }}
-        >
-          <div
-            className="bg-canvas border border-ink/10 w-full max-w-xs p-6 flex flex-col items-center text-center gap-4"
-            onClick={e => e.stopPropagation()}
-          >
-            <p className="font-editorial text-xl text-ink">Inicia sesión para guardar favoritos</p>
-            <p className="text-ink/50 text-sm">
-              Crea una cuenta o inicia sesión para guardar tus productos favoritos.
-            </p>
-            <div className="flex flex-col gap-2 w-full pt-2">
-              <Link to="/login" className="btn-primary w-full">Iniciar sesión</Link>
-              <Link to="/register" className="btn-secondary w-full">Registrarse</Link>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   )
 }

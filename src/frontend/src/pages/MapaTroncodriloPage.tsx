@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { Link } from 'react-router-dom'
 import { MapContainer, Marker, TileLayer } from 'react-leaflet'
 import MarkerClusterGroup from 'react-leaflet-cluster'
 import type L from 'leaflet'
@@ -10,6 +9,7 @@ import 'leaflet.markercluster/dist/MarkerCluster.css'
 import { getAllFanfics } from '../api/fanfics'
 import { buildFanficMarkerIcon, clusterIconCreateFunction } from '../lib/mapIcons'
 import { useAuth } from '../hooks/useAuth'
+import { useAuthModal } from '../context/AuthModalContext'
 import MapSidePanel, { type PanelState } from '../components/MapSidePanel'
 import FanficUploadModal from '../components/FanficUploadModal'
 import type { Fanfic } from '../types/fanfic'
@@ -28,11 +28,11 @@ interface FanficMarkerInstance extends L.Marker {
 
 export default function MapaTroncodriloPage() {
   const { user } = useAuth()
+  const { openModal } = useAuthModal()
   const [fanfics, setFanfics] = useState<Fanfic[]>([])
   const [loading, setLoading] = useState(true)
   const [panel, setPanel]     = useState<PanelState>({ mode: 'closed' })
   const [showUpload, setShowUpload]           = useState(false)
-  const [showLoginPrompt, setShowLoginPrompt] = useState(false)
 
   const clusterGroupRef = useRef<L.MarkerClusterGroup>(null)
   const markerIcon = useMemo(() => buildFanficMarkerIcon(), [])
@@ -69,7 +69,7 @@ export default function MapaTroncodriloPage() {
     if (user) {
       setShowUpload(true)
     } else {
-      setShowLoginPrompt(true)
+      openModal('login')
     }
   }
 
@@ -178,23 +178,6 @@ export default function MapaTroncodriloPage() {
         />
       )}
 
-      {showLoginPrompt && (
-        <div
-          className="fixed inset-0 z-[70] bg-black/50 backdrop-blur-sm flex items-center justify-center p-4"
-          onClick={e => { if (e.target === e.currentTarget) setShowLoginPrompt(false) }}
-        >
-          <div className="bg-canvas border border-ink/10 w-full max-w-xs p-6 flex flex-col items-center text-center gap-4">
-            <p className="font-editorial text-xl text-ink">Inicia sesión para subir tu fanfic</p>
-            <p className="text-ink/50 text-sm">
-              Crea una cuenta o inicia sesión para compartir tu imagen en el mapa.
-            </p>
-            <div className="flex flex-col gap-2 w-full pt-2">
-              <Link to="/login" className="btn-primary w-full">Iniciar sesión</Link>
-              <Link to="/register" className="btn-secondary w-full">Registrarse</Link>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   )
 }

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
+import { useAuthModal } from '../context/AuthModalContext'
 import { useHeaderState } from '../hooks/useHeaderState'
 import { useCartStore } from '../store/cartStore'
 import { getPendingCount } from '../api/adminOrders'
@@ -30,6 +31,7 @@ const navLinks = [
 
 export default function Layout() {
   const { user, logout } = useAuth()
+  const { openModal } = useAuthModal()
   const navigate = useNavigate()
   const headerState = useHeaderState()
   const [isHovered, setIsHovered] = useState(false)
@@ -57,7 +59,7 @@ export default function Layout() {
   }, [user?.role])
 
   async function handleLogout() {
-    try { await logout() } finally { navigate('/login') }
+    try { await logout() } finally { navigate('/') }
   }
 
   const navCls = ({ isActive }: { isActive: boolean }) =>
@@ -154,15 +156,15 @@ export default function Layout() {
                 </>
               ) : (
                 <>
-                  <Link to="/login" className={authLinkCls}>
+                  <button onClick={() => openModal('login')} className={authLinkCls}>
                     Iniciar sesión
-                  </Link>
-                  <Link to="/register"
+                  </button>
+                  <button onClick={() => openModal('register')}
                     className="text-sm uppercase tracking-wide bg-primary text-white px-3 py-1.5
                       hover:bg-primary/90 transition-colors font-medium"
                     style={{ borderRadius: '2px' }}>
                     Registrarse
-                  </Link>
+                  </button>
                 </>
               )}
             </div>

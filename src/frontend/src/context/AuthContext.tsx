@@ -15,6 +15,7 @@ interface AuthContextValue {
   login:       (email: string, password: string) => Promise<void>
   register:    (name: string, email: string, password: string, confirmation: string) => Promise<void>
   logout:      () => Promise<void>
+  refreshUser: () => Promise<void>
   setUser:     (user: AuthUser) => void
 }
 
@@ -57,8 +58,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
+  // Vuelve a pedir el usuario autenticado — usado tras el callback de Google
+  // OAuth, donde la sesión se crea en el backend sin pasar por login()/register().
+  async function refreshUser(): Promise<void> {
+    try {
+      const { data } = await api.get<AuthUser>('/api/user')
+      setUser(data)
+    } catch {
+      setUser(null)
+    }
+  }
+
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, logout, setUser }}>
+    <AuthContext.Provider value={{ user, loading, login, register, logout, refreshUser, setUser }}>
       {children}
     </AuthContext.Provider>
   )

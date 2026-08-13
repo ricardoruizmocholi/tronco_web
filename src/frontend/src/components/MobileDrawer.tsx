@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
 import { Link, NavLink, useLocation } from 'react-router-dom'
+import { useAuthModal } from '../context/AuthModalContext'
 import CurrencySelector from './CurrencySelector'
 
 interface NavLink {
@@ -22,6 +23,7 @@ interface Props {
 
 export default function MobileDrawer({ isOpen, onClose, user, onLogout, navLinks }: Props) {
   const location = useLocation()
+  const { openModal } = useAuthModal()
 
   // Cierra el drawer al navegar a otra página
   useEffect(() => {
@@ -120,21 +122,19 @@ export default function MobileDrawer({ isOpen, onClose, user, onLogout, navLinks
             </>
           ) : (
             <>
-              <Link
-                to="/login"
-                onClick={onClose}
+              <button
+                onClick={() => { onClose(); openModal('login') }}
                 className="flex items-center gap-3 px-4 py-3 text-sm uppercase tracking-wide
                   text-white/70 hover:text-white hover:bg-white/5 transition-colors"
               >
                 Iniciar sesión
-              </Link>
-              <Link
-                to="/register"
-                onClick={onClose}
+              </button>
+              <button
+                onClick={() => { onClose(); openModal('register') }}
                 className="btn-primary mx-1 flex items-center justify-center"
               >
                 Registrarse
-              </Link>
+              </button>
             </>
           )}
         </div>

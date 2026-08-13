@@ -56,6 +56,19 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Frontend URL
+    |--------------------------------------------------------------------------
+    |
+    | Root URL of the SPA. Used to build redirect targets back to the
+    | frontend after flows that require a full browser navigation, such
+    | as the Google OAuth callback.
+    |
+    */
+
+    'frontend_url' => env('FRONTEND_URL', 'http://localhost'),
+
+    /*
+    |--------------------------------------------------------------------------
     | Application Timezone
     |--------------------------------------------------------------------------
     |

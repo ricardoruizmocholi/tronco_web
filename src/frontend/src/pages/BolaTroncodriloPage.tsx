@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import Globe from 'react-globe.gl'
 import { getAllFanfics } from '../api/fanfics'
 import StarField from '../components/StarField'
 import { useAuth } from '../hooks/useAuth'
+import { useAuthModal } from '../context/AuthModalContext'
 import type { Fanfic } from '../types/fanfic'
 
 const GLOBE_IMG = '//unpkg.com/three-globe/example/img/earth-dark.jpg'
@@ -139,6 +140,7 @@ function PanelTopBar({
 
 export default function BolaTroncodriloPage() {
   const navigate                    = useNavigate()
+  const { openModal }               = useAuthModal()
   const { user }                    = useAuth()
   const containerRef                = useRef<HTMLDivElement>(null)
   const globeRef                    = useRef<any>(null)  // react-globe.gl instance — no typed export
@@ -415,9 +417,9 @@ export default function BolaTroncodriloPage() {
                   </button>
                 ) : (
                   <p className="text-xs text-canvas/60">
-                    <Link to="/login" className="text-primary transition-colors hover:text-primary/70">
+                    <button onClick={() => openModal('login')} className="text-primary transition-colors hover:text-primary/70">
                       Inicia sesión
-                    </Link>
+                    </button>
                     {' '}para participar
                   </p>
                 )}

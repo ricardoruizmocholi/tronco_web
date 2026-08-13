@@ -17,6 +17,7 @@ use App\Http\Controllers\ArtistController;
 use App\Http\Controllers\BannerController;
 use App\Http\Controllers\CollaboratorController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\SocialAuthController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\FanficController;
 use App\Http\Controllers\CheckoutController;
@@ -33,6 +34,10 @@ use Illuminate\Support\Facades\Route;
 
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login',    [AuthController::class, 'login']);
+
+// Google OAuth — público, fuera del grupo auth:sanctum
+Route::get('/auth/google',          [SocialAuthController::class, 'redirectToGoogle']);
+Route::get('/auth/google/callback', [SocialAuthController::class, 'handleGoogleCallback']);
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout',            [AuthController::class, 'logout']);

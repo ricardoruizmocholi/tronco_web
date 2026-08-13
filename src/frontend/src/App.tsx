@@ -1,6 +1,10 @@
+import { useEffect } from 'react'
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import { AuthProvider } from './context/AuthContext'
+import { AuthModalProvider, useAuthModal } from './context/AuthModalContext'
 import { CurrencyProvider } from './context/CurrencyContext'
+import { useAuth } from './hooks/useAuth'
+import AuthModal from './components/AuthModal'
 import Layout from './components/Layout'
 import AdminRoute from './components/AdminRoute'
 import ProtectedRoute from './components/ProtectedRoute'
@@ -34,11 +38,31 @@ import ProfilePage from './pages/ProfilePage'
 import PolicyPlaceholderPage from './pages/policies/PolicyPlaceholderPage'
 
 
+// Detecta el retorno de Google OAuth (?auth=success en la home), limpia la
+// URL, recarga el usuario autenticado y cierra el modal si seguía abierto.
+function AuthCallbackHandler() {
+  const { refreshUser } = useAuth()
+  const { closeModal } = useAuthModal()
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    if (params.get('auth') === 'success') {
+      window.history.replaceState({}, '', '/')
+      refreshUser()
+      closeModal()
+    }
+  }, [])
+
+  return null
+}
+
 function App() {
   return (
     <BrowserRouter>
       <CurrencyProvider>
       <AuthProvider>
+      <AuthModalProvider>
+        <AuthCallbackHandler />
         <Routes>
           {/* Sin layout: auth a pantalla completa */}
           <Route path="/login"    element={<LoginPage />} />
@@ -90,6 +114,8 @@ function App() {
             <Route path="*" element={<Navigate to="/" replace />} />
           </Route>
         </Routes>
+        <AuthModal />
+      </AuthModalProvider>
       </AuthProvider>
       </CurrencyProvider>
     </BrowserRouter>
