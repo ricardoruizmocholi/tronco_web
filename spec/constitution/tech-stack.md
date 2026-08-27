@@ -1,68 +1,20 @@
-# Stack Tecnológico y Convenciones
+﻿# Stack Tecnologico — ClimbForge
 
-## Frontend
-- React 18 + Vite + TypeScript (template `react-ts`)
-- TailwindCSS 4 (plugin `@tailwindcss/vite`)
-- Axios para llamadas HTTP al backend
-- React Router para navegación (pendiente de instalar)
-- Zustand o Context API para estado global (carrito, sesión de usuario) — pendiente de elegir
-- Librería de mapa interactivo para "Bola Troncodrilo": evaluar
-  `react-globe.gl` frente a `react-simple-maps`. Decisión se documenta
-  en `spec/features/006-bola-troncodrilo/plan.md` cuando llegue el momento.
+| Capa | Eleccion | Por que |
+|---|---|---|
+| Frontend | React 18 + TypeScript + Vite + Tailwind | Sin cambios: portable a movil via Capacitor sin rehacer UI |
+| Mobile | Capacitor | Sin cambios |
+| Backend | Laravel (PHP 8.3), como API JSON | Validacion, ORM parametrizado, hashing y rate limiting integrados; encaja con hosting compartido sin Docker/Node |
+| Servidor | IONOS hosting compartido, despliegue via SSH + git + composer | Ya contratado; PHP 8.3 y SSH con Composer confirmados |
+| Base de datos | MySQL/MariaDB gestionada por IONOS | Disponible nativamente en el hosting compartido |
+| Autenticacion | Laravel Sanctum | Cookies httpOnly para el SPA de React, tokens para la app movil futura — resuelve el riesgo de token en localStorage que teniamos documentado con Supabase |
+| Storage de video/foto | Cloudflare R2 (S3-compatible) | El hosting compartido de IONOS no es apto para servir archivos grandes de usuarios (cuota, sin CDN) |
+| IA — entrenamiento y dieta | Google Gemini API | Encapsulada en un AIProviderService propio dentro de Laravel |
+| Tests | Vitest (frontend) / Pest o PHPUnit (backend) | Estandar de cada ecosistema |
+| Desarrollo local | XAMPP | Ya instalado; Apache+PHP+MySQL local, sin necesidad de Docker |
 
-## Backend
-- Laravel 12 (PHP 8.3, vía contenedor `php:8.3-fpm`)
-- Laravel Sanctum para autenticación SPA (cookies, no JWT manual) — pendiente de instalar
-- Laravel Form Requests para validación
-- Services/Actions para lógica de negocio (no en controladores)
-- Stripe PHP SDK para pagos (Checkout Sessions + Webhooks) — pendiente de instalar
-- Roles de usuario: columna `role` en `users` (`user` / `admin`), sin paquete externo de permisos en el MVP
-
-## Base de datos
-- MySQL 8 (contenedor `mysql:8`)
-- Base de datos: `troncodrilo`, usuario `troncodrilo`
-- Acceso desde tu máquina (fuera de Docker) por el puerto `3307` (el 3306 lo usa XAMPP)
-- Acceso interno entre contenedores por el puerto `3306` normal (nombre de host: `db`)
-- Migraciones de Laravel como única fuente de verdad del esquema
-- Seeders para datos de prueba (productos demo, artistas demo)
-
-## Infraestructura (Docker)
-- `docker-compose.yml` en la raíz, 3 servicios activos por ahora: `backend`, `frontend`, `db`
-- Frontend accesible en tu navegador por `http://localhost:5175` (mapea al 5173 interno del contenedor)
-- Backend expone el puerto interno `9000` (php-fpm), aún sin punto de entrada HTTP propio — pendiente Nginx
-- Pendiente: añadir servicio `nginx` como proxy reverso único, necesario para que las cookies de Sanctum funcionen correctamente entre frontend y backend
-- Variables sensibles (Stripe keys, DB password) en `.env`, nunca en el repo
-
-## Testing
-- Backend: Pest o PHPUnit (PHPUnit viene instalado por defecto con Laravel) — tests de Feature para endpoints, Unit para Services
-- Frontend: Vitest + React Testing Library — pendiente de instalar
-
-## Control de versiones
-- Git, repositorio único (monorepo: frontend + backend)
-- Ramas: `main` (estable), `dev` (integración), `feature/nombre-feature`
-
-## Seguridad mínima del MVP
-- CSRF protegido por Sanctum (`/sanctum/csrf-cookie`)
-- Validación de roles en middleware para rutas de admin
-- Backend recalcula precios antes de cualquier cobro con Stripe
-- Webhook de Stripe verificado con firma secreta
-
-## Identidad Visual
-
-### Paleta de colores
-- `--color-primary: #5BBB2A` — verde Troncodrilo (color del personaje)
-- `--color-secondary: #8B4A2A` — marrón tronco
-- `--color-bg: #FAFAF8` — fondo blanco roto
-- `--color-text: #1A1A1A` — negro trazo
-- `--color-dark: #1C1F1A` — fondo oscuro (navbar, footer)
-
-### Estilo visual
-- Referencia estructural: TOAST (toa.st) — grid limpio, espacio generoso, tipografía serif para títulos
-- Personalidad: ilustración flat/naïf, trazo bold, sin gradientes ni sombras complejas
-- Tipografía títulos: serif con carácter (valorar Space Grotesk o similar para combinar con la geometría del personaje)
-- Tipografía cuerpo: sans-serif limpia (Inter o sistema)
-
-### Assets del personaje
-- Favicon: `FaviconFullHD_troncodrilo.png` (personaje cuadrado con tronco)
-- Logo: `logo_troncodrilo.PNG` (personaje horizontal con tronco encima)
-- Copiar ambos a `src/frontend/public/` para que Vite los sirva
+## Claves de arquitectura
+- Laravel se despliega como API pura (routes/api.php devolviendo JSON) — el frontend sigue siendo la SPA de React, no vistas Blade
+- Docker queda fuera del proyecto: no esta disponible en hosting compartido y no hace falta con XAMPP en local
+- Despliegue: git pull + composer install --no-dev + php artisan migrate en el servidor via SSH
+- Si el document root no se puede fijar a public/, se compensa con un .htaccess de redireccion (ver plan.md de cada feature que lo necesite)

@@ -97,7 +97,7 @@ export default function StorePage() {
       {/* Cabecera */}
       <header className="bg-dark text-white py-10 px-6 text-center">
         <h1 className="text-3xl font-bold tracking-tight">
-          {isCollabView ? 'Colaboradores' : 'La Tienda del Pantano'}
+          {isCollabView ? 'Colaboradores' : 'Tronco Tienda'}
         </h1>
         <p className="mt-2 text-white/70 text-sm">
           {isCollabView ? 'Marcas y artistas aliados de Troncodrilo' : 'Merchandising oficial de Troncodrilo'}

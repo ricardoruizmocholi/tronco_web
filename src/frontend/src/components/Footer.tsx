@@ -58,8 +58,13 @@ export default function Footer() {
       </div>
 
       <p className="text-canvas/30 text-xs text-center max-w-6xl mx-auto px-4 py-6">
-        © 2025 Troncodrilo. Todos los derechos reservados.
+        © 2026 Troncodrilo. Todos los derechos reservados.
+      </p>
+      <p className="text-canvas/30 text-xs text-left max-w-6xl mx-auto px-4 py-6">
+        Ricardo Ruiz Mocholi.
       </p>
     </footer>
+
+
   )
 }
