@@ -3,6 +3,7 @@
 use App\Http\Controllers\AdminCancellationController;
 use App\Http\Controllers\AdminFanficController;
 use App\Http\Controllers\AdminHeroController;
+use App\Http\Controllers\AdminMaintenanceController;
 use App\Http\Controllers\AdminNewsletterController;
 use App\Http\Controllers\AdminNotificationController;
 use App\Http\Controllers\AdminOrderController;
@@ -11,6 +12,7 @@ use App\Http\Controllers\AdminPromotionController;
 use App\Http\Controllers\AdminReturnController;
 use App\Http\Controllers\CancellationController;
 use App\Http\Controllers\HeroSlideController;
+use App\Http\Controllers\MaintenanceController;
 use App\Http\Controllers\NewsletterController;
 use App\Http\Controllers\PreorderController;
 use App\Http\Controllers\ReturnRequestController;
@@ -50,65 +52,83 @@ Route::get('/health', function () {
     return response()->json(['status' => 'ok', 'service' => 'troncodrilo-backend']);
 });
 
-// Catálogo público
-// /products/new va ANTES que /products/{slug} para que no lo capture como slug
-Route::get('/products',        [ProductController::class, 'index']);
-Route::get('/products/new',    [ProductController::class, 'newArrivals']);
-Route::get('/products/{slug}', [ProductController::class, 'show']);
-Route::get('/categories',      [ProductController::class, 'categories']);
-
-// Promociones — público
-Route::get('/promotions/active', [PromotionController::class, 'active']);
-
-// Artistas públicos
-Route::get('/artists',          [ArtistController::class, 'index']);
-Route::get('/artists/{artist}', [ArtistController::class, 'show']);
-
-// Checkout y pedidos (usuario autenticado)
-Route::middleware('auth:sanctum')->group(function () {
-    Route::post('/checkout',              [CheckoutController::class,      'store']);
-    Route::get('/orders',                 [OrderController::class,          'index']);
-    Route::get('/orders/{order}',         [OrderController::class,          'show']);
-    Route::post('/orders/{order}/cancel', [CancellationController::class,  'cancel']);
-    Route::post('/orders/{order}/return', [ReturnRequestController::class, 'store']);
-    Route::get('/user/returns',           [ReturnRequestController::class, 'index']);
-});
-
-// Webhook de Stripe — sin auth, Stripe firma el payload con STRIPE_WEBHOOK_SECRET
+// Webhook de Stripe — sin auth, Stripe firma el payload con STRIPE_WEBHOOK_SECRET.
+// Fuera del grupo "maintenance" a propósito: un checkout iniciado justo antes de
+// activar el mantenimiento tiene que poder completarse igualmente, o el pedido
+// se queda a medias sin confirmar el pago.
 Route::post('/stripe/webhook', [StripeWebhookController::class, 'handle']);
 
-// Tarifas de envío — público
-Route::get('/shipping-rates', [ShippingRateController::class, 'publicIndex']);
+// Estado público de mantenimiento — nunca puede depender de sí mismo, así que
+// vive fuera del grupo que él mismo controla.
+Route::get('/maintenance-status', [MaintenanceController::class, 'status']);
 
-// Banners y colaboradores — públicos
-Route::get('/banners',       [BannerController::class,       'publicIndex']);
-Route::get('/collaborators', [CollaboratorController::class, 'publicIndex']);
+// ── Rutas públicas y de cliente de la tienda — bloqueadas con 503 cuando el
+//    modo mantenimiento está activo (Feature 025). Todo lo que NO esté dentro
+//    de este grupo (admin, auth, webhook, health, el propio estado de
+//    mantenimiento) sigue accesible por defecto sin tener que mantener una
+//    lista de exclusión aparte.
+Route::middleware('maintenance')->group(function () {
+    // Catálogo público
+    // /products/new va ANTES que /products/{slug} para que no lo capture como slug
+    Route::get('/products',        [ProductController::class, 'index']);
+    Route::get('/products/new',    [ProductController::class, 'newArrivals']);
+    Route::get('/products/{slug}', [ProductController::class, 'show']);
+    Route::get('/categories',      [ProductController::class, 'categories']);
 
-// Hero slides — público
-Route::get('/hero-slides', [HeroSlideController::class, 'publicIndex']);
+    // Promociones — público
+    Route::get('/promotions/active', [PromotionController::class, 'active']);
 
-// Newsletter — público
-Route::post('/newsletter/subscribe', [NewsletterController::class, 'subscribe']);
+    // Artistas públicos
+    Route::get('/artists',          [ArtistController::class, 'index']);
+    Route::get('/artists/{artist}', [ArtistController::class, 'show']);
 
-// Fanfics — globo público
-Route::get('/fanfics', [FanficController::class, 'publicIndex']);
+    // Checkout y pedidos (usuario autenticado)
+    Route::middleware('auth:sanctum')->group(function () {
+        Route::post('/checkout',              [CheckoutController::class,      'store']);
+        Route::get('/orders',                 [OrderController::class,          'index']);
+        Route::get('/orders/{order}',         [OrderController::class,          'show']);
+        Route::post('/orders/{order}/cancel', [CancellationController::class,  'cancel']);
+        Route::post('/orders/{order}/return', [ReturnRequestController::class, 'store']);
+        Route::get('/user/returns',           [ReturnRequestController::class, 'index']);
+    });
 
-// Preorders — público (auth opcional via Sanctum)
-Route::post('/preorders', [PreorderController::class, 'store']);
+    // Tarifas de envío — público
+    Route::get('/shipping-rates', [ShippingRateController::class, 'publicIndex']);
 
-// Fanfics — usuario autenticado
-Route::middleware('auth:sanctum')->group(function () {
-    Route::post('/upload-image',     [ImageUploadController::class, 'store']);
-    Route::get('/fanfics/mine',      [FanficController::class, 'mine']);
-    Route::post('/fanfics',          [FanficController::class, 'store']);
-    Route::put('/fanfics/{fanfic}',  [FanficController::class, 'update']);
+    // Banners y colaboradores — públicos
+    Route::get('/banners',       [BannerController::class,       'publicIndex']);
+    Route::get('/collaborators', [CollaboratorController::class, 'publicIndex']);
+
+    // Hero slides — público
+    Route::get('/hero-slides', [HeroSlideController::class, 'publicIndex']);
+
+    // Newsletter — público
+    Route::post('/newsletter/subscribe', [NewsletterController::class, 'subscribe']);
+
+    // Fanfics — globo público
+    Route::get('/fanfics', [FanficController::class, 'publicIndex']);
+
+    // Preorders — público (auth opcional via Sanctum)
+    Route::post('/preorders', [PreorderController::class, 'store']);
+
+    // Fanfics — usuario autenticado
+    Route::middleware('auth:sanctum')->group(function () {
+        Route::post('/upload-image',     [ImageUploadController::class, 'store']);
+        Route::get('/fanfics/mine',      [FanficController::class, 'mine']);
+        Route::post('/fanfics',          [FanficController::class, 'store']);
+        Route::put('/fanfics/{fanfic}',  [FanficController::class, 'update']);
+    });
 });
 
-// Gestión admin (productos + artistas + fanfics)
+// Gestión admin (productos + artistas + fanfics) — nunca bloqueada por
+// mantenimiento, incluido su propio login (auth:sanctum), o nadie podría
+// autenticarse para desactivarlo
 Route::middleware(['auth:sanctum', 'admin'])->prefix('admin')->group(function () {
     Route::post('/upload-video', [VideoUploadController::class, 'store']);
 
     Route::get('/notifications', [AdminNotificationController::class, 'index']);
+
+    Route::put('/maintenance', [AdminMaintenanceController::class, 'update']);
 
     Route::get('/products',                        [ProductController::class, 'adminIndex']);
     Route::post('/products',                       [ProductController::class, 'store']);

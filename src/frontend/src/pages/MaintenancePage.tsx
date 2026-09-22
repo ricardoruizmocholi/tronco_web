@@ -1,15 +1,14 @@
-import { Link } from 'react-router-dom'
 import TroncodriloGame from '../components/TroncodriloGame'
 
-export default function NotFoundPage() {
+export default function MaintenancePage() {
   return (
     <div className="min-h-dvh bg-canvas flex flex-col items-center justify-center px-4 gap-8 py-12">
       <div className="text-center">
         <h1 className="font-editorial text-3xl md:text-4xl text-ink text-balance my-6">
-          ¡Uy! Parece que Troncodrilo se ha perdido en el pantano
+          Perdonad las molestias, estamos en mantenimiento
         </h1>
         <p className="text-sm text-ink/60 text-center max-w-[400px] mx-auto">
-          No hemos encontrado lo que buscas... pero puedes ayudar a Troncodrilo a escapar
+          Mientras tanto, os dejamos un jueguecito para que Troncodrilo no se aburra
         </p>
         <p className="label-caps text-ink/60 animate-pulse mt-3">
           ¡Salta sobre los troncos! — Pulsa ESPACIO o toca la pantalla
@@ -17,8 +16,6 @@ export default function NotFoundPage() {
       </div>
 
       <TroncodriloGame />
-
-      <Link to="/" className="btn-secondary">Volver al inicio</Link>
     </div>
   )
 }

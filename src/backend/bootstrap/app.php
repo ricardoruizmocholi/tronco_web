@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\CheckMaintenanceMode;
 use App\Http\Middleware\EnsureUserIsAdmin;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -16,7 +17,8 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
-            'admin' => EnsureUserIsAdmin::class,
+            'admin'       => EnsureUserIsAdmin::class,
+            'maintenance' => CheckMaintenanceMode::class,
         ]);
 
         $middleware->prependToGroup('api', EnsureFrontendRequestsAreStateful::class);
