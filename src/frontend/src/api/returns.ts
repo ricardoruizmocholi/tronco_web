@@ -64,10 +64,6 @@ export function confirmReturnReceived(id: number, refund_amount?: number): Promi
   return api.put(`/api/admin/returns/${id}/receive`, { refund_amount }).then(r => r.data)
 }
 
-export function getPendingReturnsCount(): Promise<number> {
-  return api.get<{ count: number }>('/api/admin/returns/pending-count').then(r => r.data.count)
-}
-
 export function exportReturns(filters: AdminReturnsFilters = {}): Promise<Blob> {
   const q = new URLSearchParams()
   if (filters.status)     q.set('status',     filters.status)

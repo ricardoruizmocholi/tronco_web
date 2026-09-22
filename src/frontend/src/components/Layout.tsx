@@ -1,11 +1,10 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 import { useAuthModal } from '../context/AuthModalContext'
+import { useAdminNotifications } from '../context/AdminNotificationsContext'
 import { useHeaderState } from '../hooks/useHeaderState'
 import { useCartStore } from '../store/cartStore'
-import { getPendingCount } from '../api/adminOrders'
-import { getPendingReturnsCount } from '../api/returns'
 import CartDrawer from './CartDrawer'
 import MobileDrawer from './MobileDrawer'
 import CurrencySelector from './CurrencySelector'
@@ -38,25 +37,15 @@ export default function Layout() {
   const isSolid = headerState === 'solid' || isHovered
   const { getTotalItems, openCart } = useCartStore()
   const [isDrawerOpen, setIsDrawerOpen] = useState(false)
-  const [pendingOrders,  setPendingOrders]  = useState(0)
-  const [pendingReturns, setPendingReturns] = useState(0)
+
+  // Mismo sondeo que consume la campana del panel admin (AdminNotificationsContext,
+  // un único polling de 60s compartido) — aquí solo se desglosa por tipo para
+  // mantener los dos badges que ya existían.
+  const { items: pendingItems } = useAdminNotifications()
+  const pendingOrders  = pendingItems.filter(i => i.type === 'order').length
+  const pendingReturns = pendingItems.filter(i => i.type === 'return').length
 
   const totalItems = getTotalItems()
-
-  // Polling de pedidos y devoluciones pendientes — solo para admin, cada 60s
-  useEffect(() => {
-    if (user?.role !== 'admin') return
-
-    getPendingCount().then(setPendingOrders).catch(() => {})
-    getPendingReturnsCount().then(setPendingReturns).catch(() => {})
-
-    const interval = setInterval(() => {
-      getPendingCount().then(setPendingOrders).catch(() => {})
-      getPendingReturnsCount().then(setPendingReturns).catch(() => {})
-    }, 60_000)
-
-    return () => clearInterval(interval)
-  }, [user?.role])
 
   async function handleLogout() {
     try { await logout() } finally { navigate('/') }

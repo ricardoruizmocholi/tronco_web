@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import {
   exportPreorders,
   getAdminPreorders,
@@ -83,6 +84,12 @@ export default function AdminPreordersPage() {
   const [page, setPage]           = useState(1)
   const [lastPage, setLastPage]   = useState(1)
   const [filters, setFilters]     = useState<AdminPreordersFilters>({})
+
+  // Resalta el preorder señalado por ?preorder=ID (p.ej. desde la campana de
+  // notificaciones) — no hay modal de detalle propio para preorders, así que
+  // en vez de forzar uno se resalta su fila en la tabla
+  const [searchParams] = useSearchParams()
+  const highlightId = searchParams.get('preorder') ? Number(searchParams.get('preorder')) : null
 
   function loadData(f: AdminPreordersFilters, p: number) {
     setLoading(true)
@@ -247,7 +254,13 @@ export default function AdminPreordersPage() {
                     </tr>
                   )}
                   {preorders.map(p => (
-                    <tr key={p.id} className="bg-white hover:bg-ink/[0.02] transition-colors">
+                    <tr
+                      key={p.id}
+                      ref={el => { if (p.id === highlightId) el?.scrollIntoView({ block: 'center', behavior: 'smooth' }) }}
+                      className={`transition-colors ${
+                        p.id === highlightId ? 'bg-primary/10' : 'bg-white hover:bg-ink/[0.02]'
+                      }`}
+                    >
                       <td className="px-4 py-3 text-ink">{p.email}</td>
                       <td className="px-4 py-3 text-ink/60">{p.name ?? '—'}</td>
                       <td className="px-4 py-3 font-medium text-ink">{p.product?.name ?? '—'}</td>

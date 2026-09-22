@@ -2,10 +2,12 @@ import { useEffect } from 'react'
 import { BrowserRouter, Route, Routes } from 'react-router-dom'
 import { AuthProvider } from './context/AuthContext'
 import { AuthModalProvider, useAuthModal } from './context/AuthModalContext'
+import { AdminNotificationsProvider } from './context/AdminNotificationsContext'
 import { CurrencyProvider } from './context/CurrencyContext'
 import { useAuth } from './hooks/useAuth'
 import AuthModal from './components/AuthModal'
 import Layout from './components/Layout'
+import AdminLayout from './components/admin/AdminLayout'
 import AdminRoute from './components/AdminRoute'
 import ProtectedRoute from './components/ProtectedRoute'
 import HomePage from './pages/HomePage'
@@ -63,11 +65,31 @@ function App() {
       <CurrencyProvider>
       <AuthProvider>
       <AuthModalProvider>
+      <AdminNotificationsProvider>
         <AuthCallbackHandler />
         <Routes>
           {/* Sin layout: auth a pantalla completa */}
           <Route path="/login"    element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
+
+          {/* Sin layout público: shell propio con sidebar — ver Feature 024 */}
+          <Route element={<AdminRoute />}>
+            <Route element={<AdminLayout />}>
+              <Route path="/admin"           element={<AdminDashboardPage />} />
+              <Route path="/admin/productos" element={<AdminProductsPage />} />
+              <Route path="/admin/artistas" element={<AdminArtistsPage />} />
+              <Route path="/admin/fanfics"  element={<AdminFanficsPage />} />
+              <Route path="/admin/envios"         element={<AdminShippingPage />} />
+              <Route path="/admin/banners"        element={<AdminBannersPage />} />
+              <Route path="/admin/colaboradores"  element={<AdminCollaboratorsPage />} />
+              <Route path="/admin/pedidos"        element={<AdminOrdersPage />} />
+              <Route path="/admin/preorders"      element={<AdminPreordersPage />} />
+              <Route path="/admin/devoluciones"  element={<AdminReturnsPage />} />
+              <Route path="/admin/promociones"   element={<AdminPromotionsPage />} />
+              <Route path="/admin/hero"          element={<AdminHeroPage />} />
+              <Route path="/admin/newsletter"    element={<AdminNewsletterPage />} />
+            </Route>
+          </Route>
 
           {/* Sin layout: 404 a pantalla completa, con su propio minijuego */}
           <Route path="*" element={<NotFoundPage />} />
@@ -98,25 +120,10 @@ function App() {
               <Route path="/checkout/exito"      element={<CheckoutSuccessPage />} />
               <Route path="/checkout/cancelado"  element={<CheckoutCancelPage />} />
             </Route>
-
-            <Route element={<AdminRoute />}>
-              <Route path="/admin"           element={<AdminDashboardPage />} />
-              <Route path="/admin/productos" element={<AdminProductsPage />} />
-              <Route path="/admin/artistas" element={<AdminArtistsPage />} />
-              <Route path="/admin/fanfics"  element={<AdminFanficsPage />} />
-              <Route path="/admin/envios"         element={<AdminShippingPage />} />
-              <Route path="/admin/banners"        element={<AdminBannersPage />} />
-              <Route path="/admin/colaboradores"  element={<AdminCollaboratorsPage />} />
-              <Route path="/admin/pedidos"        element={<AdminOrdersPage />} />
-              <Route path="/admin/preorders"      element={<AdminPreordersPage />} />
-              <Route path="/admin/devoluciones"  element={<AdminReturnsPage />} />
-              <Route path="/admin/promociones"   element={<AdminPromotionsPage />} />
-              <Route path="/admin/hero"          element={<AdminHeroPage />} />
-              <Route path="/admin/newsletter"    element={<AdminNewsletterPage />} />
-            </Route>
           </Route>
         </Routes>
         <AuthModal />
+      </AdminNotificationsProvider>
       </AuthModalProvider>
       </AuthProvider>
       </CurrencyProvider>

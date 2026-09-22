@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import {
   approveReturn,
   confirmReturnReceived,
@@ -115,6 +115,14 @@ export default function AdminReturnsPage() {
       setDetailLoading(false)
     }
   }
+
+  // Abre directamente el detalle si se llega con ?return=ID (p.ej. desde la
+  // campana de notificaciones del admin)
+  const [searchParams] = useSearchParams()
+  useEffect(() => {
+    const returnParam = searchParams.get('return')
+    if (returnParam) openDetail(Number(returnParam))
+  }, [searchParams])
 
   async function handleApprove() {
     if (!detail) return

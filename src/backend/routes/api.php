@@ -4,6 +4,7 @@ use App\Http\Controllers\AdminCancellationController;
 use App\Http\Controllers\AdminFanficController;
 use App\Http\Controllers\AdminHeroController;
 use App\Http\Controllers\AdminNewsletterController;
+use App\Http\Controllers\AdminNotificationController;
 use App\Http\Controllers\AdminOrderController;
 use App\Http\Controllers\AdminPreorderController;
 use App\Http\Controllers\AdminPromotionController;
@@ -106,6 +107,8 @@ Route::middleware('auth:sanctum')->group(function () {
 // Gestión admin (productos + artistas + fanfics)
 Route::middleware(['auth:sanctum', 'admin'])->prefix('admin')->group(function () {
     Route::post('/upload-video', [VideoUploadController::class, 'store']);
+
+    Route::get('/notifications', [AdminNotificationController::class, 'index']);
 
     Route::get('/products',                        [ProductController::class, 'adminIndex']);
     Route::post('/products',                       [ProductController::class, 'store']);

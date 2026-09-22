@@ -55,12 +55,6 @@ export function getOrderStats(): Promise<OrderStats> {
   return api.get<OrderStats>('/api/admin/orders/stats').then(r => r.data)
 }
 
-export function getPendingCount(): Promise<number> {
-  return api
-    .get<{ count: number }>('/api/admin/orders/pending-count')
-    .then(r => r.data.count)
-}
-
 export function exportOrders(filters: AdminOrdersFilters = {}): Promise<Blob> {
   const q = new URLSearchParams()
   if (filters.status)     q.set('status',     filters.status)
