@@ -46,10 +46,12 @@ export default function AdminSettingsPage() {
           <div>
             <p className="font-semibold text-ink mb-1">Modo mantenimiento</p>
             <p className="text-sm text-ink/50 leading-relaxed max-w-md">
-              Con el modo mantenimiento activo, todos los clientes ven una pantalla
-              de mantenimiento (con el minijuego de Troncodrilo) en vez de la tienda.
-              El panel de administrador sigue siendo accesible para poder
-              desactivarlo.
+              Con el modo mantenimiento activo, la página de <strong>Tienda</strong> y
+              la sección de <strong>Novedades</strong> de la portada muestran una
+              pantalla de mantenimiento (con el minijuego de Troncodrilo) en vez de
+              los productos. El resto del sitio — artistas, mapa, fichas de producto
+              ya enlazadas, checkout, el panel de admin — sigue funcionando con
+              normalidad.
             </p>
             {!loading && (
               <p className={`text-xs font-medium mt-3 ${active ? 'text-secondary' : 'text-primary'}`}>
@@ -87,8 +89,8 @@ export default function AdminSettingsPage() {
           <div className="mt-5 pt-5 border-t border-ink/10 -mx-6 -mb-6 px-6 pb-6 bg-secondary/5 rounded-b-2xl">
             <p className="text-sm text-ink font-medium mb-1">¿Seguro que quieres activarlo?</p>
             <p className="text-sm text-ink/60 mb-4">
-              Esto apaga la tienda para todos los clientes ahora mismo, hasta que
-              vuelvas a desactivarlo desde aquí.
+              Esto oculta la Tienda y las Novedades de la portada a todos los
+              clientes ahora mismo, hasta que vuelvas a desactivarlo desde aquí.
             </p>
             <div className="flex items-center gap-3">
               <button

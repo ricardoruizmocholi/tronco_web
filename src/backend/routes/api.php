@@ -62,62 +62,62 @@ Route::post('/stripe/webhook', [StripeWebhookController::class, 'handle']);
 // vive fuera del grupo que él mismo controla.
 Route::get('/maintenance-status', [MaintenanceController::class, 'status']);
 
-// ── Rutas públicas y de cliente de la tienda — bloqueadas con 503 cuando el
-//    modo mantenimiento está activo (Feature 025). Todo lo que NO esté dentro
-//    de este grupo (admin, auth, webhook, health, el propio estado de
-//    mantenimiento) sigue accesible por defecto sin tener que mantener una
-//    lista de exclusión aparte.
+// Catálogo público
+// /products/new va ANTES que /products/{slug} para que no lo capture como slug.
+// /products, /products/new, /categories, /promotions/active y /collaborators van
+// dentro del grupo "maintenance" (Feature 025) porque son exactamente lo que usan
+// StorePage (/tienda) y la sección "Novedades" de la home — las dos únicas
+// superficies que el modo mantenimiento debe cortar. /products/{slug} (ficha de
+// producto individual) queda deliberadamente fuera: un enlace directo a un
+// producto concreto sigue funcionando aunque la tienda esté en mantenimiento.
 Route::middleware('maintenance')->group(function () {
-    // Catálogo público
-    // /products/new va ANTES que /products/{slug} para que no lo capture como slug
-    Route::get('/products',        [ProductController::class, 'index']);
-    Route::get('/products/new',    [ProductController::class, 'newArrivals']);
-    Route::get('/products/{slug}', [ProductController::class, 'show']);
-    Route::get('/categories',      [ProductController::class, 'categories']);
-
-    // Promociones — público
+    Route::get('/products',          [ProductController::class, 'index']);
+    Route::get('/products/new',      [ProductController::class, 'newArrivals']);
+    Route::get('/categories',        [ProductController::class, 'categories']);
     Route::get('/promotions/active', [PromotionController::class, 'active']);
+    Route::get('/collaborators',     [CollaboratorController::class, 'publicIndex']);
+});
 
-    // Artistas públicos
-    Route::get('/artists',          [ArtistController::class, 'index']);
-    Route::get('/artists/{artist}', [ArtistController::class, 'show']);
+Route::get('/products/{slug}', [ProductController::class, 'show']);
 
-    // Checkout y pedidos (usuario autenticado)
-    Route::middleware('auth:sanctum')->group(function () {
-        Route::post('/checkout',              [CheckoutController::class,      'store']);
-        Route::get('/orders',                 [OrderController::class,          'index']);
-        Route::get('/orders/{order}',         [OrderController::class,          'show']);
-        Route::post('/orders/{order}/cancel', [CancellationController::class,  'cancel']);
-        Route::post('/orders/{order}/return', [ReturnRequestController::class, 'store']);
-        Route::get('/user/returns',           [ReturnRequestController::class, 'index']);
-    });
+// Artistas públicos
+Route::get('/artists',          [ArtistController::class, 'index']);
+Route::get('/artists/{artist}', [ArtistController::class, 'show']);
 
-    // Tarifas de envío — público
-    Route::get('/shipping-rates', [ShippingRateController::class, 'publicIndex']);
+// Checkout y pedidos (usuario autenticado)
+Route::middleware('auth:sanctum')->group(function () {
+    Route::post('/checkout',              [CheckoutController::class,      'store']);
+    Route::get('/orders',                 [OrderController::class,          'index']);
+    Route::get('/orders/{order}',         [OrderController::class,          'show']);
+    Route::post('/orders/{order}/cancel', [CancellationController::class,  'cancel']);
+    Route::post('/orders/{order}/return', [ReturnRequestController::class, 'store']);
+    Route::get('/user/returns',           [ReturnRequestController::class, 'index']);
+});
 
-    // Banners y colaboradores — públicos
-    Route::get('/banners',       [BannerController::class,       'publicIndex']);
-    Route::get('/collaborators', [CollaboratorController::class, 'publicIndex']);
+// Tarifas de envío — público
+Route::get('/shipping-rates', [ShippingRateController::class, 'publicIndex']);
 
-    // Hero slides — público
-    Route::get('/hero-slides', [HeroSlideController::class, 'publicIndex']);
+// Banners — público (los colaboradores están arriba, en el grupo "maintenance")
+Route::get('/banners', [BannerController::class, 'publicIndex']);
 
-    // Newsletter — público
-    Route::post('/newsletter/subscribe', [NewsletterController::class, 'subscribe']);
+// Hero slides — público
+Route::get('/hero-slides', [HeroSlideController::class, 'publicIndex']);
 
-    // Fanfics — globo público
-    Route::get('/fanfics', [FanficController::class, 'publicIndex']);
+// Newsletter — público
+Route::post('/newsletter/subscribe', [NewsletterController::class, 'subscribe']);
 
-    // Preorders — público (auth opcional via Sanctum)
-    Route::post('/preorders', [PreorderController::class, 'store']);
+// Fanfics — globo público
+Route::get('/fanfics', [FanficController::class, 'publicIndex']);
 
-    // Fanfics — usuario autenticado
-    Route::middleware('auth:sanctum')->group(function () {
-        Route::post('/upload-image',     [ImageUploadController::class, 'store']);
-        Route::get('/fanfics/mine',      [FanficController::class, 'mine']);
-        Route::post('/fanfics',          [FanficController::class, 'store']);
-        Route::put('/fanfics/{fanfic}',  [FanficController::class, 'update']);
-    });
+// Preorders — público (auth opcional via Sanctum)
+Route::post('/preorders', [PreorderController::class, 'store']);
+
+// Fanfics — usuario autenticado
+Route::middleware('auth:sanctum')->group(function () {
+    Route::post('/upload-image',     [ImageUploadController::class, 'store']);
+    Route::get('/fanfics/mine',      [FanficController::class, 'mine']);
+    Route::post('/fanfics',          [FanficController::class, 'store']);
+    Route::put('/fanfics/{fanfic}',  [FanficController::class, 'update']);
 });
 
 // Gestión admin (productos + artistas + fanfics) — nunca bloqueada por

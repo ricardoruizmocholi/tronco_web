@@ -62,8 +62,9 @@ function AuthCallbackHandler() {
   return null
 }
 
-// Envuelve las rutas públicas de la tienda — nunca el grupo admin, o nadie
-// tendría forma de desactivar el mantenimiento (Feature 025).
+// Envuelve SOLO /tienda — la única ruta que el modo mantenimiento corta
+// (Feature 025). El resto del sitio funciona con normalidad aunque esté
+// activo; el admin nunca pasa por aquí en ningún caso.
 function MaintenanceGate() {
   const { active, loading } = useMaintenance()
 
@@ -104,42 +105,44 @@ function App() {
             </Route>
           </Route>
 
-          {/* Todo lo demás — muestra MaintenancePage en vez del contenido normal
-              mientras el mantenimiento está activo */}
-          <Route element={<MaintenanceGate />}>
-            {/* Sin layout: auth a pantalla completa */}
-            <Route path="/login"    element={<LoginPage />} />
-            <Route path="/register" element={<RegisterPage />} />
+          {/* Sin layout: auth a pantalla completa */}
+          <Route path="/login"    element={<LoginPage />} />
+          <Route path="/register" element={<RegisterPage />} />
 
-            {/* Sin layout: 404 a pantalla completa, con su propio minijuego */}
-            <Route path="*" element={<NotFoundPage />} />
+          {/* Sin layout: 404 a pantalla completa, con su propio minijuego */}
+          <Route path="*" element={<NotFoundPage />} />
 
-            {/* Con layout: Header sticky + Footer */}
-            <Route element={<Layout />}>
-              <Route path="/"                element={<HomePage />} />
-              <Route path="/tienda"          element={<StorePage />} />
-              <Route path="/producto/:slug"  element={<ProductPage />} />
-              <Route path="/artistas"          element={<ArtistsPage />} />
-              <Route path="/artistas/:id"      element={<ArtistProfilePage />} />
-              <Route path="/bola-troncodrilo"  element={<BolaTroncodriloPage />} />
-              <Route path="/mapa-troncodrilo"  element={<MapaTroncodriloPage />} />
+          {/* Con layout: Header sticky + Footer */}
+          <Route element={<Layout />}>
+            <Route path="/" element={<HomePage />} />
 
-              <Route path="/politica-privacidad"
-                element={<PolicyPlaceholderPage title="Política de privacidad" />} />
-              <Route path="/politica-cookies"
-                element={<PolicyPlaceholderPage title="Política de cookies" />} />
-              <Route path="/terminos-condiciones"
-                element={<PolicyPlaceholderPage title="Términos y condiciones" />} />
-              <Route path="/politica-devoluciones"
-                element={<PolicyPlaceholderPage title="Política de devoluciones" />} />
+            {/* Solo /tienda se corta en mantenimiento (Feature 025) — el resto
+                del sitio sigue funcionando con normalidad */}
+            <Route element={<MaintenanceGate />}>
+              <Route path="/tienda" element={<StorePage />} />
+            </Route>
 
-              <Route element={<ProtectedRoute />}>
-                <Route path="/perfil"              element={<ProfilePage />} />
-                <Route path="/mi-fanfic"           element={<MiFanficPage />} />
-                <Route path="/mis-pedidos"         element={<OrdersPage />} />
-                <Route path="/checkout/exito"      element={<CheckoutSuccessPage />} />
-                <Route path="/checkout/cancelado"  element={<CheckoutCancelPage />} />
-              </Route>
+            <Route path="/producto/:slug"  element={<ProductPage />} />
+            <Route path="/artistas"          element={<ArtistsPage />} />
+            <Route path="/artistas/:id"      element={<ArtistProfilePage />} />
+            <Route path="/bola-troncodrilo"  element={<BolaTroncodriloPage />} />
+            <Route path="/mapa-troncodrilo"  element={<MapaTroncodriloPage />} />
+
+            <Route path="/politica-privacidad"
+              element={<PolicyPlaceholderPage title="Política de privacidad" />} />
+            <Route path="/politica-cookies"
+              element={<PolicyPlaceholderPage title="Política de cookies" />} />
+            <Route path="/terminos-condiciones"
+              element={<PolicyPlaceholderPage title="Términos y condiciones" />} />
+            <Route path="/politica-devoluciones"
+              element={<PolicyPlaceholderPage title="Política de devoluciones" />} />
+
+            <Route element={<ProtectedRoute />}>
+              <Route path="/perfil"              element={<ProfilePage />} />
+              <Route path="/mi-fanfic"           element={<MiFanficPage />} />
+              <Route path="/mis-pedidos"         element={<OrdersPage />} />
+              <Route path="/checkout/exito"      element={<CheckoutSuccessPage />} />
+              <Route path="/checkout/cancelado"  element={<CheckoutCancelPage />} />
             </Route>
           </Route>
         </Routes>

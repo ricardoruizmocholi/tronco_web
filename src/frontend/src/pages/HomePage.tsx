@@ -4,6 +4,7 @@ import { getHeroSlides } from '../api/heroSlides'
 import { getArtists } from '../api/artists'
 import { getActivePromotions, getNewProducts } from '../api/promotions'
 import { subscribeNewsletter } from '../api/newsletter'
+import { useMaintenance } from '../context/MaintenanceContext'
 import LandingProductCard from '../components/LandingProductCard'
 import type { HeroSlide } from '../types/heroSlide'
 import type { Product } from '../types/product'
@@ -11,13 +12,18 @@ import type { Artist } from '../types/artist'
 
 type ProductsTab = 'new' | 'offers'
 
+// La sección "Novedades / En oferta" es la otra superficie que el modo
+// mantenimiento corta, junto a /tienda (Feature 025) — el resto de la home
+// sigue funcionando con normalidad.
 function ProductsSection() {
+  const { active: maintenanceActive } = useMaintenance()
   const [offers, setOffers]   = useState<Product[]>([])
   const [news, setNews]       = useState<Product[]>([])
   const [loading, setLoading] = useState(true)
   const [tab, setTab]         = useState<ProductsTab>('new')
 
   useEffect(() => {
+    if (maintenanceActive) return
     Promise.all([
       getActivePromotions().catch(() => []),
       getNewProducts().catch(() => []),
@@ -27,7 +33,18 @@ function ProductsSection() {
       // Por defecto se muestra "Novedades"; si no hay, se cae a "En oferta"
       setTab(newResults.length > 0 ? 'new' : 'offers')
     }).finally(() => setLoading(false))
-  }, [])
+  }, [maintenanceActive])
+
+  if (maintenanceActive) {
+    return (
+      <section className="max-w-6xl mx-auto px-4 py-16 text-center">
+        <p className="label-caps text-ink/40 mb-2">Novedades</p>
+        <p className="text-ink/50 text-sm">
+          Estamos actualizando esta sección — vuelve pronto 🐊
+        </p>
+      </section>
+    )
+  }
 
   if (loading) return null
 

@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\Product;
 use App\Models\Setting;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -14,6 +15,16 @@ class MaintenanceTest extends TestCase
     private function admin(): User
     {
         return User::factory()->create(['role' => 'admin']);
+    }
+
+    private function product(): Product
+    {
+        return Product::create([
+            'name'        => 'Camiseta Troncodrilo',
+            'slug'        => 'camiseta-troncodrilo',
+            'description' => 'Camiseta de algodón',
+            'price'       => 1999,
+        ]);
     }
 
     public function test_status_endpoint_reflects_current_flag(): void
@@ -51,18 +62,64 @@ class MaintenanceTest extends TestCase
             ->assertForbidden();
     }
 
-    public function test_public_route_is_blocked_when_maintenance_active(): void
+    // ── Solo lo que usan StorePage (/tienda) y la sección "Novedades" de la
+    //    home deben cortarse — no toda la tienda ni el resto del sitio. ──
+
+    public function test_store_page_endpoints_are_blocked_when_maintenance_active(): void
     {
         Setting::set('maintenance_mode', true);
 
-        $this->getJson('/api/products')
-            ->assertStatus(503)
-            ->assertJson(['maintenance' => true]);
+        foreach (['/api/products', '/api/categories', '/api/collaborators'] as $uri) {
+            $this->getJson($uri)->assertStatus(503)->assertJson(['maintenance' => true]);
+        }
     }
 
-    public function test_public_route_works_normally_when_maintenance_inactive(): void
+    public function test_homepage_novedades_endpoints_are_blocked_when_maintenance_active(): void
+    {
+        Setting::set('maintenance_mode', true);
+
+        foreach (['/api/products/new', '/api/promotions/active'] as $uri) {
+            $this->getJson($uri)->assertStatus(503)->assertJson(['maintenance' => true]);
+        }
+    }
+
+    public function test_blocked_endpoints_work_normally_when_maintenance_inactive(): void
     {
         $this->getJson('/api/products')->assertOk();
+        $this->getJson('/api/categories')->assertOk();
+    }
+
+    public function test_individual_product_page_is_not_blocked_by_maintenance(): void
+    {
+        Setting::set('maintenance_mode', true);
+        $product = $this->product();
+
+        // Un enlace directo a una ficha de producto sigue funcionando aunque
+        // /tienda y "Novedades" estén cortados.
+        $this->getJson("/api/products/{$product->slug}")->assertOk();
+    }
+
+    public function test_unrelated_public_routes_are_not_blocked_by_maintenance(): void
+    {
+        Setting::set('maintenance_mode', true);
+
+        $this->getJson('/api/artists')->assertOk();
+        $this->getJson('/api/banners')->assertOk();
+        $this->getJson('/api/hero-slides')->assertOk();
+        $this->getJson('/api/shipping-rates')->assertOk();
+        $this->getJson('/api/fanfics')->assertOk();
+    }
+
+    public function test_checkout_is_not_blocked_by_maintenance(): void
+    {
+        Setting::set('maintenance_mode', true);
+
+        // Sin carrito real esto falla por validación, no por mantenimiento —
+        // lo único que verifica este test es que no sea un 503.
+        $response = $this->actingAs(User::factory()->create(), 'sanctum')
+            ->postJson('/api/checkout', []);
+
+        $this->assertNotEquals(503, $response->getStatusCode());
     }
 
     public function test_admin_routes_stay_reachable_during_maintenance(): void
