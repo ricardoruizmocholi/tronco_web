@@ -67,13 +67,11 @@ export default function AdminArtistsPage() {
 
   return (
     <div className="max-w-5xl mx-auto px-4 py-10">
-      <div className="flex items-center justify-between mb-8">
-        <h1 className="text-2xl font-bold text-ink">Artistas colaboradores</h1>
+      <div className="flex items-center justify-end mb-8">
         {!formMode && (
           <button
             onClick={() => setFormMode({ type: 'create' })}
-            className="px-4 py-2 rounded-lg bg-primary text-white text-sm font-semibold
-              hover:bg-primary/90 transition-colors"
+            className="btn-admin-primary"
           >
             + Nuevo artista
           </button>
@@ -82,17 +80,17 @@ export default function AdminArtistsPage() {
 
       {/* Error fuera del formulario (ej: al eliminar) */}
       {error && !formMode && (
-        <p className="text-sm text-secondary bg-secondary/10 rounded-lg px-3 py-2 mb-4">{error}</p>
+        <p className="text-sm text-secondary bg-secondary/10 rounded-xs px-3 py-2 mb-4">{error}</p>
       )}
 
       {/* Formulario crear / editar */}
       {formMode && (
-        <div className="bg-white rounded-2xl border border-ink/10 p-6 mb-8">
+        <div className="bg-white rounded-xs border border-ink/10 p-6 mb-8">
           <h2 className="text-base font-semibold text-ink mb-5">
             {formMode.type === 'create' ? 'Nuevo artista' : `Editar: ${formMode.artist.name}`}
           </h2>
           {error && (
-            <p className="text-sm text-secondary bg-secondary/10 rounded-lg px-3 py-2 mb-4">{error}</p>
+            <p className="text-sm text-secondary bg-secondary/10 rounded-xs px-3 py-2 mb-4">{error}</p>
           )}
           <ArtistForm
             artist={formMode.type === 'edit' ? formMode.artist : undefined}
@@ -109,7 +107,7 @@ export default function AdminArtistsPage() {
           No hay artistas todavía.
         </div>
       ) : (
-        <div className="bg-white rounded-2xl border border-ink/10 overflow-hidden">
+        <div className="bg-white rounded-xs border border-ink/10 overflow-hidden">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-ink/10 text-left">
@@ -173,21 +171,21 @@ export default function AdminArtistsPage() {
                       <div className="flex items-center justify-end gap-2">
                         <button
                           onClick={() => setFormMode({ type: 'edit', artist })}
-                          className="text-xs font-medium text-primary hover:underline"
+                          className="btn-admin-link btn-admin-link-primary"
                         >
                           Editar
                         </button>
                         <span className="text-ink/20">|</span>
                         <button
                           onClick={() => handleToggle(artist)}
-                          className="text-xs font-medium text-ink/50 hover:text-ink hover:underline"
+                          className="btn-admin-link btn-admin-link-neutral"
                         >
                           {artist.is_active ? 'Desactivar' : 'Activar'}
                         </button>
                         <span className="text-ink/20">|</span>
                         <button
                           onClick={() => handleDelete(artist)}
-                          className="text-xs font-medium text-secondary hover:underline"
+                          className="btn-admin-link btn-admin-link-danger"
                         >
                           Eliminar
                         </button>

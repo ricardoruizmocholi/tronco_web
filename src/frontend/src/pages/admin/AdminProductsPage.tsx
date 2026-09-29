@@ -90,14 +90,10 @@ export default function AdminProductsPage() {
   return (
     <div className="min-h-screen bg-canvas">
       <header className="bg-dark text-white py-8 px-6">
-        <div className="max-w-6xl mx-auto flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold">Panel de productos</h1>
-            <p className="text-white/60 text-sm mt-1">Gestión del catálogo de Troncodrilo</p>
-          </div>
+        <div className="max-w-6xl mx-auto flex items-center justify-end">
           <button
             onClick={() => setFormMode({ type: 'create' })}
-            className="px-4 py-2 rounded-lg bg-primary text-white text-sm font-medium hover:bg-primary/90 transition-colors"
+            className="btn-admin-primary"
           >
             + Nuevo producto
           </button>
@@ -107,7 +103,7 @@ export default function AdminProductsPage() {
       <main className="max-w-6xl mx-auto px-4 py-8 space-y-6">
         {/* Error global */}
         {error && (
-          <div className="rounded-lg bg-secondary/10 border border-secondary/30 text-secondary text-sm px-4 py-3">
+          <div className="rounded-xs bg-secondary/10 border border-secondary/30 text-secondary text-sm px-4 py-3">
             {error}
           </div>
         )}
@@ -128,7 +124,7 @@ export default function AdminProductsPage() {
         {loading ? (
           <div className="text-center py-20 text-ink/50 text-sm">Cargando productos…</div>
         ) : (
-          <div className="overflow-x-auto rounded-xl border border-ink/10">
+          <div className="overflow-x-auto rounded-xs border border-ink/10">
             <table className="w-full text-sm">
               <thead className="bg-ink/5 text-ink/60 text-left">
                 <tr>
@@ -195,27 +191,24 @@ export default function AdminProductsPage() {
                       </button>
                     </td>
                     <td className="px-4 py-3 text-right">
-                      <div className="flex gap-2 justify-end">
+                      <div className="flex items-center justify-end gap-2">
                         <button
                           onClick={() => setFormMode({ type: 'edit', product })}
-                          className="text-xs px-3 py-1 rounded border border-ink/20 text-ink hover:border-primary hover:text-primary transition-colors"
+                          className="btn-admin-link btn-admin-link-primary"
                         >
                           Editar
                         </button>
+                        <span className="text-ink/20">|</span>
                         <button
                           onClick={() => handleToggle(product)}
-                          className={`text-xs px-3 py-1 rounded border transition-colors ${
-                            product.is_active
-                              ? 'border-secondary/40 text-secondary hover:bg-secondary/10'
-                              : 'border-primary/40 text-primary hover:bg-primary/10'
-                          }`}
+                          className="btn-admin-link btn-admin-link-neutral"
                         >
                           {product.is_active ? 'Desactivar' : 'Activar'}
                         </button>
+                        <span className="text-ink/20">|</span>
                         <button
                           onClick={() => handleDelete(product)}
-                          className="text-xs px-3 py-1 rounded border border-secondary/40
-                            text-secondary hover:bg-secondary/10 transition-colors"
+                          className="btn-admin-link btn-admin-link-danger"
                         >
                           Eliminar
                         </button>

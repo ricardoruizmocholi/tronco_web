@@ -295,4 +295,55 @@ class CheckoutTest extends TestCase
         $response->assertStatus(400);
         $this->assertDatabaseHas('orders', ['id' => $order->id, 'status' => 'pending']);
     }
+
+    // ─── Datos fiscales del receptor (Feature 026 — facturación) ──────────────
+
+    private function validShippingAddress(): array
+    {
+        return [
+            'name' => 'Test User', 'phone' => '+34600000000',
+            'address_line1' => 'Calle Test 1', 'address_line2' => null,
+            'postal_code' => '28001', 'city' => 'Madrid', 'state' => 'Madrid', 'country' => 'ES',
+        ];
+    }
+
+    #[Test]
+    public function checkout_stores_billing_info_when_customer_wants_an_invoice(): void
+    {
+        $this->mockStripeSession();
+
+        $billingInfo = [
+            'tax_name' => 'María García Freelance', 'tax_id' => '12345678A',
+            'address_line1' => 'Calle Facturación 5', 'address_line2' => null,
+            'postal_code' => '28002', 'city' => 'Madrid', 'province' => 'Madrid', 'country' => 'ES',
+        ];
+
+        $response = $this->actingAs($this->user)
+            ->postJson('/api/checkout', [
+                'items'            => [['product_id' => $this->product->id, 'quantity' => 1]],
+                'shipping_address' => $this->validShippingAddress(),
+                'billing_info'     => $billingInfo,
+            ]);
+
+        $response->assertStatus(201);
+
+        $order = Order::first();
+        $this->assertSame('María García Freelance', $order->billing_info['tax_name']);
+        $this->assertSame('12345678A', $order->billing_info['tax_id']);
+    }
+
+    #[Test]
+    public function checkout_leaves_billing_info_null_when_not_provided(): void
+    {
+        $this->mockStripeSession();
+
+        $this->actingAs($this->user)
+            ->postJson('/api/checkout', [
+                'items'            => [['product_id' => $this->product->id, 'quantity' => 1]],
+                'shipping_address' => $this->validShippingAddress(),
+            ])
+            ->assertStatus(201);
+
+        $this->assertNull(Order::first()->billing_info);
+    }
 }

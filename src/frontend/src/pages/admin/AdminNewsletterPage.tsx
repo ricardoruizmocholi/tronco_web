@@ -43,22 +43,18 @@ export default function AdminNewsletterPage() {
   return (
     <div className="max-w-4xl mx-auto px-4 py-10">
       <div className="flex items-center justify-between mb-8">
-        <div>
-          <h1 className="text-2xl font-bold text-ink">Newsletter</h1>
-          <p className="text-ink/50 text-sm mt-1">{total} subscriptores totales</p>
-        </div>
+        <p className="text-ink/50 text-sm">{total} subscriptores totales</p>
         <button
           onClick={handleExport}
           disabled={exporting || total === 0}
-          className="px-4 py-2 rounded-lg bg-primary text-white text-sm font-semibold
-            hover:bg-primary/90 transition-colors disabled:opacity-50"
+          className="btn-admin-primary disabled:opacity-50"
         >
           {exporting ? 'Exportando…' : 'Exportar CSV'}
         </button>
       </div>
 
       {error && (
-        <p className="text-sm text-secondary bg-secondary/10 rounded-lg px-3 py-2 mb-4">{error}</p>
+        <p className="text-sm text-secondary bg-secondary/10 rounded-xs px-3 py-2 mb-4">{error}</p>
       )}
 
       {loading ? (
@@ -67,7 +63,7 @@ export default function AdminNewsletterPage() {
         <div className="text-center py-16 text-ink/40 text-sm">No hay subscriptores todavía.</div>
       ) : (
         <>
-          <div className="bg-white rounded-2xl border border-ink/10 overflow-hidden">
+          <div className="bg-white rounded-xs border border-ink/10 overflow-hidden">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-ink/10 text-left">
@@ -97,7 +93,7 @@ export default function AdminNewsletterPage() {
               <button
                 onClick={() => setPage(p => Math.max(1, p - 1))}
                 disabled={page === 1}
-                className="text-sm font-medium text-ink/60 hover:text-ink disabled:opacity-30 disabled:cursor-not-allowed"
+                className="btn-admin-page"
               >
                 ← Anterior
               </button>
@@ -105,7 +101,7 @@ export default function AdminNewsletterPage() {
               <button
                 onClick={() => setPage(p => Math.min(lastPage, p + 1))}
                 disabled={page === lastPage}
-                className="text-sm font-medium text-ink/60 hover:text-ink disabled:opacity-30 disabled:cursor-not-allowed"
+                className="btn-admin-page"
               >
                 Siguiente →
               </button>

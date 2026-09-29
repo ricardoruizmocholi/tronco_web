@@ -121,13 +121,13 @@ export default function ArtistForm({ artist, onSave, onCancel, saving }: Props) 
     setLocalImages(prev => prev.filter(i => i.id !== img.id))
   }
 
-  const inputCls = 'w-full rounded-lg border border-ink/15 px-3 py-2 text-sm text-ink bg-white focus:outline-none focus:ring-2 focus:ring-primary/50'
+  const inputCls = 'w-full rounded-xs border border-ink/15 px-3 py-2 text-sm text-ink bg-white focus:outline-none focus:ring-2 focus:ring-primary/50'
   const labelCls = 'block text-xs font-medium text-ink/60 mb-1'
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       {error && (
-        <p className="text-sm text-secondary bg-secondary/10 rounded-lg px-3 py-2">{error}</p>
+        <p className="text-sm text-secondary bg-secondary/10 rounded-xs px-3 py-2">{error}</p>
       )}
 
       {/* Nombre */}
@@ -217,15 +217,15 @@ export default function ArtistForm({ artist, onSave, onCancel, saving }: Props) 
               <p className="text-xs text-ink/30 italic">Se añadirán al crear el artista.</p>
             ) : (
               pendingImages.map((url, i) => (
-                <div key={i} className="flex items-center gap-3 p-2 rounded-lg border border-ink/10 bg-white">
-                  <div className="w-12 h-12 flex-shrink-0 rounded-md overflow-hidden bg-primary/10">
+                <div key={i} className="flex items-center gap-3 p-2 rounded-xs border border-ink/10 bg-white">
+                  <div className="w-12 h-12 flex-shrink-0 rounded-xs overflow-hidden bg-primary/10">
                     <img src={url} alt="" className="w-full h-full object-cover" />
                   </div>
                   <p className="flex-1 text-xs text-ink/60 truncate min-w-0">{url}</p>
                   <button
                     type="button"
                     onClick={() => setPendingImages(prev => prev.filter((_, j) => j !== i))}
-                    className="text-xs text-secondary hover:underline flex-shrink-0"
+                    className="btn-admin-link btn-admin-link-danger flex-shrink-0"
                   >
                     Quitar
                   </button>
@@ -242,8 +242,8 @@ export default function ArtistForm({ artist, onSave, onCancel, saving }: Props) 
               <p className="text-xs text-ink/30 italic">Sin imágenes todavía.</p>
             )}
             {localImages.map(img => (
-              <div key={img.id} className="flex items-center gap-3 p-2 rounded-lg border border-ink/10 bg-white">
-                <div className="w-12 h-12 flex-shrink-0 rounded-md overflow-hidden bg-primary/10">
+              <div key={img.id} className="flex items-center gap-3 p-2 rounded-xs border border-ink/10 bg-white">
+                <div className="w-12 h-12 flex-shrink-0 rounded-xs overflow-hidden bg-primary/10">
                   <img src={img.url} alt={img.caption ?? ''} className="w-full h-full object-cover" />
                 </div>
                 <div className="flex-1 min-w-0">
@@ -253,7 +253,7 @@ export default function ArtistForm({ artist, onSave, onCancel, saving }: Props) 
                 <button
                   type="button"
                   onClick={() => handleDeleteImage(img)}
-                  className="text-xs text-secondary hover:underline flex-shrink-0"
+                  className="btn-admin-link btn-admin-link-danger flex-shrink-0"
                 >
                   Eliminar
                 </button>
@@ -276,7 +276,7 @@ export default function ArtistForm({ artist, onSave, onCancel, saving }: Props) 
         </label>
 
         {/* Añadir por URL */}
-        <div className="flex flex-col sm:flex-row gap-2 p-3 rounded-lg border border-dashed border-ink/20 bg-ink/[0.02]">
+        <div className="flex flex-col sm:flex-row gap-2 p-3 rounded-xs border border-dashed border-ink/20 bg-ink/[0.02]">
           <input
             className={`${inputCls} flex-1`}
             value={newImgUrl}
@@ -295,8 +295,7 @@ export default function ArtistForm({ artist, onSave, onCancel, saving }: Props) 
             type="button"
             onClick={handleAddImage}
             disabled={imgSaving || !newImgUrl.trim()}
-            className="px-4 py-2 rounded-lg bg-primary text-white text-sm font-medium
-              hover:bg-primary/90 transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex-shrink-0"
+            className="btn-admin-primary disabled:opacity-40 disabled:cursor-not-allowed flex-shrink-0"
           >
             {imgSaving ? '…' : '+ Añadir'}
           </button>
@@ -308,16 +307,14 @@ export default function ArtistForm({ artist, onSave, onCancel, saving }: Props) 
         <button
           type="submit"
           disabled={saving}
-          className="px-5 py-2.5 rounded-lg bg-primary text-white font-semibold text-sm
-            hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          className="btn-admin-primary"
         >
           {saving ? 'Guardando…' : artist ? 'Guardar cambios' : 'Crear artista'}
         </button>
         <button
           type="button"
           onClick={onCancel}
-          className="px-5 py-2.5 rounded-lg border border-ink/20 text-ink text-sm
-            font-medium hover:border-ink/40 transition-colors"
+          className="btn-admin-secondary"
         >
           Cancelar
         </button>

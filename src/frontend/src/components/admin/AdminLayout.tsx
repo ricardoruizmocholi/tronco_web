@@ -1,7 +1,9 @@
 import { useState } from 'react'
 import { Outlet } from 'react-router-dom'
+import { AdminThemeProvider, useAdminTheme } from '../../context/AdminThemeContext'
 import AdminSidebar from './AdminSidebar'
 import NotificationBell from './NotificationBell'
+import ThemeToggle from './ThemeToggle'
 
 function MenuIcon() {
   return (
@@ -12,11 +14,12 @@ function MenuIcon() {
   )
 }
 
-export default function AdminLayout() {
+function AdminLayoutInner() {
   const [mobileOpen, setMobileOpen] = useState(false)
+  const { theme } = useAdminTheme()
 
   return (
-    <div className="min-h-dvh flex bg-canvas">
+    <div className={`min-h-dvh flex bg-canvas ${theme === 'dark' ? 'dark' : ''}`}>
       <AdminSidebar isOpen={mobileOpen} onClose={() => setMobileOpen(false)} />
 
       <div className="flex-1 flex flex-col min-w-0">
@@ -25,12 +28,13 @@ export default function AdminLayout() {
           <button
             onClick={() => setMobileOpen(true)}
             aria-label="Abrir menú de administración"
-            className="md:hidden p-1 text-ink/60 hover:text-ink transition-colors"
+            className="btn-admin-icon"
           >
             <MenuIcon />
           </button>
           <span className="hidden md:block label-caps text-ink/40">Panel de administración</span>
           <div className="flex-1" />
+          <ThemeToggle />
           <NotificationBell />
         </header>
 
@@ -39,5 +43,13 @@ export default function AdminLayout() {
         </main>
       </div>
     </div>
+  )
+}
+
+export default function AdminLayout() {
+  return (
+    <AdminThemeProvider>
+      <AdminLayoutInner />
+    </AdminThemeProvider>
   )
 }

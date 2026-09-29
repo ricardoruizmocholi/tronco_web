@@ -1,16 +1,11 @@
 import { Link, NavLink, useLocation } from 'react-router-dom'
 import { useEffect } from 'react'
-import { ADMIN_DASHBOARD_ICON, ADMIN_NAV_ITEMS } from '../../lib/adminNav'
+import { ADMIN_NAV_ITEMS } from '../../lib/adminNav'
 
 interface Props {
   isOpen: boolean
   onClose: () => void
 }
-
-const ITEMS = [
-  { title: 'Dashboard', href: '/admin', icon: ADMIN_DASHBOARD_ICON, end: true },
-  ...ADMIN_NAV_ITEMS.map(item => ({ title: item.title, href: item.href, icon: item.icon, end: false })),
-]
 
 function XIcon() {
   return (
@@ -33,7 +28,7 @@ export default function AdminSidebar({ isOpen, onClose }: Props) {
   const linkCls = ({ isActive }: { isActive: boolean }) =>
     `flex items-center gap-3 px-5 py-2.5 text-sm transition-colors ${
       isActive
-        ? 'bg-primary/10 text-primary font-medium border-r-2 border-primary'
+        ? 'bg-primary/10 text-primary font-medium'
         : 'text-ink/60 hover:text-ink hover:bg-ink/5'
     }`
 
@@ -61,17 +56,26 @@ export default function AdminSidebar({ isOpen, onClose }: Props) {
           <button
             onClick={onClose}
             aria-label="Cerrar menú"
-            className="md:hidden p-1.5 -mr-1.5 text-ink/40 hover:text-ink transition-colors"
+            className="btn-admin-icon"
           >
             <XIcon />
           </button>
         </div>
 
         <nav className="flex-1 overflow-y-auto py-3">
-          {ITEMS.map(item => (
-            <NavLink key={item.href} to={item.href} end={item.end} className={linkCls}>
-              <span className="w-5 h-5 flex-shrink-0">{item.icon}</span>
-              {item.title}
+          {ADMIN_NAV_ITEMS.map(item => (
+            <NavLink key={item.href} to={item.href} className={linkCls}>
+              {({ isActive }) => (
+                <>
+                  <span className="w-5 h-5 flex-shrink-0">{item.icon}</span>
+                  <span className="flex-1">{item.title}</span>
+                  {isActive && (
+                    <span aria-hidden="true" className="text-primary font-thin text-2xl leading-none">
+                      &rsaquo;
+                    </span>
+                  )}
+                </>
+              )}
             </NavLink>
           ))}
         </nav>

@@ -328,13 +328,13 @@ export default function ProductForm({ product, categories, artists, onSave, onCa
   }
 
   const inputCls = (field: keyof FormState) =>
-    `w-full rounded-lg border px-3 py-2 text-sm text-ink focus:outline-none focus:ring-2 focus:ring-primary/40 ${
+    `w-full rounded-xs border px-3 py-2 text-sm text-ink focus:outline-none focus:ring-2 focus:ring-primary/40 ${
       errors[field] ? 'border-secondary' : 'border-ink/20'
     }`
 
   return (
     <>
-    <form onSubmit={handleSubmit} className="bg-white border border-ink/10 rounded-xl p-6 space-y-4">
+    <form onSubmit={handleSubmit} className="bg-white border border-ink/10 rounded-xs p-6 space-y-4">
       <h2 className="font-semibold text-ink text-base">
         {product ? 'Editar producto' : 'Nuevo producto'}
       </h2>
@@ -424,14 +424,14 @@ export default function ProductForm({ product, categories, artists, onSave, onCa
               <p className="text-xs text-ink/30 italic">Se añadirán al crear el producto.</p>
             ) : (
               pendingImages.map((url, i) => (
-                <div key={i} className="flex items-center gap-3 p-2 rounded-lg border border-ink/10 bg-ink/[0.02]">
-                  <div className="w-12 h-12 flex-shrink-0 rounded-md overflow-hidden bg-primary/10">
+                <div key={i} className="flex items-center gap-3 p-2 rounded-xs border border-ink/10 bg-ink/[0.02]">
+                  <div className="w-12 h-12 flex-shrink-0 rounded-xs overflow-hidden bg-primary/10">
                     <img src={url} alt="" className="w-full h-full object-cover" />
                   </div>
                   <p className="flex-1 text-xs text-ink/60 truncate min-w-0">{url}</p>
                   <button type="button"
                     onClick={() => setPendingImages(prev => prev.filter((_, j) => j !== i))}
-                    className="text-xs text-secondary hover:underline flex-shrink-0">
+                    className="btn-admin-link btn-admin-link-danger flex-shrink-0">
                     Quitar
                   </button>
                 </div>
@@ -447,13 +447,13 @@ export default function ProductForm({ product, categories, artists, onSave, onCa
               <p className="text-xs text-ink/30 italic">Sin imágenes todavía.</p>
             )}
             {localImages.map(img => (
-              <div key={img.id} className="flex items-center gap-3 p-2 rounded-lg border border-ink/10 bg-ink/[0.02]">
-                <div className="w-12 h-12 flex-shrink-0 rounded-md overflow-hidden bg-primary/10">
+              <div key={img.id} className="flex items-center gap-3 p-2 rounded-xs border border-ink/10 bg-ink/[0.02]">
+                <div className="w-12 h-12 flex-shrink-0 rounded-xs overflow-hidden bg-primary/10">
                   <img src={img.url} alt="" className="w-full h-full object-cover" />
                 </div>
                 <p className="flex-1 text-xs text-ink/60 truncate min-w-0">{img.url}</p>
                 <button type="button" onClick={() => handleDeleteImage(img)}
-                  className="text-xs text-secondary hover:underline flex-shrink-0">
+                  className="btn-admin-link btn-admin-link-danger flex-shrink-0">
                   Eliminar
                 </button>
               </div>
@@ -477,7 +477,7 @@ export default function ProductForm({ product, categories, artists, onSave, onCa
         {/* Añadir por URL */}
         <div className="flex gap-2">
           <input
-            className="flex-1 rounded-lg border border-ink/20 px-3 py-2 text-sm text-ink
+            className="flex-1 rounded-xs border border-ink/20 px-3 py-2 text-sm text-ink
               focus:outline-none focus:ring-2 focus:ring-primary/40"
             value={newImgUrl}
             onChange={e => setNewImgUrl(e.target.value)}
@@ -485,8 +485,7 @@ export default function ProductForm({ product, categories, artists, onSave, onCa
           />
           <button type="button" onClick={handleAddImage}
             disabled={imgSaving || !newImgUrl.trim()}
-            className="px-4 py-2 rounded-lg bg-primary text-white text-sm font-medium
-              hover:bg-primary/90 transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex-shrink-0">
+            className="btn-admin-primary disabled:opacity-40 disabled:cursor-not-allowed flex-shrink-0">
             {imgSaving ? '…' : '+ Añadir'}
           </button>
         </div>
@@ -509,7 +508,7 @@ export default function ProductForm({ product, categories, artists, onSave, onCa
               const label = v.size || v.attribute_values.map(av => av.label).join(' / ') || 'Variante única'
               return (
                 <div key={v.id}
-                  className="flex items-center gap-3 px-3 py-2 rounded-lg border border-ink/10 bg-ink/[0.02]">
+                  className="flex items-center gap-3 px-3 py-2 rounded-xs border border-ink/10 bg-ink/[0.02]">
                   <span className="w-28 text-sm font-medium text-ink truncate">{label}</span>
                   <span className="w-16 text-sm tabular-nums text-ink/70">{v.stock} uds.</span>
                   {v.price_override !== null && (
@@ -521,12 +520,11 @@ export default function ProductForm({ product, categories, artists, onSave, onCa
                     {v.is_active ? 'Activa' : 'Inactiva'}
                   </span>
                   <button type="button" onClick={() => handleToggleVariant(v)}
-                    className="text-xs px-2 py-0.5 rounded border border-ink/20 text-ink/50
-                      hover:border-primary hover:text-primary transition-colors flex-shrink-0">
+                    className="btn-admin-secondary btn-admin-sm">
                     {v.is_active ? 'Desactivar' : 'Activar'}
                   </button>
                   <button type="button" onClick={() => handleDeleteVariant(v)}
-                    className="text-xs text-secondary hover:underline flex-shrink-0">
+                    className="btn-admin-link btn-admin-link-danger flex-shrink-0">
                     Eliminar
                   </button>
                 </div>
@@ -547,7 +545,7 @@ export default function ProductForm({ product, categories, artists, onSave, onCa
                   <select
                     value={newVarSelections[attr.id] ?? ''}
                     onChange={e => setNewVarSelections(prev => ({ ...prev, [attr.id]: e.target.value }))}
-                    className="w-full rounded-lg border border-ink/20 px-3 py-2 text-sm text-ink bg-white
+                    className="w-full rounded-xs border border-ink/20 px-3 py-2 text-sm text-ink bg-white
                       focus:outline-none focus:ring-2 focus:ring-primary/40"
                   >
                     <option value="">Selecciona {attr.name.toLowerCase()}…</option>
@@ -567,7 +565,7 @@ export default function ProductForm({ product, categories, artists, onSave, onCa
               value={newVarStock}
               onChange={e => setNewVarStock(e.target.value)}
               placeholder="Stock"
-              className="rounded-lg border border-ink/20 px-3 py-2 text-sm text-ink
+              className="rounded-xs border border-ink/20 px-3 py-2 text-sm text-ink
                 focus:outline-none focus:ring-2 focus:ring-primary/40"
             />
             <input
@@ -577,7 +575,7 @@ export default function ProductForm({ product, categories, artists, onSave, onCa
               value={newVarPriceEuros}
               onChange={e => setNewVarPriceEuros(e.target.value)}
               placeholder="Precio base del producto"
-              className="rounded-lg border border-ink/20 px-3 py-2 text-sm text-ink
+              className="rounded-xs border border-ink/20 px-3 py-2 text-sm text-ink
                 focus:outline-none focus:ring-2 focus:ring-primary/40"
             />
           </div>
@@ -596,7 +594,7 @@ export default function ProductForm({ product, categories, artists, onSave, onCa
                       type="button"
                       onClick={() => setNewVarImageUrl(prev => (prev === img.url ? '' : img.url))}
                       title={isSelected ? 'Quitar selección' : 'Usar esta imagen'}
-                      className={`w-14 h-14 rounded-lg overflow-hidden border-2 transition-colors flex-shrink-0 ${
+                      className={`w-14 h-14 rounded-xs overflow-hidden border-2 transition-colors flex-shrink-0 ${
                         isSelected ? 'border-primary' : 'border-transparent hover:border-ink/20'
                       }`}
                     >
@@ -611,7 +609,7 @@ export default function ProductForm({ product, categories, artists, onSave, onCa
               value={newVarImageUrl}
               onChange={e => setNewVarImageUrl(e.target.value)}
               placeholder="Primera imagen del producto — o pega una URL externa"
-              className="w-full rounded-lg border border-ink/20 px-3 py-2 text-sm text-ink
+              className="w-full rounded-xs border border-ink/20 px-3 py-2 text-sm text-ink
                 focus:outline-none focus:ring-2 focus:ring-primary/40"
             />
           </div>
@@ -619,8 +617,7 @@ export default function ProductForm({ product, categories, artists, onSave, onCa
             type="button"
             onClick={handleAddVariant}
             disabled={varSaving}
-            className="px-4 py-2 rounded-lg bg-primary text-white text-sm font-medium
-              hover:bg-primary/90 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+            className="btn-admin-primary disabled:opacity-40 disabled:cursor-not-allowed"
           >
             {varSaving ? '…' : '+ Añadir variante'}
           </button>
@@ -635,7 +632,7 @@ export default function ProductForm({ product, categories, artists, onSave, onCa
             <button
               type="button"
               onClick={() => setAttrModalOpen(true)}
-              className="text-xs text-primary hover:underline font-medium"
+              className="btn-admin-link btn-admin-link-primary"
             >
               + Añadir atributo
             </button>
@@ -648,18 +645,18 @@ export default function ProductForm({ product, categories, artists, onSave, onCa
           ) : (
             <div className="space-y-3">
               {localAttributes.map(attr => (
-                <div key={attr.id} className="rounded-lg border border-ink/10 bg-ink/[0.02] p-3">
+                <div key={attr.id} className="rounded-xs border border-ink/10 bg-ink/[0.02] p-3">
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-sm font-medium text-ink">
                       {attr.name} <span className="text-xs text-ink/40 font-normal">({attr.type === 'color' ? 'color' : 'texto'})</span>
                     </span>
                     <div className="flex items-center gap-3">
                       <button type="button" onClick={() => openValueModal(attr)}
-                        className="text-xs text-primary hover:underline font-medium">
+                        className="btn-admin-link btn-admin-link-primary">
                         + Añadir valor
                       </button>
                       <button type="button" onClick={() => handleDeleteAttribute(attr)}
-                        className="text-xs text-secondary hover:underline">
+                        className="btn-admin-link btn-admin-link-danger">
                         Eliminar atributo
                       </button>
                     </div>
@@ -694,13 +691,11 @@ export default function ProductForm({ product, categories, artists, onSave, onCa
       {/* Acciones */}
       <div className="flex gap-3 pt-2">
         <button type="submit" disabled={saving}
-          className="px-5 py-2 rounded-lg bg-primary text-white text-sm font-medium
-            hover:bg-primary/90 transition-colors disabled:opacity-50">
+          className="btn-admin-primary">
           {saving ? 'Guardando…' : product ? 'Guardar cambios' : 'Crear producto'}
         </button>
         <button type="button" onClick={onCancel}
-          className="px-5 py-2 rounded-lg border border-ink/20 text-ink text-sm
-            font-medium hover:border-ink/40 transition-colors">
+          className="btn-admin-secondary">
           Cancelar
         </button>
       </div>
@@ -709,10 +704,10 @@ export default function ProductForm({ product, categories, artists, onSave, onCa
     {/* Modal: nuevo atributo */}
     {attrModalOpen && (
       <div
-        className="fixed inset-0 bg-ink/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+        className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
         onClick={e => { if (e.target === e.currentTarget) setAttrModalOpen(false) }}
       >
-        <div className="bg-white rounded-2xl p-6 max-w-sm w-full shadow-2xl">
+        <div className="bg-white rounded-xs p-6 max-w-sm w-full shadow-2xl">
           <h3 className="font-semibold text-ink mb-4">Nuevo atributo</h3>
 
           <label className="block text-xs font-medium text-ink/60 mb-1">Nombre</label>
@@ -722,7 +717,7 @@ export default function ProductForm({ product, categories, artists, onSave, onCa
             onChange={e => setNewAttrName(e.target.value)}
             placeholder="Color, Talla, Material…"
             autoFocus
-            className="w-full rounded-lg border border-ink/20 px-3 py-2 text-sm text-ink mb-3
+            className="w-full rounded-xs border border-ink/20 px-3 py-2 text-sm text-ink mb-3
               focus:outline-none focus:ring-2 focus:ring-primary/40"
           />
 
@@ -746,12 +741,11 @@ export default function ProductForm({ product, categories, artists, onSave, onCa
 
           <div className="flex gap-3 justify-end">
             <button type="button" onClick={() => setAttrModalOpen(false)}
-              className="px-4 py-2 text-sm text-ink/60 hover:text-ink transition-colors">
+              className="btn-admin-secondary">
               Cancelar
             </button>
             <button type="button" onClick={handleCreateAttribute} disabled={attrSaving || !newAttrName.trim()}
-              className="px-4 py-2 bg-primary text-white text-sm rounded-lg
-                hover:bg-primary/90 disabled:opacity-50 transition-colors font-medium">
+              className="btn-admin-primary">
               {attrSaving ? 'Creando…' : 'Crear atributo'}
             </button>
           </div>
@@ -765,10 +759,10 @@ export default function ProductForm({ product, categories, artists, onSave, onCa
       if (!attr) return null
       return (
         <div
-          className="fixed inset-0 bg-ink/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+          className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
           onClick={e => { if (e.target === e.currentTarget) setValueModalAttrId(null) }}
         >
-          <div className="bg-white rounded-2xl p-6 max-w-sm w-full shadow-2xl">
+          <div className="bg-white rounded-xs p-6 max-w-sm w-full shadow-2xl">
             <h3 className="font-semibold text-ink mb-4">Nuevo valor — {attr.name}</h3>
 
             <label className="block text-xs font-medium text-ink/60 mb-1">Label</label>
@@ -778,7 +772,7 @@ export default function ProductForm({ product, categories, artists, onSave, onCa
               onChange={e => setNewValueLabel(e.target.value)}
               placeholder={attr.type === 'color' ? 'Rojo' : 'S'}
               autoFocus
-              className="w-full rounded-lg border border-ink/20 px-3 py-2 text-sm text-ink mb-3
+              className="w-full rounded-xs border border-ink/20 px-3 py-2 text-sm text-ink mb-3
                 focus:outline-none focus:ring-2 focus:ring-primary/40"
             />
 
@@ -790,14 +784,14 @@ export default function ProductForm({ product, categories, artists, onSave, onCa
                     type="color"
                     value={/^#[0-9A-Fa-f]{6}$/.test(newValueRaw) ? newValueRaw : '#5BBB2A'}
                     onChange={e => setNewValueRaw(e.target.value)}
-                    className="w-10 h-10 rounded-lg border border-ink/20 cursor-pointer"
+                    className="w-10 h-10 rounded-xs border border-ink/20 cursor-pointer"
                   />
                   <input
                     type="text"
                     value={newValueRaw}
                     onChange={e => setNewValueRaw(e.target.value)}
                     placeholder="#FF0000"
-                    className="flex-1 rounded-lg border border-ink/20 px-3 py-2 text-sm text-ink
+                    className="flex-1 rounded-xs border border-ink/20 px-3 py-2 text-sm text-ink
                       focus:outline-none focus:ring-2 focus:ring-primary/40"
                   />
                 </div>
@@ -810,7 +804,7 @@ export default function ProductForm({ product, categories, artists, onSave, onCa
                   value={newValueRaw}
                   onChange={e => setNewValueRaw(e.target.value)}
                   placeholder="S"
-                  className="w-full rounded-lg border border-ink/20 px-3 py-2 text-sm text-ink mb-4
+                  className="w-full rounded-xs border border-ink/20 px-3 py-2 text-sm text-ink mb-4
                     focus:outline-none focus:ring-2 focus:ring-primary/40"
                 />
               </>
@@ -820,12 +814,11 @@ export default function ProductForm({ product, categories, artists, onSave, onCa
 
             <div className="flex gap-3 justify-end">
               <button type="button" onClick={() => setValueModalAttrId(null)}
-                className="px-4 py-2 text-sm text-ink/60 hover:text-ink transition-colors">
+                className="btn-admin-secondary">
                 Cancelar
               </button>
               <button type="button" onClick={handleCreateValue} disabled={valueSaving}
-                className="px-4 py-2 bg-primary text-white text-sm rounded-lg
-                  hover:bg-primary/90 disabled:opacity-50 transition-colors font-medium">
+                className="btn-admin-primary">
                 {valueSaving ? 'Añadiendo…' : 'Añadir valor'}
               </button>
             </div>

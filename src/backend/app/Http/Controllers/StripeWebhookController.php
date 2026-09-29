@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Order;
 use App\Models\ShippingRate;
+use App\Services\InvoicePdfService;
+use App\Services\InvoiceService;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\DB;
@@ -13,6 +15,11 @@ use Stripe\Webhook;
 
 class StripeWebhookController extends Controller
 {
+    public function __construct(
+        private readonly InvoiceService $invoices,
+        private readonly InvoicePdfService $invoicePdfs,
+    ) {}
+
     public function handle(Request $request): Response
     {
         $payload   = $request->getContent();
@@ -45,7 +52,9 @@ class StripeWebhookController extends Controller
             return response('Missing order reference.', 400);
         }
 
-        DB::transaction(function () use ($session, $orderId) {
+        $invoice = null;
+
+        DB::transaction(function () use ($session, $orderId, &$invoice) {
             // lockForUpdate: si Stripe reenvía el evento en paralelo, solo un proceso avanza
             $order = Order::with('items.product')
                 ->lockForUpdate()
@@ -112,7 +121,32 @@ class StripeWebhookController extends Controller
                 'shipping_country' => $shippingAddress['country'] ?? null,
                 'shipping_cost'    => $shippingCost,
             ]);
+
+            // La facturación es secundaria a confirmar el pago: si falla, no
+            // debe tumbar la transacción que marca el pedido como pagado y
+            // descuenta stock — eso sí es crítico. Se registra el error y el
+            // pedido queda pagado sin factura, recuperable a mano después.
+            try {
+                $invoice = $this->invoices->createForOrder($order->fresh());
+            } catch (\Throwable $e) {
+                Log::error("Stripe webhook: no se pudo generar la factura del order #{$orderId}.", [
+                    'error' => $e->getMessage(),
+                ]);
+            }
         });
+
+        // Generación del PDF fuera de la transacción de BD — es I/O de
+        // archivo, no debe mantener bloqueada la fila del contador ni la
+        // del pedido más de lo necesario.
+        if ($invoice) {
+            try {
+                $this->invoicePdfs->generate($invoice);
+            } catch (\Throwable $e) {
+                Log::error("Stripe webhook: no se pudo generar el PDF de la factura {$invoice->full_number}.", [
+                    'error' => $e->getMessage(),
+                ]);
+            }
+        }
 
         return response('OK', 200);
     }

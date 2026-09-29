@@ -10,6 +10,23 @@
   --color-dark:      #1C1F1A;
 }
 
+/* Modo oscuro del panel de admin (Feature: switch de tema) — ámbito .dark,
+   aplicado solo en la raíz de AdminLayout, nunca en la tienda pública.
+   bg-canvas/text-ink/border-ink/bg-ink/divide-ink son todos utilities de
+   Tailwind derivadas de estas custom properties (con color-mix para las
+   variantes de opacidad), así que redefinirlas aquí basta para invertir
+   fondo y texto en todo el panel sin tocar cada className uno a uno. */
+.dark {
+  --color-canvas: #1B1D1F;
+  --color-ink:    #ECECEC;
+}
+
+/* bg-white no es un token del tema (es el "white" nativo de Tailwind), así
+   que las tarjetas/tablas que lo usan como superficie se invierten aparte. */
+.dark .bg-white {
+  background-color: #232527;
+}
+
 /* ── Rediseño editorial (feature 017) — no aplica al globo 3D ni a StarField.tsx,
    sí al panel lateral de fanfics en /bola-troncodrilo ── */
 
@@ -31,6 +48,94 @@
   @apply border border-ink text-ink px-8 py-3 uppercase tracking-wide text-sm text-center
     transition-colors hover:bg-ink hover:text-canvas disabled:opacity-50 disabled:cursor-not-allowed;
   border-radius: 2px;
+}
+
+/* Botones del panel de admin — familia unificada. El .btn-primary/.btn-secondary
+   públicos son demasiado grandes/en mayúsculas para una tabla de admin, así que
+   estos son su equivalente compacto: mismos colores del tema y mismo radio de
+   2px (rounded-xs), pero pensados para toolbars y filas. Antes de esto había
+   ~15 variantes distintas (con y sin rounded-xs, "Cancelar" a veces con borde y
+   a veces solo texto, "Eliminar" en 5 estilos distintos...); ahora cada rol
+   semántico tiene exactamente un tratamiento visual. */
+.btn-admin-primary {
+  @apply inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium
+    rounded-xs transition-colors disabled:opacity-50 disabled:cursor-not-allowed
+    bg-primary text-white hover:bg-primary/90;
+}
+
+.btn-admin-secondary {
+  @apply inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium
+    rounded-xs transition-colors disabled:opacity-50 disabled:cursor-not-allowed
+    border border-ink/20 text-ink hover:border-ink/40 hover:bg-ink/5;
+}
+
+.btn-admin-danger {
+  @apply inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium
+    rounded-xs transition-colors disabled:opacity-50 disabled:cursor-not-allowed
+    border border-secondary/40 text-secondary hover:bg-secondary/10;
+}
+
+.btn-admin-danger-solid {
+  @apply inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium
+    rounded-xs transition-colors disabled:opacity-50 disabled:cursor-not-allowed
+    bg-secondary text-white hover:bg-secondary/90;
+}
+
+/* Modificador de tamaño compacto, para toolbars de tabla apretadas. Va después
+   en el CSS a propósito: sus px-3/py-1.5/text-xs deben ganar sobre el px-4/py-2
+   de las clases base cuando se combinan (ej. "btn-admin-primary btn-admin-sm"). */
+.btn-admin-sm {
+  @apply px-3 py-1.5 text-xs;
+}
+
+/* Botón de icono solo (editar/cerrar en tablas, campana, menú móvil…) */
+.btn-admin-icon {
+  @apply p-1.5 rounded-xs text-ink/40 transition-colors hover:text-ink hover:bg-ink/5
+    disabled:opacity-30 disabled:cursor-not-allowed;
+}
+
+/* Acciones de texto subrayado dentro de filas de tabla (Editar / Desactivar /
+   Eliminar) — ya era el patrón más consistente que había, solo se formaliza. */
+.btn-admin-link {
+  @apply text-xs font-medium transition-colors hover:underline disabled:opacity-40
+    disabled:cursor-not-allowed disabled:hover:no-underline;
+}
+.btn-admin-link-primary {
+  @apply text-primary;
+}
+.btn-admin-link-neutral {
+  @apply text-ink/50 hover:text-ink;
+}
+.btn-admin-link-danger {
+  @apply text-secondary;
+}
+
+/* Paginación (← Anterior / Siguiente →) — había 4 tratamientos distintos
+   (texto plano con dos colores de hover distintos, y una versión con caja
+   con borde) repartidos entre Newsletter/Preorders/Pedidos/Devoluciones. */
+.btn-admin-page {
+  @apply text-sm font-medium text-ink/50 transition-colors hover:text-primary
+    disabled:opacity-30 disabled:cursor-not-allowed;
+}
+
+/* Botón de icono con acento de color al hover, para pares editar/eliminar
+   en tablas que usan iconos en vez de texto (ej. Envíos). */
+.btn-admin-icon-edit {
+  @apply hover:text-primary;
+}
+.btn-admin-icon-danger {
+  @apply hover:text-secondary;
+}
+
+/* Variante "oscura" — para acciones como Exportar que quieren destacar sin
+   ser la acción principal (verde) ni una acción destructiva (marrón). Usa el
+   token --color-dark, que NO se redefine en modo oscuro (a diferencia de
+   --color-ink), así que este botón se queda oscuro con texto blanco en los
+   dos temas en vez de invertirse. */
+.btn-admin-dark {
+  @apply inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium
+    rounded-xs transition-colors disabled:opacity-50 disabled:cursor-not-allowed
+    bg-dark text-white hover:bg-dark/90;
 }
 
 /* Sin sombras en ningún elemento — estética plana, sin excepciones */

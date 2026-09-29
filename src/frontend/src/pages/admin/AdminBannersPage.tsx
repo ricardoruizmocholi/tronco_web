@@ -39,7 +39,7 @@ function toFormState(b: Banner): FormState {
 
 type FormMode = { type: 'create' } | { type: 'edit'; banner: Banner } | null
 
-const inputCls = 'w-full rounded-lg border border-ink/20 px-3 py-2 text-sm text-ink focus:outline-none focus:ring-2 focus:ring-primary/40'
+const inputCls = 'w-full rounded-xs border border-ink/20 px-3 py-2 text-sm text-ink focus:outline-none focus:ring-2 focus:ring-primary/40'
 
 export default function AdminBannersPage() {
   const [banners, setBanners]   = useState<Banner[]>([])
@@ -148,16 +148,11 @@ export default function AdminBannersPage() {
 
   return (
     <div className="max-w-5xl mx-auto px-4 py-10">
-      <div className="flex items-center justify-between mb-8">
-        <div>
-          <h1 className="text-2xl font-bold text-ink">Banners</h1>
-          <p className="text-ink/50 text-sm mt-1">Hero de la home pública</p>
-        </div>
+      <div className="flex items-center justify-end mb-8">
         {!formMode && (
           <button
             onClick={openCreate}
-            className="px-4 py-2 rounded-lg bg-primary text-white text-sm font-semibold
-              hover:bg-primary/90 transition-colors"
+            className="btn-admin-primary"
           >
             + Nuevo banner
           </button>
@@ -165,19 +160,19 @@ export default function AdminBannersPage() {
       </div>
 
       {error && !formMode && (
-        <p className="text-sm text-secondary bg-secondary/10 rounded-lg px-3 py-2 mb-4">{error}</p>
+        <p className="text-sm text-secondary bg-secondary/10 rounded-xs px-3 py-2 mb-4">{error}</p>
       )}
 
       {/* Formulario crear / editar */}
       {formMode && (
         <form onSubmit={handleSave}
-          className="bg-white rounded-2xl border border-ink/10 p-6 mb-8 space-y-4">
+          className="bg-white rounded-xs border border-ink/10 p-6 mb-8 space-y-4">
           <h2 className="text-base font-semibold text-ink">
             {formMode.type === 'create' ? 'Nuevo banner' : `Editar: ${formMode.banner.title}`}
           </h2>
 
           {error && (
-            <p className="text-sm text-secondary bg-secondary/10 rounded-lg px-3 py-2">{error}</p>
+            <p className="text-sm text-secondary bg-secondary/10 rounded-xs px-3 py-2">{error}</p>
           )}
 
           {/* Título y subtítulo */}
@@ -200,7 +195,7 @@ export default function AdminBannersPage() {
             <div className="flex gap-2">
               <input type="url" value={form.image_url} onChange={e => set('image_url', e.target.value)}
                 className={`${inputCls} flex-1`} placeholder="https://..." />
-              <label className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-ink/20
+              <label className="flex items-center gap-1.5 px-3 py-2 rounded-xs border border-ink/20
                 text-sm text-ink/60 hover:text-primary hover:border-primary cursor-pointer transition-colors flex-shrink-0">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-4 h-4">
                   <path strokeLinecap="round" strokeLinejoin="round"
@@ -212,7 +207,7 @@ export default function AdminBannersPage() {
               </label>
             </div>
             {form.image_url && (
-              <div className="mt-2 h-24 rounded-lg overflow-hidden border border-ink/10">
+              <div className="mt-2 h-24 rounded-xs overflow-hidden border border-ink/10">
                 <img src={form.image_url} alt="" className="w-full h-full object-cover" />
               </div>
             )}
@@ -238,7 +233,7 @@ export default function AdminBannersPage() {
               <label className="block text-xs font-medium text-ink/60 mb-1">Posición</label>
               <input type="number" min="0" value={form.position}
                 onChange={e => set('position', e.target.value)}
-                className="w-24 rounded-lg border border-ink/20 px-3 py-2 text-sm text-ink
+                className="w-24 rounded-xs border border-ink/20 px-3 py-2 text-sm text-ink
                   focus:outline-none focus:ring-2 focus:ring-primary/40" />
             </div>
             <label className="flex items-center gap-2 cursor-pointer select-none mt-4">
@@ -251,13 +246,11 @@ export default function AdminBannersPage() {
 
           <div className="flex gap-3 pt-2">
             <button type="submit" disabled={saving}
-              className="px-5 py-2 rounded-lg bg-primary text-white text-sm font-medium
-                hover:bg-primary/90 transition-colors disabled:opacity-50">
+              className="btn-admin-primary">
               {saving ? 'Guardando…' : formMode.type === 'create' ? 'Crear banner' : 'Guardar cambios'}
             </button>
             <button type="button" onClick={closeForm}
-              className="px-5 py-2 rounded-lg border border-ink/20 text-ink text-sm
-                font-medium hover:border-ink/40 transition-colors">
+              className="btn-admin-secondary">
               Cancelar
             </button>
           </div>
@@ -270,7 +263,7 @@ export default function AdminBannersPage() {
       ) : banners.length === 0 ? (
         <div className="text-center py-16 text-ink/40 text-sm">No hay banners todavía.</div>
       ) : (
-        <div className="bg-white rounded-2xl border border-ink/10 overflow-hidden">
+        <div className="bg-white rounded-xs border border-ink/10 overflow-hidden">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-ink/10 text-left">
@@ -288,7 +281,7 @@ export default function AdminBannersPage() {
                   <td className="px-5 py-4 text-ink/40 tabular-nums">{banner.position}</td>
                   <td className="px-5 py-4">
                     <div className="flex items-center gap-3">
-                      <div className="w-16 h-10 flex-shrink-0 rounded-md overflow-hidden bg-primary/10">
+                      <div className="w-16 h-10 flex-shrink-0 rounded-xs overflow-hidden bg-primary/10">
                         <img src={banner.image_url} alt="" className="w-full h-full object-cover" />
                       </div>
                       <div className="min-w-0">
@@ -314,17 +307,17 @@ export default function AdminBannersPage() {
                   <td className="px-5 py-4 text-right">
                     <div className="flex items-center justify-end gap-2">
                       <button onClick={() => openEdit(banner)}
-                        className="text-xs font-medium text-primary hover:underline">
+                        className="btn-admin-link btn-admin-link-primary">
                         Editar
                       </button>
                       <span className="text-ink/20">|</span>
                       <button onClick={() => handleToggle(banner)}
-                        className="text-xs font-medium text-ink/50 hover:text-ink hover:underline">
+                        className="btn-admin-link btn-admin-link-neutral">
                         {banner.is_active ? 'Desactivar' : 'Activar'}
                       </button>
                       <span className="text-ink/20">|</span>
                       <button onClick={() => handleDelete(banner)}
-                        className="text-xs font-medium text-secondary hover:underline">
+                        className="btn-admin-link btn-admin-link-danger">
                         Eliminar
                       </button>
                     </div>

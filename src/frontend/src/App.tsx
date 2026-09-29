@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import { BrowserRouter, Outlet, Route, Routes } from 'react-router-dom'
+import { BrowserRouter, Navigate, Outlet, Route, Routes } from 'react-router-dom'
 import { AuthProvider } from './context/AuthContext'
 import { AuthModalProvider, useAuthModal } from './context/AuthModalContext'
 import { AdminNotificationsProvider } from './context/AdminNotificationsContext'
@@ -18,7 +18,6 @@ import NotFoundPage from './pages/NotFoundPage'
 import MaintenancePage from './pages/MaintenancePage'
 import StorePage from './pages/StorePage'
 import ProductPage from './pages/ProductPage'
-import AdminDashboardPage from './pages/admin/AdminDashboardPage'
 import AdminProductsPage from './pages/admin/AdminProductsPage'
 import AdminArtistsPage from './pages/admin/AdminArtistsPage'
 import AdminFanficsPage from './pages/admin/AdminFanficsPage'
@@ -31,6 +30,7 @@ import AdminReturnsPage from './pages/admin/AdminReturnsPage'
 import AdminPromotionsPage from './pages/admin/AdminPromotionsPage'
 import AdminHeroPage from './pages/admin/AdminHeroPage'
 import AdminNewsletterPage from './pages/admin/AdminNewsletterPage'
+import AdminInvoicesPage from './pages/admin/AdminInvoicesPage'
 import AdminSettingsPage from './pages/admin/AdminSettingsPage'
 import ArtistsPage from './pages/ArtistsPage'
 import BolaTroncodriloPage from './pages/BolaTroncodriloPage'
@@ -88,7 +88,7 @@ function App() {
               nadie podría entrar a desactivarlo */}
           <Route element={<AdminRoute />}>
             <Route element={<AdminLayout />}>
-              <Route path="/admin"           element={<AdminDashboardPage />} />
+              <Route path="/admin" element={<Navigate to="/admin/productos" replace />} />
               <Route path="/admin/productos" element={<AdminProductsPage />} />
               <Route path="/admin/artistas" element={<AdminArtistsPage />} />
               <Route path="/admin/fanfics"  element={<AdminFanficsPage />} />
@@ -101,6 +101,7 @@ function App() {
               <Route path="/admin/promociones"   element={<AdminPromotionsPage />} />
               <Route path="/admin/hero"          element={<AdminHeroPage />} />
               <Route path="/admin/newsletter"    element={<AdminNewsletterPage />} />
+              <Route path="/admin/facturas"      element={<AdminInvoicesPage />} />
               <Route path="/admin/ajustes"       element={<AdminSettingsPage />} />
             </Route>
           </Route>

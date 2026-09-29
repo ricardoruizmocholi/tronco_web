@@ -53,7 +53,7 @@ export default function NotificationBell() {
         aria-haspopup="true"
         aria-expanded={open}
         aria-label={`Notificaciones${total > 0 ? ` (${total} pendientes)` : ''}`}
-        className="relative p-1.5 text-ink/60 hover:text-ink transition-colors"
+        className="btn-admin-icon"
       >
         <BellIcon />
         {total > 0 && (

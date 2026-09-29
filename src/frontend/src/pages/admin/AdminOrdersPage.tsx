@@ -94,8 +94,8 @@ function StatsCards({ stats, loading }: { stats: OrderStats | null; loading: boo
   return (
     <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
       {cards.map(card => (
-        <div key={card.label} className="bg-white rounded-2xl border border-ink/10 p-5 flex items-start gap-4">
-          <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
+        <div key={card.label} className="bg-white rounded-xs border border-ink/10 p-5 flex items-start gap-4">
+          <div className="flex-shrink-0 w-10 h-10 rounded-xs bg-primary/10 text-primary flex items-center justify-center">
             {card.icon}
           </div>
           <div className="min-w-0">
@@ -147,10 +147,10 @@ function OrderDetailModal({
 
   return (
     <div
-      className="fixed inset-0 bg-ink/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+      className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
       onClick={e => { if (e.target === e.currentTarget) onClose() }}
     >
-      <div className="bg-white rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl">
+      <div className="bg-white rounded-xs w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl">
         {/* Cabecera modal */}
         <div className="flex items-center justify-between px-6 py-5 border-b border-ink/10">
           <div>
@@ -165,7 +165,7 @@ function OrderDetailModal({
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 text-ink/30 hover:text-ink transition-colors rounded-lg hover:bg-ink/5"
+            className="btn-admin-icon"
           >
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
               strokeLinecap="round" className="w-5 h-5">
@@ -188,7 +188,7 @@ function OrderDetailModal({
                 <select
                   value={newStatus}
                   onChange={e => setNewStatus(e.target.value)}
-                  className="w-full border border-ink/20 rounded-xl px-3 py-2 text-sm text-ink
+                  className="w-full border border-ink/20 rounded-xs px-3 py-2 text-sm text-ink
                     bg-white focus:outline-none focus:ring-2 focus:ring-primary/40"
                 >
                   {STATUS_OPTIONS.filter(o => o.value !== '').map(o => (
@@ -199,8 +199,7 @@ function OrderDetailModal({
               <button
                 onClick={handleSaveStatus}
                 disabled={saving || newStatus === order.status}
-                className="px-4 py-2 bg-primary text-white text-sm font-medium rounded-xl
-                  hover:bg-primary/90 disabled:opacity-50 transition-colors"
+                className="btn-admin-primary"
               >
                 {saving ? 'Guardando…' : 'Guardar'}
               </button>
@@ -228,7 +227,7 @@ function OrderDetailModal({
             </div>
 
             {/* Totales */}
-            <div className="bg-ink/[0.03] rounded-xl p-4 space-y-2">
+            <div className="bg-ink/[0.03] rounded-xs p-4 space-y-2">
               <div className="flex justify-between text-sm text-ink/60">
                 <span>Envío</span>
                 <span>{euros.format((order.shipping_cost ?? 0) / 100)}</span>
@@ -295,8 +294,7 @@ function Pagination({
       <button
         onClick={() => onPage(current - 1)}
         disabled={current === 1}
-        className="px-3 py-1.5 rounded-lg text-sm border border-ink/15 text-ink/60
-          hover:border-primary/40 hover:text-ink disabled:opacity-30 transition-colors"
+        className="btn-admin-page"
       >
         ← Anterior
       </button>
@@ -306,8 +304,7 @@ function Pagination({
       <button
         onClick={() => onPage(current + 1)}
         disabled={current === last}
-        className="px-3 py-1.5 rounded-lg text-sm border border-ink/15 text-ink/60
-          hover:border-primary/40 hover:text-ink disabled:opacity-30 transition-colors"
+        className="btn-admin-page"
       >
         Siguiente →
       </button>
@@ -390,22 +387,15 @@ export default function AdminOrdersPage() {
     }
   }
 
-  const inputCls = 'border border-ink/15 bg-white rounded-xl px-3 py-2 text-sm text-ink focus:outline-none focus:ring-2 focus:ring-primary/40'
+  const inputCls = 'border border-ink/15 bg-white rounded-xs px-3 py-2 text-sm text-ink focus:outline-none focus:ring-2 focus:ring-primary/40'
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-12">
-
-      {/* Cabecera */}
-      <div className="flex items-start justify-between gap-4 mb-2 flex-wrap">
-        <div>
-          <h1 className="text-2xl font-bold text-ink">Pedidos</h1>
-          <p className="text-ink/50 text-sm mt-1">Gestión y seguimiento de todos los pedidos.</p>
-        </div>
+      <div className="flex items-start justify-end gap-4 mb-2 flex-wrap">
         <button
           onClick={handleExport}
           disabled={exporting}
-          className="flex items-center gap-2 px-4 py-2 bg-ink text-white text-sm font-medium
-            rounded-xl hover:bg-ink/90 disabled:opacity-50 transition-colors"
+          className="btn-admin-dark"
         >
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
             strokeLinecap="round" className="w-4 h-4">
@@ -421,7 +411,7 @@ export default function AdminOrdersPage() {
       </div>
 
       {/* Filtros */}
-      <div className="bg-white rounded-2xl border border-ink/10 p-4 mb-6">
+      <div className="bg-white rounded-xs border border-ink/10 p-4 mb-6">
         <div className="flex flex-wrap gap-3 items-end">
           <div>
             <label className="block text-xs text-ink/50 mb-1">Estado</label>
@@ -496,15 +486,13 @@ export default function AdminOrdersPage() {
           <div className="flex gap-2 ml-auto">
             <button
               onClick={clearFilters}
-              className="px-4 py-2 rounded-xl text-sm text-ink/60 border border-ink/15
-                hover:border-ink/30 hover:text-ink transition-colors"
+              className="btn-admin-secondary"
             >
               Limpiar
             </button>
             <button
               onClick={applyFilters}
-              className="px-4 py-2 rounded-xl text-sm font-medium bg-primary text-white
-                hover:bg-primary/90 transition-colors"
+              className="btn-admin-primary"
             >
               Aplicar
             </button>
@@ -521,7 +509,7 @@ export default function AdminOrdersPage() {
         <p className="text-center text-ink/40 py-20 text-sm">No hay pedidos con esos filtros.</p>
       ) : (
         <>
-          <div className="bg-white rounded-2xl border border-ink/10 overflow-hidden">
+          <div className="bg-white rounded-xs border border-ink/10 overflow-hidden">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-ink/10 text-xs text-ink/40 uppercase tracking-wide">
@@ -563,7 +551,7 @@ export default function AdminOrdersPage() {
                     <td className="px-5 py-3.5 text-right">
                       <button
                         onClick={() => setSelectedId(order.id)}
-                        className="px-3 py-1.5 bg-ink/5 text-ink text-xs rounded-lg font-medium
+                        className="px-3 py-1.5 bg-ink/5 text-ink text-xs rounded-xs font-medium
                           hover:bg-primary hover:text-white transition-colors"
                       >
                         Ver

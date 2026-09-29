@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { initiateCheckout, type ShippingAddress } from '../api/orders'
+import { initiateCheckout, type BillingInfo, type ShippingAddress } from '../api/orders'
 import { getProducts } from '../api/products'
 import { getPublicShippingRates, type ShippingRate as ShippingRateType } from '../api/shipping'
 import ShippingAddressModal from './ShippingAddressModal'
@@ -35,7 +35,7 @@ export default function CartDrawer() {
   const [paying, setPaying]                     = useState(false)
   const [payError, setPayError]                 = useState<string | null>(null)
 
-  async function handleConfirmShipping(address: ShippingAddress) {
+  async function handleConfirmShipping(address: ShippingAddress, billingInfo: BillingInfo | null) {
     setPaying(true)
     setPayError(null)
     try {
@@ -44,7 +44,7 @@ export default function CartDrawer() {
         variant_id: i.variantId,
         quantity:   i.quantity,
       }))
-      const { checkout_url } = await initiateCheckout(checkoutItems, address)
+      const { checkout_url } = await initiateCheckout(checkoutItems, address, billingInfo)
       window.location.href = checkout_url
     } catch (err: unknown) {
       const axiosErr = err as { response?: { data?: { message?: string; errors?: string[] } } }

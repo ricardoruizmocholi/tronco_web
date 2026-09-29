@@ -93,12 +93,10 @@ export default function AdminShippingPage() {
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-12">
-      <div className="flex items-center justify-between mb-2">
-        <h1 className="text-2xl font-bold text-ink">Tarifas de envío</h1>
+      <div className="flex items-center justify-end mb-8">
         {editId === null && (
           <button onClick={openNew}
-            className="flex items-center gap-2 bg-primary text-white text-sm font-medium
-              px-4 py-2 rounded-xl hover:bg-primary/90 transition-colors">
+            className="btn-admin-primary">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
               strokeLinecap="round" className="w-4 h-4">
               <path d="M12 5v14M5 12h14" />
@@ -107,14 +105,11 @@ export default function AdminShippingPage() {
           </button>
         )}
       </div>
-      <p className="text-ink/50 text-sm mb-8">
-        Define costes por país y umbrales de envío gratuito. Los valores se introducen en euros.
-      </p>
 
       {/* ── Formulario crear / editar ── */}
       {editId !== null && (
         <form onSubmit={handleSubmit}
-          className="bg-white rounded-2xl border border-ink/10 p-6 mb-8 space-y-4">
+          className="bg-white rounded-xs border border-ink/10 p-6 mb-8 space-y-4">
           <h2 className="font-semibold text-ink">
             {editId === 'new' ? 'Nueva tarifa' : 'Editar tarifa'}
           </h2>
@@ -129,7 +124,7 @@ export default function AdminShippingPage() {
                 value={form.name}
                 onChange={e => setField('name', e.target.value)}
                 placeholder="España estándar"
-                className="w-full rounded-xl border border-ink/15 px-3 py-2 text-sm text-ink
+                className="w-full rounded-xs border border-ink/15 px-3 py-2 text-sm text-ink
                   focus:outline-none focus:ring-2 focus:ring-primary/40"
               />
             </div>
@@ -145,7 +140,7 @@ export default function AdminShippingPage() {
                 value={form.country_code ?? ''}
                 onChange={e => setField('country_code', e.target.value.toUpperCase() || null)}
                 placeholder="ES"
-                className="w-full rounded-xl border border-ink/15 px-3 py-2 text-sm text-ink
+                className="w-full rounded-xs border border-ink/15 px-3 py-2 text-sm text-ink
                   font-mono focus:outline-none focus:ring-2 focus:ring-primary/40"
               />
             </div>
@@ -160,7 +155,7 @@ export default function AdminShippingPage() {
                 step={0.01}
                 value={(form.rate / 100).toFixed(2)}
                 onChange={e => setField('rate', Math.round(parseFloat(e.target.value || '0') * 100))}
-                className="w-full rounded-xl border border-ink/15 px-3 py-2 text-sm text-ink
+                className="w-full rounded-xs border border-ink/15 px-3 py-2 text-sm text-ink
                   focus:outline-none focus:ring-2 focus:ring-primary/40"
               />
             </div>
@@ -177,7 +172,7 @@ export default function AdminShippingPage() {
                 step={0.01}
                 value={(form.min_order_amount / 100).toFixed(2)}
                 onChange={e => setField('min_order_amount', Math.round(parseFloat(e.target.value || '0') * 100))}
-                className="w-full rounded-xl border border-ink/15 px-3 py-2 text-sm text-ink
+                className="w-full rounded-xs border border-ink/15 px-3 py-2 text-sm text-ink
                   focus:outline-none focus:ring-2 focus:ring-primary/40"
               />
             </div>
@@ -197,7 +192,7 @@ export default function AdminShippingPage() {
                   setField('free_above', val === '' ? null : Math.round(parseFloat(val) * 100))
                 }}
                 placeholder="50.00"
-                className="w-full rounded-xl border border-ink/15 px-3 py-2 text-sm text-ink
+                className="w-full rounded-xs border border-ink/15 px-3 py-2 text-sm text-ink
                   focus:outline-none focus:ring-2 focus:ring-primary/40"
               />
             </div>
@@ -220,16 +215,15 @@ export default function AdminShippingPage() {
             </div>
           </div>
 
-          {error && <p className="text-sm text-secondary bg-secondary/10 rounded-xl px-4 py-3">{error}</p>}
+          {error && <p className="text-sm text-secondary bg-secondary/10 rounded-xs px-4 py-3">{error}</p>}
 
           <div className="flex gap-3 justify-end pt-2">
             <button type="button" onClick={cancel}
-              className="px-4 py-2 text-sm text-ink/60 hover:text-ink transition-colors">
+              className="btn-admin-secondary">
               Cancelar
             </button>
             <button type="submit" disabled={saving}
-              className="px-5 py-2 bg-primary text-white text-sm font-medium rounded-xl
-                hover:bg-primary/90 disabled:opacity-50 transition-colors">
+              className="btn-admin-primary">
               {saving ? 'Guardando...' : 'Guardar'}
             </button>
           </div>
@@ -246,7 +240,7 @@ export default function AdminShippingPage() {
           No hay tarifas configuradas. Crea una con el botón superior.
         </p>
       ) : (
-        <div className="bg-white rounded-2xl border border-ink/10 overflow-hidden">
+        <div className="bg-white rounded-xs border border-ink/10 overflow-hidden">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-ink/8 bg-ink/[0.02]">
@@ -290,8 +284,7 @@ export default function AdminShippingPage() {
                       <button
                         onClick={() => openEdit(r)}
                         disabled={saving || editId !== null}
-                        className="p-1.5 text-ink/40 hover:text-primary transition-colors
-                          disabled:opacity-30"
+                        className="btn-admin-icon btn-admin-icon-edit"
                         title="Editar"
                       >
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -303,8 +296,7 @@ export default function AdminShippingPage() {
                       <button
                         onClick={() => handleDelete(r.id, r.name)}
                         disabled={saving}
-                        className="p-1.5 text-ink/40 hover:text-secondary transition-colors
-                          disabled:opacity-30"
+                        className="btn-admin-icon btn-admin-icon-danger"
                         title="Eliminar"
                       >
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"

@@ -16,6 +16,7 @@ class Order extends Model
         'stripe_session_id',
         'stripe_payment_intent_id',
         'shipping_address',
+        'billing_info',
         'shipping_cost',
         'tracking_number',
         'tracking_url',
@@ -33,6 +34,7 @@ class Order extends Model
             'total'                => 'integer',
             'shipping_cost'        => 'integer',
             'shipping_address'     => 'array',
+            'billing_info'         => 'array',
             'tracking_updated_at'  => 'datetime',
         ];
     }
@@ -50,5 +52,10 @@ class Order extends Model
     public function returnRequest(): HasOne
     {
         return $this->hasOne(ReturnRequest::class);
+    }
+
+    public function invoice(): HasOne
+    {
+        return $this->hasOne(Invoice::class);
     }
 }

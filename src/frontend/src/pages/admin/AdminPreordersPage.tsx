@@ -59,7 +59,7 @@ function Pagination({
       <button
         onClick={() => onChange(current - 1)}
         disabled={current === 1}
-        className="text-sm text-ink/50 hover:text-primary disabled:opacity-30 transition-colors"
+        className="btn-admin-page"
       >
         ← Anterior
       </button>
@@ -67,7 +67,7 @@ function Pagination({
       <button
         onClick={() => onChange(current + 1)}
         disabled={current === last}
-        className="text-sm text-ink/50 hover:text-primary disabled:opacity-30 transition-colors"
+        className="btn-admin-page"
       >
         Siguiente →
       </button>
@@ -154,15 +154,11 @@ export default function AdminPreordersPage() {
   return (
     <div className="min-h-screen bg-canvas">
       <header className="bg-dark text-white py-8 px-6">
-        <div className="max-w-6xl mx-auto flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold">Lista de espera</h1>
-            <p className="text-white/60 text-sm mt-1">Reservas de productos agotados</p>
-          </div>
+        <div className="max-w-6xl mx-auto flex items-center justify-end">
           <button
             onClick={handleExport}
             disabled={exporting}
-            className="px-4 py-2 bg-primary text-white text-sm font-medium hover:bg-primary/90 disabled:opacity-50 transition-colors"
+            className="btn-admin-primary"
           >
             {exporting ? 'Exportando…' : 'Exportar CSV'}
           </button>
@@ -214,13 +210,13 @@ export default function AdminPreordersPage() {
           <div className="flex gap-3 mt-4">
             <button
               onClick={applyFilters}
-              className="text-sm bg-primary text-white px-4 py-2 hover:bg-primary/90 transition-colors"
+              className="btn-admin-primary"
             >
               Filtrar
             </button>
             <button
               onClick={resetFilters}
-              className="text-sm text-ink/50 hover:text-ink transition-colors"
+              className="btn-admin-secondary"
             >
               Limpiar
             </button>
@@ -277,7 +273,7 @@ export default function AdminPreordersPage() {
                         {p.status === 'pending' && (
                           <button
                             onClick={() => handleNotify(p)}
-                            className="text-xs px-3 py-1 border border-primary/40 text-primary hover:bg-primary/10 transition-colors"
+                            className="text-xs px-3 py-1 rounded-xs border border-primary/40 text-primary hover:bg-primary/10 transition-colors"
                           >
                             Marcar notificado
                           </button>

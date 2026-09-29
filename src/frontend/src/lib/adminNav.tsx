@@ -2,18 +2,14 @@ import type { ReactNode } from 'react'
 
 export interface AdminNavItem {
   title: string
-  description: string
   href: string
   icon: ReactNode
 }
 
-// Fuente única de las secciones del admin — la usan tanto AdminDashboardPage
-// (grid de tarjetas con descripción) como AdminSidebar (lista compacta), para
-// que nunca queden desincronizadas entre sí.
+// Fuente única de las secciones del admin, usada por AdminSidebar.
 export const ADMIN_NAV_ITEMS: AdminNavItem[] = [
   {
     title: 'Productos',
-    description: 'Gestiona el catálogo de merchandising: precios, stock e imágenes.',
     href: '/admin/productos',
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-full h-full">
@@ -26,7 +22,6 @@ export const ADMIN_NAV_ITEMS: AdminNavItem[] = [
   },
   {
     title: 'Artistas',
-    description: 'Añade o edita artistas colaboradores, galería e imágenes de perfil.',
     href: '/admin/artistas',
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-full h-full">
@@ -41,7 +36,6 @@ export const ADMIN_NAV_ITEMS: AdminNavItem[] = [
   },
   {
     title: 'Fanfics',
-    description: 'Modera los fanfics enviados por usuarios: aprueba o rechaza con motivo.',
     href: '/admin/fanfics',
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-full h-full">
@@ -56,7 +50,6 @@ export const ADMIN_NAV_ITEMS: AdminNavItem[] = [
   },
   {
     title: 'Envíos',
-    description: 'Configura tarifas de envío por país, coste y umbrales de envío gratuito.',
     href: '/admin/envios',
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-full h-full">
@@ -72,7 +65,6 @@ export const ADMIN_NAV_ITEMS: AdminNavItem[] = [
   },
   {
     title: 'Banners',
-    description: 'Gestiona los banners hero de la home: imagen, título, CTA y orden.',
     href: '/admin/banners',
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-full h-full">
@@ -86,7 +78,6 @@ export const ADMIN_NAV_ITEMS: AdminNavItem[] = [
   },
   {
     title: 'Pedidos',
-    description: 'Consulta y gestiona todos los pedidos: estado, detalle, filtros y exportación.',
     href: '/admin/pedidos',
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-full h-full">
@@ -97,7 +88,6 @@ export const ADMIN_NAV_ITEMS: AdminNavItem[] = [
   },
   {
     title: 'Preorders',
-    description: 'Gestiona la lista de espera de productos agotados: reservas, notificaciones y exportación CSV.',
     href: '/admin/preorders',
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-full h-full">
@@ -108,7 +98,6 @@ export const ADMIN_NAV_ITEMS: AdminNavItem[] = [
   },
   {
     title: 'Devoluciones',
-    description: 'Gestiona solicitudes de devolución: aprueba, rechaza o marca como recibido y emite el reembolso.',
     href: '/admin/devoluciones',
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-full h-full">
@@ -119,7 +108,6 @@ export const ADMIN_NAV_ITEMS: AdminNavItem[] = [
   },
   {
     title: 'Colaboradores',
-    description: 'Añade marcas o tiendas colaboradoras con logo y enlace externo.',
     href: '/admin/colaboradores',
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-full h-full">
@@ -135,7 +123,6 @@ export const ADMIN_NAV_ITEMS: AdminNavItem[] = [
   },
   {
     title: 'Promociones',
-    description: 'Crea descuentos sobre productos: porcentaje o importe fijo, con vigencia programada.',
     href: '/admin/promociones',
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-full h-full">
@@ -149,7 +136,6 @@ export const ADMIN_NAV_ITEMS: AdminNavItem[] = [
   },
   {
     title: 'Hero Slides',
-    description: 'Gestiona las imágenes y vídeos a pantalla completa del hero de la home.',
     href: '/admin/hero',
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-full h-full">
@@ -163,7 +149,6 @@ export const ADMIN_NAV_ITEMS: AdminNavItem[] = [
   },
   {
     title: 'Newsletter',
-    description: 'Consulta los subscriptores de la newsletter y exporta el listado en CSV.',
     href: '/admin/newsletter',
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-full h-full">
@@ -176,8 +161,19 @@ export const ADMIN_NAV_ITEMS: AdminNavItem[] = [
     ),
   },
   {
+    title: 'Facturas',
+    href: '/admin/facturas',
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-full h-full">
+        <path strokeLinecap="round" strokeLinejoin="round"
+          d="M9 12h6m-6 3h6m-7.5 6h9a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0016.5 4.5h-3.379a1.5
+             1.5 0 01-1.06-.44L10.94 2.94A1.5 1.5 0 009.879 2.5H7.5A2.25 2.25 0 005.25 4.75v14.5A2.25
+             2.25 0 007.5 21.5z" />
+      </svg>
+    ),
+  },
+  {
     title: 'Ajustes',
-    description: 'Configuración global de la tienda, como el modo mantenimiento.',
     href: '/admin/ajustes',
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-full h-full">
@@ -198,15 +194,3 @@ export const ADMIN_NAV_ITEMS: AdminNavItem[] = [
     ),
   },
 ]
-
-export const ADMIN_DASHBOARD_ICON = (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-full h-full">
-    <path strokeLinecap="round" strokeLinejoin="round"
-      d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25
-         2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25
-         0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5
-         6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118
-         10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25
-         2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z" />
-  </svg>
-)

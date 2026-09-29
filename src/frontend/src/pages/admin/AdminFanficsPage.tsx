@@ -84,17 +84,12 @@ export default function AdminFanficsPage() {
 
   return (
     <div className="max-w-5xl mx-auto px-4 py-12">
-      <h1 className="text-2xl font-bold text-ink mb-2">Moderación de fanfics</h1>
-      <p className="text-ink/50 text-sm mb-8">
-        Revisa, aprueba o rechaza las imágenes enviadas por los usuarios.
-      </p>
-
       {/* ── Filtros ── */}
       <div className="flex flex-wrap items-center gap-3 mb-6">
-        <div className="flex gap-1 bg-ink/5 p-1 rounded-xl">
+        <div className="flex gap-1 bg-ink/5 p-1 rounded-xs">
           {TABS.map(t => (
             <button key={t.key} onClick={() => setTab(t.key)}
-              className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+              className={`px-4 py-1.5 rounded-xs text-sm font-medium transition-colors ${
                 tab === t.key ? 'bg-white text-ink shadow-sm' : 'text-ink/50 hover:text-ink'
               }`}>
               {t.label}
@@ -112,13 +107,13 @@ export default function AdminFanficsPage() {
             value={search}
             onChange={e => handleSearch(e.target.value)}
             placeholder="Buscar por ciudad o caption..."
-            className="w-full pl-9 pr-4 py-2 rounded-xl border border-ink/15 bg-white text-sm
+            className="w-full pl-9 pr-4 py-2 rounded-xs border border-ink/15 bg-white text-sm
               text-ink focus:outline-none focus:ring-2 focus:ring-primary/40"
           />
         </div>
 
         <button onClick={handleFeaturedToggle}
-          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium
+          className={`flex items-center gap-2 px-4 py-2 rounded-xs text-sm font-medium
             border transition-colors ${
               featuredOnly
                 ? 'bg-primary text-white border-primary'
@@ -143,12 +138,12 @@ export default function AdminFanficsPage() {
         <div className="space-y-4">
           {fanfics.map(fanfic => (
             <div key={fanfic.id}
-              className={`bg-white rounded-2xl border p-5 flex gap-5 items-start ${
+              className={`bg-white rounded-xs border p-5 flex gap-5 items-start ${
                 fanfic.is_featured ? 'border-primary/30 bg-primary/[0.02]' : 'border-ink/10'
               }`}>
 
               {/* Miniatura */}
-              <div className="flex-shrink-0 w-24 h-24 rounded-xl overflow-hidden bg-ink/5">
+              <div className="flex-shrink-0 w-24 h-24 rounded-xs overflow-hidden bg-ink/5">
                 {fanfic.image_url && (
                   <img src={fanfic.image_url} alt="" className="w-full h-full object-cover" />
                 )}
@@ -184,30 +179,27 @@ export default function AdminFanficsPage() {
                 {tab === 'pending' && (
                   <>
                     <button onClick={() => handleApprove(fanfic.id)} disabled={saving}
-                      className="px-3 py-1.5 bg-primary text-white text-xs rounded-lg
-                        hover:bg-primary/90 disabled:opacity-50 transition-colors font-medium">
+                      className="btn-admin-primary btn-admin-sm">
                       Aprobar
                     </button>
                     <button onClick={() => { setRejectId(fanfic.id); setRejectReason('') }}
                       disabled={saving}
-                      className="px-3 py-1.5 bg-secondary/10 text-secondary text-xs rounded-lg
-                        hover:bg-secondary/20 disabled:opacity-50 transition-colors font-medium">
+                      className="btn-admin-danger btn-admin-sm">
                       Rechazar
                     </button>
                   </>
                 )}
                 <button onClick={() => handleFeature(fanfic)} disabled={saving}
-                  className={`px-3 py-1.5 text-xs rounded-lg font-medium transition-colors
+                  className={`px-3 py-1.5 text-xs rounded-xs font-medium transition-colors
                     disabled:opacity-50 ${
                       fanfic.is_featured
                         ? 'bg-ink/5 text-ink/60 hover:bg-ink/10'
-                        : 'bg-amber-50 text-amber-600 hover:bg-amber-100'
+                        : 'bg-primary/10 text-primary hover:bg-primary/20'
                     }`}>
                   {fanfic.is_featured ? 'Quitar dest.' : 'Destacar'}
                 </button>
                 <button onClick={() => handleBlock(fanfic.id)} disabled={saving}
-                  className="px-3 py-1.5 bg-secondary/10 text-secondary text-xs rounded-lg
-                    hover:bg-secondary/20 disabled:opacity-50 transition-colors font-medium">
+                  className="btn-admin-danger btn-admin-sm">
                   Bloquear usuario
                 </button>
               </div>
@@ -218,10 +210,10 @@ export default function AdminFanficsPage() {
 
       {/* ── Modal de rechazo ── */}
       {rejectId !== null && (
-        <div className="fixed inset-0 bg-ink/50 backdrop-blur-sm z-50 flex items-center
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center
           justify-center p-4"
           onClick={e => { if (e.target === e.currentTarget) setRejectId(null) }}>
-          <div className="bg-white rounded-2xl p-6 max-w-md w-full shadow-2xl">
+          <div className="bg-white rounded-xs p-6 max-w-md w-full shadow-2xl">
             <h3 className="font-semibold text-ink mb-1">Rechazar fanfic</h3>
             <p className="text-sm text-ink/50 mb-4">
               Motivo opcional — el usuario lo verá en su panel.
@@ -231,18 +223,17 @@ export default function AdminFanficsPage() {
               onChange={e => setRejectReason(e.target.value)}
               rows={3}
               placeholder="El contenido no cumple las normas..."
-              className="w-full rounded-xl border border-ink/15 px-4 py-2.5 text-sm text-ink
+              className="w-full rounded-xs border border-ink/15 px-4 py-2.5 text-sm text-ink
                 focus:outline-none focus:ring-2 focus:ring-secondary/40 resize-none mb-4"
               autoFocus
             />
             <div className="flex gap-3 justify-end">
               <button onClick={() => setRejectId(null)}
-                className="px-4 py-2 text-sm text-ink/60 hover:text-ink transition-colors">
+                className="btn-admin-secondary">
                 Cancelar
               </button>
               <button onClick={handleReject} disabled={saving}
-                className="px-4 py-2 bg-secondary text-white text-sm rounded-xl
-                  hover:bg-secondary/90 disabled:opacity-50 transition-colors font-medium">
+                className="btn-admin-danger-solid">
                 {saving ? 'Rechazando...' : 'Confirmar rechazo'}
               </button>
             </div>
@@ -260,15 +251,14 @@ export default function AdminFanficsPage() {
           <div className="space-y-2">
             {blocked.map(u => (
               <div key={u.id}
-                className="flex items-center justify-between gap-4 bg-white rounded-xl
+                className="flex items-center justify-between gap-4 bg-white rounded-xs
                   border border-ink/10 px-5 py-3">
                 <div>
                   <p className="text-sm font-medium text-ink">{u.name}</p>
                   <p className="text-xs text-ink/40">{u.email}</p>
                 </div>
                 <button onClick={() => handleUnblock(u.id)} disabled={saving}
-                  className="px-3 py-1.5 bg-primary/10 text-primary text-xs rounded-lg
-                    hover:bg-primary/20 disabled:opacity-50 transition-colors font-medium">
+                  className="btn-admin-primary btn-admin-sm">
                   Desbloquear
                 </button>
               </div>

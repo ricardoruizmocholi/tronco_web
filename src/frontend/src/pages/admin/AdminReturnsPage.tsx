@@ -216,16 +216,11 @@ export default function AdminReturnsPage() {
 
   return (
     <div className="max-w-5xl mx-auto px-4 py-12">
-      <div className="flex items-start justify-between gap-4 mb-8 flex-wrap">
-        <div>
-          <h1 className="text-2xl font-bold text-ink mb-2">Devoluciones</h1>
-          <p className="text-ink/50 text-sm">Gestiona las solicitudes de devolución de los clientes.</p>
-        </div>
+      <div className="flex items-start justify-end gap-4 mb-8 flex-wrap">
         <button
           onClick={handleExport}
           disabled={exporting}
-          className="flex items-center gap-2 px-4 py-2 bg-ink text-white text-sm font-medium
-            rounded-xl hover:bg-ink/90 disabled:opacity-50 transition-colors"
+          className="btn-admin-dark"
         >
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
             strokeLinecap="round" className="w-4 h-4">
@@ -323,7 +318,7 @@ export default function AdminReturnsPage() {
                   <td className="px-4 py-3">
                     <button
                       onClick={() => openDetail(rr.id)}
-                      className="text-xs text-primary hover:text-primary/70 transition-colors"
+                      className="btn-admin-link btn-admin-link-primary"
                     >
                       Ver detalle
                     </button>
@@ -341,7 +336,7 @@ export default function AdminReturnsPage() {
           <button
             onClick={() => setPage(p => Math.max(1, p - 1))}
             disabled={page <= 1}
-            className="text-xs text-ink/50 hover:text-ink disabled:opacity-30 transition-colors"
+            className="btn-admin-page"
           >
             ← Anterior
           </button>
@@ -349,7 +344,7 @@ export default function AdminReturnsPage() {
           <button
             onClick={() => setPage(p => Math.min(lastPage, p + 1))}
             disabled={page >= lastPage}
-            className="text-xs text-ink/50 hover:text-ink disabled:opacity-30 transition-colors"
+            className="btn-admin-page"
           >
             Siguiente →
           </button>
@@ -359,14 +354,14 @@ export default function AdminReturnsPage() {
       {/* Detail modal */}
       {(detail || detailLoading) && (
         <div
-          className="fixed inset-0 z-50 flex items-start justify-center p-4 bg-ink/40 overflow-y-auto"
+          className="fixed inset-0 z-50 flex items-start justify-center p-4 bg-black/40 overflow-y-auto"
           onClick={handleBackdropClick}
         >
           <div className="bg-canvas w-full max-w-2xl my-8 relative">
             <button
               onClick={closeDetail}
               aria-label="Cerrar"
-              className="absolute top-4 right-4 text-ink/40 hover:text-ink transition-colors z-10"
+              className="absolute top-4 right-4 z-10 btn-admin-icon"
             >
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-5 h-5">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
@@ -557,14 +552,13 @@ export default function AdminReturnsPage() {
                             <button
                               onClick={handleReject}
                               disabled={actionLoading}
-                              className="text-sm px-5 py-2.5 text-white transition-colors disabled:opacity-50"
-                              style={{ backgroundColor: '#8B4A2A' }}
+                              className="btn-admin-danger-solid"
                             >
                               {actionLoading ? 'Rechazando…' : 'Confirmar rechazo'}
                             </button>
                             <button
                               onClick={() => setShowRejectInput(false)}
-                              className="text-sm text-ink/40 hover:text-ink transition-colors"
+                              className="btn-admin-secondary"
                             >
                               Cancelar
                             </button>
@@ -575,13 +569,13 @@ export default function AdminReturnsPage() {
                           <button
                             onClick={handleApprove}
                             disabled={actionLoading}
-                            className="text-sm bg-primary text-white px-5 py-2.5 hover:bg-primary/90 transition-colors disabled:opacity-50"
+                            className="btn-admin-primary"
                           >
                             {actionLoading ? 'Aprobando…' : 'Aprobar devolución'}
                           </button>
                           <button
                             onClick={() => setShowRejectInput(true)}
-                            className="text-sm text-ink/40 hover:text-secondary transition-colors"
+                            className="btn-admin-link btn-admin-link-danger"
                           >
                             Rechazar
                           </button>
@@ -618,7 +612,7 @@ export default function AdminReturnsPage() {
                         <button
                           onClick={handleReceive}
                           disabled={actionLoading}
-                          className="text-sm bg-primary text-white px-5 py-2.5 hover:bg-primary/90 transition-colors disabled:opacity-50"
+                          className="btn-admin-primary"
                         >
                           {actionLoading ? 'Procesando…' : 'Confirmar recepción y reembolsar'}
                         </button>

@@ -175,28 +175,26 @@ export default function AdminPromotionsPage() {
 
   return (
     <div className="max-w-5xl mx-auto px-4 py-12">
-      <div className="flex items-center justify-between gap-4 mb-2">
-        <h1 className="text-2xl font-bold text-ink">Promociones</h1>
+      <div className="flex items-center justify-end gap-4 mb-8">
         <button
           onClick={openCreate}
-          className="px-4 py-2 rounded-lg bg-primary text-white text-sm font-medium hover:bg-primary/90 transition-colors"
+          className="btn-admin-primary"
         >
           + Nueva promoción
         </button>
       </div>
-      <p className="text-ink/50 text-sm mb-8">Gestiona descuentos sobre productos del catálogo.</p>
 
       {/* ── Stats ── */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
-        <div className="bg-white rounded-2xl border border-ink/10 p-5">
+        <div className="bg-white rounded-xs border border-ink/10 p-5">
           <p className="text-2xl font-bold text-ink">{stats.active}</p>
           <p className="text-xs text-ink/40 mt-1">Activas ahora</p>
         </div>
-        <div className="bg-white rounded-2xl border border-ink/10 p-5">
+        <div className="bg-white rounded-xs border border-ink/10 p-5">
           <p className="text-2xl font-bold text-ink">{stats.scheduled}</p>
           <p className="text-xs text-ink/40 mt-1">Programadas</p>
         </div>
-        <div className="bg-white rounded-2xl border border-ink/10 p-5">
+        <div className="bg-white rounded-xs border border-ink/10 p-5">
           <p className="text-2xl font-bold text-ink">{stats.expiredThisMonth}</p>
           <p className="text-xs text-ink/40 mt-1">Expiradas este mes</p>
         </div>
@@ -204,7 +202,7 @@ export default function AdminPromotionsPage() {
 
       {/* ── Error global ── */}
       {error && !formMode && (
-        <div className="rounded-lg bg-secondary/10 border border-secondary/30 text-secondary text-sm px-4 py-3 mb-6">
+        <div className="rounded-xs bg-secondary/10 border border-secondary/30 text-secondary text-sm px-4 py-3 mb-6">
           {error}
         </div>
       )}
@@ -217,7 +215,7 @@ export default function AdminPromotionsPage() {
       ) : promotions.length === 0 ? (
         <p className="text-center text-ink/40 py-20 text-sm">No hay promociones todavía.</p>
       ) : (
-        <div className="overflow-x-auto rounded-xl border border-ink/10">
+        <div className="overflow-x-auto rounded-xs border border-ink/10">
           <table className="w-full text-sm">
             <thead className="bg-ink/5 text-ink/60 text-left">
               <tr>
@@ -254,17 +252,17 @@ export default function AdminPromotionsPage() {
                     </span>
                   </td>
                   <td className="px-4 py-3 text-right">
-                    <div className="flex gap-2 justify-end">
+                    <div className="flex items-center justify-end gap-2">
                       <button
                         onClick={() => openEdit(promo)}
-                        className="text-xs px-3 py-1 rounded border border-ink/20 text-ink hover:border-primary hover:text-primary transition-colors"
+                        className="btn-admin-link btn-admin-link-primary"
                       >
                         Editar
                       </button>
+                      <span className="text-ink/20">|</span>
                       <button
                         onClick={() => handleDelete(promo)}
-                        className="text-xs px-3 py-1 rounded border border-secondary/40
-                          text-secondary hover:bg-secondary/10 transition-colors"
+                        className="btn-admin-link btn-admin-link-danger"
                       >
                         Eliminar
                       </button>
@@ -280,12 +278,12 @@ export default function AdminPromotionsPage() {
       {/* ── Modal crear/editar ── */}
       {formMode && (
         <div
-          className="fixed inset-0 bg-ink/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+          className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
           onClick={e => { if (e.target === e.currentTarget) setFormMode(null) }}
         >
           <form
             onSubmit={handleSubmit}
-            className="bg-white rounded-2xl p-6 max-w-md w-full shadow-2xl max-h-[90vh] overflow-y-auto"
+            className="bg-white rounded-xs p-6 max-w-md w-full shadow-2xl max-h-[90vh] overflow-y-auto"
           >
             <h3 className="font-semibold text-ink mb-1">
               {formMode.type === 'edit' ? 'Editar promoción' : 'Nueva promoción'}
@@ -303,13 +301,13 @@ export default function AdminPromotionsPage() {
                   value={form.productSearch}
                   onChange={e => setForm(f => ({ ...f, productSearch: e.target.value }))}
                   placeholder="Buscar producto…"
-                  className="w-full rounded-xl border border-ink/15 px-4 py-2 text-sm text-ink
+                  className="w-full rounded-xs border border-ink/15 px-4 py-2 text-sm text-ink
                     focus:outline-none focus:ring-2 focus:ring-primary/40 mb-2"
                 />
                 <select
                   value={form.product_id}
                   onChange={e => setForm(f => ({ ...f, product_id: e.target.value }))}
-                  className="w-full rounded-xl border border-ink/15 px-4 py-2 text-sm text-ink bg-white
+                  className="w-full rounded-xs border border-ink/15 px-4 py-2 text-sm text-ink bg-white
                     focus:outline-none focus:ring-2 focus:ring-primary/40"
                 >
                   <option value="" disabled>Selecciona un producto…</option>
@@ -351,7 +349,7 @@ export default function AdminPromotionsPage() {
                   value={form.discount_value}
                   onChange={e => setForm(f => ({ ...f, discount_value: e.target.value }))}
                   placeholder={form.discount_type === 'percent' ? '20' : '5.00'}
-                  className="w-full rounded-xl border border-ink/15 px-4 py-2 text-sm text-ink
+                  className="w-full rounded-xs border border-ink/15 px-4 py-2 text-sm text-ink
                     focus:outline-none focus:ring-2 focus:ring-primary/40"
                 />
               </div>
@@ -364,7 +362,7 @@ export default function AdminPromotionsPage() {
                     type="datetime-local"
                     value={form.starts_at}
                     onChange={e => setForm(f => ({ ...f, starts_at: e.target.value }))}
-                    className="w-full rounded-xl border border-ink/15 px-3 py-2 text-sm text-ink
+                    className="w-full rounded-xs border border-ink/15 px-3 py-2 text-sm text-ink
                       focus:outline-none focus:ring-2 focus:ring-primary/40"
                   />
                 </div>
@@ -374,7 +372,7 @@ export default function AdminPromotionsPage() {
                     type="datetime-local"
                     value={form.ends_at}
                     onChange={e => setForm(f => ({ ...f, ends_at: e.target.value }))}
-                    className="w-full rounded-xl border border-ink/15 px-3 py-2 text-sm text-ink
+                    className="w-full rounded-xs border border-ink/15 px-3 py-2 text-sm text-ink
                       focus:outline-none focus:ring-2 focus:ring-primary/40"
                   />
                 </div>
@@ -384,7 +382,7 @@ export default function AdminPromotionsPage() {
               <button
                 type="button"
                 onClick={() => setForm(f => ({ ...f, is_active: !f.is_active }))}
-                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium
+                className={`flex items-center gap-2 px-4 py-2 rounded-xs text-sm font-medium
                   border transition-colors ${
                     form.is_active
                       ? 'bg-primary text-white border-primary'
@@ -401,15 +399,14 @@ export default function AdminPromotionsPage() {
               <button
                 type="button"
                 onClick={() => setFormMode(null)}
-                className="px-4 py-2 text-sm text-ink/60 hover:text-ink transition-colors"
+                className="btn-admin-secondary"
               >
                 Cancelar
               </button>
               <button
                 type="submit"
                 disabled={saving}
-                className="px-4 py-2 bg-primary text-white text-sm rounded-xl
-                  hover:bg-primary/90 disabled:opacity-50 transition-colors font-medium"
+                className="btn-admin-primary"
               >
                 {saving ? 'Guardando…' : 'Guardar'}
               </button>

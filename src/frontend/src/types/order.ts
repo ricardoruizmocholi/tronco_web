@@ -39,6 +39,7 @@ export interface Order {
   tracking_updated_at: string | null
   items: OrderItem[]
   return_request?: ReturnRequest | null
+  invoice?: { id: number; full_number: string } | null
   created_at: string
   updated_at: string
 }

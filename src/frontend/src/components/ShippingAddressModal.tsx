@@ -1,8 +1,8 @@
 import { useState } from 'react'
-import type { ShippingAddress } from '../api/orders'
+import type { BillingInfo, ShippingAddress } from '../api/orders'
 
 interface Props {
-  onConfirm: (address: ShippingAddress) => Promise<void>
+  onConfirm: (address: ShippingAddress, billingInfo: BillingInfo | null) => Promise<void>
   onClose:   () => void
   paying:    boolean
 }
@@ -252,7 +252,13 @@ const EMPTY_FORM: ShippingAddress = {
   postal_code: '', city: '', state: '', country: 'ES',
 }
 
+const EMPTY_BILLING: BillingInfo = {
+  tax_name: '', tax_id: '', address_line1: '', address_line2: '',
+  postal_code: '', city: '', province: '', country: 'ES',
+}
+
 type Errors = Partial<Record<keyof ShippingAddress, string>>
+type BillingErrors = Partial<Record<keyof BillingInfo, string>>
 
 function validate(form: ShippingAddress): Errors {
   const e: Errors = {}
@@ -266,20 +272,47 @@ function validate(form: ShippingAddress): Errors {
   return e
 }
 
+function validateBilling(form: BillingInfo): BillingErrors {
+  const e: BillingErrors = {}
+  if (!form.tax_name.trim())      e.tax_name      = 'Requerido'
+  if (!form.tax_id.trim())        e.tax_id        = 'Requerido'
+  if (!form.address_line1.trim()) e.address_line1 = 'Requerido'
+  if (!form.postal_code.trim())   e.postal_code   = 'Requerido'
+  if (!form.city.trim())          e.city          = 'Requerido'
+  if (!form.province.trim())      e.province      = 'Requerido'
+  if (!form.country)              e.country       = 'Requerido'
+  return e
+}
+
 export default function ShippingAddressModal({ onConfirm, onClose, paying }: Props) {
   const [form, setForm]     = useState<ShippingAddress>(EMPTY_FORM)
   const [errors, setErrors] = useState<Errors>({})
+
+  const [wantInvoice, setWantInvoice]     = useState(false)
+  const [billing, setBilling]             = useState<BillingInfo>(EMPTY_BILLING)
+  const [billingErrors, setBillingErrors] = useState<BillingErrors>({})
 
   function set<K extends keyof ShippingAddress>(k: K, v: string) {
     setForm(f => ({ ...f, [k]: v }))
     if (errors[k]) setErrors(e => ({ ...e, [k]: undefined }))
   }
 
+  function setBillingField<K extends keyof BillingInfo>(k: K, v: string) {
+    setBilling(f => ({ ...f, [k]: v }))
+    if (billingErrors[k]) setBillingErrors(e => ({ ...e, [k]: undefined }))
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     const errs = validate(form)
     if (Object.keys(errs).length > 0) { setErrors(errs); return }
-    await onConfirm(form)
+
+    if (wantInvoice) {
+      const billingErrs = validateBilling(billing)
+      if (Object.keys(billingErrs).length > 0) { setBillingErrors(billingErrs); return }
+    }
+
+    await onConfirm(form, wantInvoice ? billing : null)
   }
 
   function handleBackdrop(e: React.MouseEvent<HTMLDivElement>) {
@@ -436,6 +469,168 @@ export default function ShippingAddressModal({ onConfirm, onClose, paying }: Pro
               {errors.country && <p className="text-xs text-secondary mt-1">{errors.country}</p>}
             </div>
           </div>
+
+          {/* Factura con datos fiscales — opcional */}
+          <div className="pt-2 border-t border-ink/10">
+            <label className="flex items-center gap-2 cursor-pointer select-none pt-4">
+              <input
+                type="checkbox"
+                checked={wantInvoice}
+                onChange={e => setWantInvoice(e.target.checked)}
+                className="w-4 h-4 accent-primary"
+              />
+              <span className="text-sm text-ink">Quiero factura con mis datos fiscales</span>
+            </label>
+            <p className="text-xs text-ink/40 mt-1 ml-6">
+              Si no la marcas, recibirás una factura simplificada a tu nombre.
+            </p>
+          </div>
+
+          {wantInvoice && (
+            <div className="space-y-4 bg-ink/[0.02] p-4 -mx-1">
+              <div>
+                <label className="block text-xs font-medium text-ink/60 mb-1">
+                  Nombre o razón social
+                </label>
+                <input
+                  type="text"
+                  value={billing.tax_name}
+                  onChange={e => setBillingField('tax_name', e.target.value)}
+                  placeholder="María García López / Mi Empresa S.L."
+                  className={`w-full border px-3 py-2.5 text-sm text-ink bg-canvas
+                    focus:outline-none focus:ring-2 focus:ring-primary/40 transition-colors ${
+                      billingErrors.tax_name
+                        ? 'border-secondary/60 focus:ring-secondary/30'
+                        : 'border-ink/15 hover:border-ink/30'
+                    }`}
+                />
+                {billingErrors.tax_name && <p className="text-xs text-secondary mt-1">{billingErrors.tax_name}</p>}
+              </div>
+
+              <div>
+                <label className="block text-xs font-medium text-ink/60 mb-1">NIF / CIF</label>
+                <input
+                  type="text"
+                  value={billing.tax_id}
+                  onChange={e => setBillingField('tax_id', e.target.value.toUpperCase())}
+                  placeholder="12345678A"
+                  className={`w-full border px-3 py-2.5 text-sm text-ink bg-canvas font-mono
+                    focus:outline-none focus:ring-2 focus:ring-primary/40 transition-colors ${
+                      billingErrors.tax_id
+                        ? 'border-secondary/60 focus:ring-secondary/30'
+                        : 'border-ink/15 hover:border-ink/30'
+                    }`}
+                />
+                {billingErrors.tax_id && <p className="text-xs text-secondary mt-1">{billingErrors.tax_id}</p>}
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setBilling(b => ({
+                  ...b,
+                  address_line1: form.address_line1,
+                  address_line2: form.address_line2,
+                  postal_code:   form.postal_code,
+                  city:          form.city,
+                  province:      form.state,
+                  country:       form.country,
+                }))}
+                className="text-xs text-primary hover:underline"
+              >
+                Usar la misma dirección de envío
+              </button>
+
+              <div>
+                <label className="block text-xs font-medium text-ink/60 mb-1">
+                  Dirección de facturación
+                </label>
+                <input
+                  type="text"
+                  value={billing.address_line1}
+                  onChange={e => setBillingField('address_line1', e.target.value)}
+                  placeholder="Calle Mayor, 42"
+                  className={`w-full border px-3 py-2.5 text-sm text-ink bg-canvas
+                    focus:outline-none focus:ring-2 focus:ring-primary/40 transition-colors ${
+                      billingErrors.address_line1
+                        ? 'border-secondary/60 focus:ring-secondary/30'
+                        : 'border-ink/15 hover:border-ink/30'
+                    }`}
+                />
+                {billingErrors.address_line1 && <p className="text-xs text-secondary mt-1">{billingErrors.address_line1}</p>}
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-medium text-ink/60 mb-1">Código postal</label>
+                  <input
+                    type="text"
+                    value={billing.postal_code}
+                    onChange={e => setBillingField('postal_code', e.target.value)}
+                    placeholder="28001"
+                    className={`w-full border px-3 py-2.5 text-sm text-ink bg-canvas
+                      focus:outline-none focus:ring-2 focus:ring-primary/40 transition-colors ${
+                        billingErrors.postal_code
+                          ? 'border-secondary/60 focus:ring-secondary/30'
+                          : 'border-ink/15 hover:border-ink/30'
+                      }`}
+                  />
+                  {billingErrors.postal_code && <p className="text-xs text-secondary mt-1">{billingErrors.postal_code}</p>}
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-ink/60 mb-1">Ciudad</label>
+                  <input
+                    type="text"
+                    value={billing.city}
+                    onChange={e => setBillingField('city', e.target.value)}
+                    placeholder="Madrid"
+                    className={`w-full border px-3 py-2.5 text-sm text-ink bg-canvas
+                      focus:outline-none focus:ring-2 focus:ring-primary/40 transition-colors ${
+                        billingErrors.city
+                          ? 'border-secondary/60 focus:ring-secondary/30'
+                          : 'border-ink/15 hover:border-ink/30'
+                      }`}
+                  />
+                  {billingErrors.city && <p className="text-xs text-secondary mt-1">{billingErrors.city}</p>}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-medium text-ink/60 mb-1">Provincia</label>
+                  <input
+                    type="text"
+                    value={billing.province}
+                    onChange={e => setBillingField('province', e.target.value)}
+                    placeholder="Madrid"
+                    className={`w-full border px-3 py-2.5 text-sm text-ink bg-canvas
+                      focus:outline-none focus:ring-2 focus:ring-primary/40 transition-colors ${
+                        billingErrors.province
+                          ? 'border-secondary/60 focus:ring-secondary/30'
+                          : 'border-ink/15 hover:border-ink/30'
+                      }`}
+                  />
+                  {billingErrors.province && <p className="text-xs text-secondary mt-1">{billingErrors.province}</p>}
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-ink/60 mb-1">País</label>
+                  <select
+                    value={billing.country}
+                    onChange={e => setBillingField('country', e.target.value)}
+                    className="w-full border px-3 py-2.5 text-sm text-ink bg-canvas
+                      focus:outline-none focus:ring-2 focus:ring-primary/40 transition-colors
+                      border-ink/15 hover:border-ink/30"
+                  >
+                    <option value="ES">España</option>
+                    <option disabled>──────────────</option>
+                    {COUNTRIES.filter(c => c.code !== 'ES').map(c => (
+                      <option key={c.code} value={c.code}>{c.name}</option>
+                    ))}
+                  </select>
+                  {billingErrors.country && <p className="text-xs text-secondary mt-1">{billingErrors.country}</p>}
+                </div>
+              </div>
+            </div>
+          )}
 
         </form>
 

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { getOrders } from '../api/orders'
+import { downloadOrderInvoice, getOrders } from '../api/orders'
 import type { Order, OrderStatus } from '../types/order'
 
 const euros = new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' })
@@ -23,9 +23,10 @@ function StatusBadge({ status }: { status: OrderStatus }) {
 }
 
 export default function OrdersPage() {
-  const [orders, setOrders]   = useState<Order[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError]     = useState(false)
+  const [orders, setOrders]               = useState<Order[]>([])
+  const [loading, setLoading]             = useState(true)
+  const [error, setError]                 = useState(false)
+  const [downloadingId, setDownloadingId] = useState<number | null>(null)
 
   useEffect(() => {
     getOrders()
@@ -33,6 +34,21 @@ export default function OrdersPage() {
       .catch(() => setError(true))
       .finally(() => setLoading(false))
   }, [])
+
+  async function handleDownloadInvoice(orderId: number, fullNumber: string) {
+    setDownloadingId(orderId)
+    try {
+      const blob = await downloadOrderInvoice(orderId)
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `${fullNumber}.pdf`
+      a.click()
+      URL.revokeObjectURL(url)
+    } finally {
+      setDownloadingId(null)
+    }
+  }
 
   if (loading) {
     return (
@@ -131,6 +147,15 @@ export default function OrdersPage() {
                   <p className="text-xs text-ink/40">
                     {totalItems} {totalItems === 1 ? 'artículo' : 'artículos'}
                   </p>
+                  {order.invoice && (
+                    <button
+                      onClick={() => handleDownloadInvoice(order.id, order.invoice!.full_number)}
+                      disabled={downloadingId === order.id}
+                      className="text-xs font-medium text-primary hover:underline disabled:opacity-50"
+                    >
+                      {downloadingId === order.id ? 'Descargando…' : 'Descargar factura'}
+                    </button>
+                  )}
                 </div>
               </div>
             )

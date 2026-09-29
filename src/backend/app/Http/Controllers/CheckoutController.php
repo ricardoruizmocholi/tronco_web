@@ -29,11 +29,21 @@ class CheckoutController extends Controller
             'shipping_address.city'          => ['required', 'string', 'max:255'],
             'shipping_address.state'         => ['required', 'string', 'max:255'],
             'shipping_address.country'       => ['required', 'string', 'size:2'],
+            'billing_info'                    => ['nullable', 'array'],
+            'billing_info.tax_name'           => ['required_with:billing_info', 'string', 'max:255'],
+            'billing_info.tax_id'             => ['required_with:billing_info', 'string', 'max:20'],
+            'billing_info.address_line1'      => ['required_with:billing_info', 'string', 'max:255'],
+            'billing_info.address_line2'      => ['nullable', 'string', 'max:255'],
+            'billing_info.postal_code'        => ['required_with:billing_info', 'string', 'max:20'],
+            'billing_info.city'               => ['required_with:billing_info', 'string', 'max:255'],
+            'billing_info.province'           => ['required_with:billing_info', 'string', 'max:255'],
+            'billing_info.country'            => ['required_with:billing_info', 'string', 'size:2'],
         ]);
 
         $user            = $request->user();
         $incoming        = collect($request->input('items'));
         $shippingAddress = $request->input('shipping_address');
+        $billingInfo     = $request->input('billing_info');
         $productIds      = $incoming->pluck('product_id')->unique()->values();
 
         // Carga productos activos de una sola query — con la promoción vigente si existe
@@ -139,12 +149,13 @@ class CheckoutController extends Controller
         }
 
         // Crea el Order con dirección y coste reales desde el inicio
-        $order = DB::transaction(function () use ($user, $incoming, $products, $variants, $total, $shippingCost, $shippingAddress) {
+        $order = DB::transaction(function () use ($user, $incoming, $products, $variants, $total, $shippingCost, $shippingAddress, $billingInfo) {
             $order = Order::create([
                 'user_id'          => $user->id,
                 'total'            => $total,
                 'shipping_cost'    => $shippingCost,
                 'shipping_address' => $shippingAddress,
+                'billing_info'     => $billingInfo,
             ]);
 
             foreach ($incoming as $line) {

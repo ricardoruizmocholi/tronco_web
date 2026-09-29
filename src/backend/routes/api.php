@@ -3,6 +3,8 @@
 use App\Http\Controllers\AdminCancellationController;
 use App\Http\Controllers\AdminFanficController;
 use App\Http\Controllers\AdminHeroController;
+use App\Http\Controllers\AdminBillingSettingsController;
+use App\Http\Controllers\AdminInvoiceController;
 use App\Http\Controllers\AdminMaintenanceController;
 use App\Http\Controllers\AdminNewsletterController;
 use App\Http\Controllers\AdminNotificationController;
@@ -89,6 +91,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/checkout',              [CheckoutController::class,      'store']);
     Route::get('/orders',                 [OrderController::class,          'index']);
     Route::get('/orders/{order}',         [OrderController::class,          'show']);
+    Route::get('/orders/{order}/invoice', [OrderController::class,          'invoice']);
     Route::post('/orders/{order}/cancel', [CancellationController::class,  'cancel']);
     Route::post('/orders/{order}/return', [ReturnRequestController::class, 'store']);
     Route::get('/user/returns',           [ReturnRequestController::class, 'index']);
@@ -129,6 +132,13 @@ Route::middleware(['auth:sanctum', 'admin'])->prefix('admin')->group(function ()
     Route::get('/notifications', [AdminNotificationController::class, 'index']);
 
     Route::put('/maintenance', [AdminMaintenanceController::class, 'update']);
+
+    Route::get('/billing-settings', [AdminBillingSettingsController::class, 'show']);
+    Route::put('/billing-settings', [AdminBillingSettingsController::class, 'update']);
+
+    Route::get('/invoices',                   [AdminInvoiceController::class, 'index']);
+    Route::get('/invoices/{invoice}',         [AdminInvoiceController::class, 'show']);
+    Route::get('/invoices/{invoice}/download', [AdminInvoiceController::class, 'download']);
 
     Route::get('/products',                        [ProductController::class, 'adminIndex']);
     Route::post('/products',                       [ProductController::class, 'store']);
