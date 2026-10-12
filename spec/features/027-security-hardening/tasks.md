@@ -44,7 +44,10 @@ aparte, no se mezcla con una auditoría de seguridad verificable.
    verificación pre-deploy, o solo documentación en `docs/`?)
 5. [ ] M2 — Decidir el trade-off de enumeración de email antes de tocar
    `RegisterRequest`
-6. [ ] M3 — Borrar `app/Http/Middleware/Authenticate.php`
+6. [x] M3 — Borrado `app/Http/Middleware/Authenticate.php` (confirmado sin
+   referencias en todo el repo). Verificado: `auth:sanctum` sigue
+   devolviendo 401 en rutas protegidas sin él, suite completa sin cambios
+   (92 passed / 19 failed, mismo baseline).
 7. [ ] B1 — Middleware de cabeceras de seguridad (revisar orígenes externos
    del frontend antes de escribir la CSP)
 8. [ ] B2 — `Password::uncompromised()` en `RegisterRequest`
