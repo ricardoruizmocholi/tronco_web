@@ -58,6 +58,41 @@ class AuthTest extends TestCase
           ->assertJson(['message' => 'Credenciales incorrectas.']);
     }
 
+    // Feature 027 (H1) — sin esto, /login aceptaba intentos ilimitados
+    public function test_login_is_rate_limited_after_five_attempts(): void
+    {
+        User::factory()->create(['email' => 'victim@example.com']);
+
+        for ($i = 0; $i < 5; $i++) {
+            $this->fromBrowser()->postJson('/api/login', [
+                'email' => 'victim@example.com', 'password' => 'wrong-password',
+            ])->assertUnauthorized();
+        }
+
+        // El 6.º intento en la misma ventana de 1 minuto debe bloquearse,
+        // incluso con la contraseña correcta — el límite es por IP, no por
+        // si las credenciales son válidas.
+        $this->fromBrowser()->postJson('/api/login', [
+            'email' => 'victim@example.com', 'password' => 'password',
+        ])->assertStatus(429);
+    }
+
+    // Feature 027 (H1) — /register también debe limitarse, mismo contador que /login
+    public function test_register_is_rate_limited_after_five_attempts(): void
+    {
+        for ($i = 0; $i < 5; $i++) {
+            $this->fromBrowser()->postJson('/api/register', [
+                'name' => "User {$i}", 'email' => "user{$i}@example.com",
+                'password' => 'password123', 'password_confirmation' => 'password123',
+            ])->assertStatus(201);
+        }
+
+        $this->fromBrowser()->postJson('/api/register', [
+            'name' => 'One More', 'email' => 'onemore@example.com',
+            'password' => 'password123', 'password_confirmation' => 'password123',
+        ])->assertStatus(429);
+    }
+
     public function test_admin_route_returns_403_for_non_admin(): void
     {
         Route::middleware(['auth:sanctum', 'admin'])

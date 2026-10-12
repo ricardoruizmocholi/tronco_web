@@ -12,8 +12,21 @@ aparte, no se mezcla con una auditoría de seguridad verificable.
    sirve como texto plano (`application/octet-stream`) en vez de
    ejecutarse; una imagen real sigue sirviéndose con su content-type
    correcto; `/api/health` y la home siguen respondiendo con normalidad.
-2. [ ] H1 — `throttle` en `/login`, `/register`, `/newsletter/subscribe`,
-   `/checkout` + evaluar límite global del grupo `api`
+2. [x] H1 — Limitadores nombrados por IP (`auth`: 5/min, `checkout`: 10/min,
+   `newsletter`: 3/min) en `AppServiceProvider`, aplicados a `/login`,
+   `/register`, `/checkout`, `/newsletter/subscribe`. **No** el
+   `throttle:N,1` por defecto de Laravel — ese prioriza el usuario
+   autenticado sobre la IP, y como `AuthController::register()` hace login
+   automático tras crear la cuenta, el límite por defecto no protege
+   `/register` contra registro masivo (cada alta con éxito le da al
+   siguiente intento una cuenta nueva). Detectado escribiendo el test antes
+   de darlo por bueno, no asumiendo que "throttle" ya bastaba.
+   Límite global del grupo `api` descartado — el polling de
+   `/maintenance-status` (cada 15s) + notificaciones + navegación normal
+   podría disparar falsos positivos en una sesión activa legítima.
+   6 tests nuevos (`AuthTest`, `NewsletterTest`, `CheckoutTest`); suite
+   completa en 86 passed / 19 failed (los 19 son el baseline preexistente
+   sin relación, confirmado antes de empezar).
 3. [ ] H3 — `ImageUploadController` y `ReturnRequestController`: excluir
    SVG de las subidas de imagen, derivar la extensión del MIME real en vez
    de `getClientOriginalExtension()`

@@ -36,8 +36,13 @@ use App\Http\Controllers\StripeWebhookController;
 use App\Http\Controllers\VideoUploadController;
 use Illuminate\Support\Facades\Route;
 
-Route::post('/register', [AuthController::class, 'register']);
-Route::post('/login',    [AuthController::class, 'login']);
+// Limitador nombrado "auth" (5/min por IP, definido en AppServiceProvider)
+// — no el throttle:N,1 por defecto, que prioriza el usuario autenticado
+// sobre la IP y no protege /register correctamente (ver comentario allí).
+Route::middleware('throttle:auth')->group(function () {
+    Route::post('/register', [AuthController::class, 'register']);
+    Route::post('/login',    [AuthController::class, 'login']);
+});
 
 // Las rutas de Google OAuth viven en routes/web.php, no aquí — ver el
 // comentario en ese archivo (necesitan sesión disponible incondicionalmente,
@@ -88,7 +93,8 @@ Route::get('/artists/{artist}', [ArtistController::class, 'show']);
 
 // Checkout y pedidos (usuario autenticado)
 Route::middleware('auth:sanctum')->group(function () {
-    Route::post('/checkout',              [CheckoutController::class,      'store']);
+    // Limitador "checkout" (10/min por IP) — evita bucles de creación de pedidos "pending"
+    Route::post('/checkout', [CheckoutController::class, 'store'])->middleware('throttle:checkout');
     Route::get('/orders',                 [OrderController::class,          'index']);
     Route::get('/orders/{order}',         [OrderController::class,          'show']);
     Route::get('/orders/{order}/invoice', [OrderController::class,          'invoice']);
@@ -106,8 +112,9 @@ Route::get('/banners', [BannerController::class, 'publicIndex']);
 // Hero slides — público
 Route::get('/hero-slides', [HeroSlideController::class, 'publicIndex']);
 
-// Newsletter — público
-Route::post('/newsletter/subscribe', [NewsletterController::class, 'subscribe']);
+// Newsletter — público. Limitador "newsletter" (3/min por IP) contra spam de suscripción
+Route::post('/newsletter/subscribe', [NewsletterController::class, 'subscribe'])
+    ->middleware('throttle:newsletter');
 
 // Fanfics — globo público
 Route::get('/fanfics', [FanficController::class, 'publicIndex']);

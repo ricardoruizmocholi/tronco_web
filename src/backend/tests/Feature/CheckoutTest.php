@@ -346,4 +346,29 @@ class CheckoutTest extends TestCase
 
         $this->assertNull(Order::first()->billing_info);
     }
+
+    // Feature 027 (H1) — sin esto, /checkout aceptaba intentos ilimitados
+    // (el stock no se descuenta hasta que el webhook confirma el pago, así
+    // que 10 llamadas con quantity:1 no agotan el stock=10 del setUp)
+    public function test_checkout_is_rate_limited_after_ten_attempts(): void
+    {
+        for ($i = 0; $i < 10; $i++) {
+            // sesión de Stripe única por intento — orders.stripe_session_id es unique
+            $this->mockStripeSession("cs_test_mock{$i}", "https://checkout.stripe.com/pay/cs_test_mock{$i}");
+
+            $this->actingAs($this->user)
+                ->postJson('/api/checkout', [
+                    'items'            => [['product_id' => $this->product->id, 'quantity' => 1]],
+                    'shipping_address' => $this->validShippingAddress(),
+                ])
+                ->assertStatus(201);
+        }
+
+        $this->actingAs($this->user)
+            ->postJson('/api/checkout', [
+                'items'            => [['product_id' => $this->product->id, 'quantity' => 1]],
+                'shipping_address' => $this->validShippingAddress(),
+            ])
+            ->assertStatus(429);
+    }
 }
