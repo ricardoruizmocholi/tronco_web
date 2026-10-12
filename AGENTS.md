@@ -30,6 +30,9 @@ cookie-based de Sanctum (`EnsureFrontendRequestsAreStateful`).
 - `docker exec troncodrilo_backend php artisan test` — tests de backend (PHPUnit)
 - `docker exec troncodrilo_backend php artisan migrate` — migraciones
 - `docker exec troncodrilo_backend php artisan tinker` — consola interactiva
+- `docker exec troncodrilo_backend php artisan app:check-deploy-readiness`
+  — checklist automatizada antes de desplegar a IONOS (sale con código
+  distinto de cero si algo no está listo)
 - `docker exec troncodrilo_frontend npx vite build` — build de producción del frontend
 - `docker exec troncodrilo_frontend npx eslint src` — lint de frontend
 - No hay suite de tests automatizados en frontend todavía (sin Vitest ni

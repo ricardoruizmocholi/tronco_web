@@ -40,8 +40,17 @@ aparte, no se mezcla con una auditoría de seguridad verificable.
    MIME real y no del nombre de archivo del cliente, invitado sin sesión
    recibe 401. Suite completa: 92 passed / 19 failed (baseline
    preexistente sin relación).
-4. [ ] M1 — Documentar/automatizar la checklist de despliegue (¿script de
-   verificación pre-deploy, o solo documentación en `docs/`?)
+4. [x] M1 — `php artisan app:check-deploy-readiness`: comprueba `APP_ENV`,
+   `APP_DEBUG`, `APP_KEY`, `SESSION_SECURE_COOKIE`,
+   `SANCTUM_STATEFUL_DOMAINS` y `cors.allowed_origins`; sale con código
+   distinto de cero si algo falla (encadenable en un script de deploy).
+   Automatizado en vez de solo documentado — una checklist en markdown
+   depende de que alguien se acuerde de mirarla antes de cada deploy.
+   Verificado contra el `.env` de desarrollo actual (5 de 6 comprobaciones
+   fallan correctamente, como se espera en local) y con overrides de
+   config simulando producción (3 tests nuevos,
+   `CheckDeployReadinessCommandTest`). Suite completa: 95 passed / 19
+   failed (mismo baseline).
 5. [ ] M2 — Decidir el trade-off de enumeración de email antes de tocar
    `RegisterRequest`
 6. [x] M3 — Borrado `app/Http/Middleware/Authenticate.php` (confirmado sin

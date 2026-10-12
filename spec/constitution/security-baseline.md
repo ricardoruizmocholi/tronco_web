@@ -8,15 +8,15 @@ el estado real verificado del proyecto, no una aspiración.
 ## 1. Secretos y claves
 - [x] Ninguna clave (Stripe, credenciales de MySQL, `APP_KEY`) hardcodeada en código
 - [x] `.env` en `.gitignore` desde el primer commit
-- [ ] Antes de cada deploy a IONOS, repasar: `APP_ENV=production`,
-      `APP_DEBUG=false`, `SESSION_SECURE_COOKIE=true`,
-      `SANCTUM_STATEFUL_DOMAINS` con el dominio real,
-      `config/cors.php` → `allowed_origins` con el dominio real. El `.env`
-      de desarrollo tiene `APP_DEBUG=true` a propósito — si eso llega a
-      producción, cualquier excepción no capturada muestra la traza
-      completa (y potencialmente variables de `.env`) a cualquier
-      visitante. Checklist sin automatizar todavía
-      (`spec/features/027-security-hardening/plan.md`, M1)
+- [x] Antes de cada deploy a IONOS, correr
+      `php artisan app:check-deploy-readiness` — comprueba `APP_ENV`,
+      `APP_DEBUG`, `APP_KEY`, `SESSION_SECURE_COOKIE`,
+      `SANCTUM_STATEFUL_DOMAINS` y `cors.allowed_origins`, y devuelve
+      código de salida distinto de cero si algo no está listo (se puede
+      encadenar en un script de deploy). El `.env` de desarrollo tiene
+      `APP_DEBUG=true` a propósito — si eso llega a producción, cualquier
+      excepción no capturada muestra la traza completa (y potencialmente
+      variables de `.env`) a cualquier visitante
 
 ## 2. Base de datos (MySQL, sin RLS nativo)
 - [x] Cada endpoint que accede a un registro de usuario (pedido, factura,
