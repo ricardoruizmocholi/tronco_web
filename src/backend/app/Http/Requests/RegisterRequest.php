@@ -5,6 +5,7 @@ namespace App\Http\Requests;
 use App\Models\User;
 use Closure;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rules\Password;
 
 class RegisterRequest extends FormRequest
 {
@@ -18,7 +19,11 @@ class RegisterRequest extends FormRequest
         return [
             'name'     => ['required', 'string', 'max:255'],
             'email'    => ['required', 'string', 'email', 'max:255', $this->emailNotTaken()],
-            'password' => ['required', 'string', 'min:8', 'confirmed'],
+            // uncompromised() comprueba contra la base de HaveIBeenPwned por
+            // k-anonimato (solo se envía un prefijo del hash, nunca la
+            // contraseña en claro) — rechaza contraseñas filtradas conocidas
+            // aunque cumplan el mínimo de longitud (Feature 027, B2).
+            'password' => ['required', 'string', 'confirmed', Password::min(8)->uncompromised()],
         ];
     }
 

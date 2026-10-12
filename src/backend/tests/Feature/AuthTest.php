@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\User;
+use Illuminate\Contracts\Validation\UncompromisedVerifier;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Route;
 use Tests\TestCase;
@@ -56,6 +57,31 @@ class AuthTest extends TestCase
             'already been taken',
             (string) $response->json('errors.email.0')
         );
+    }
+
+    // Feature 027 (B2) — Password::uncompromised() debe rechazar de verdad
+    // una contraseña filtrada, no solo estar presente en la regla. Se
+    // sustituye el UncompromisedVerifier del contenedor en vez de fakear
+    // la llamada HTTP a HaveIBeenPwned directamente — el fake por defecto
+    // de TestCase (que simula "no comprometida" para el resto de tests)
+    // se resuelve antes que cualquier Http::fake() más específico que se
+    // registre después, por orden de registro, así que no sirve aquí.
+    public function test_registration_rejects_a_known_compromised_password(): void
+    {
+        $this->app->bind(UncompromisedVerifier::class, fn () => new class implements UncompromisedVerifier {
+            public function verify($data): bool
+            {
+                return false; // simula "sí está en una filtración conocida"
+            }
+        });
+
+        $response = $this->fromBrowser()->postJson('/api/register', [
+            'name' => 'Test', 'email' => 'newuser@example.com',
+            'password' => 'correct horse battery staple',
+            'password_confirmation' => 'correct horse battery staple',
+        ]);
+
+        $response->assertStatus(422)->assertJsonValidationErrors('password');
     }
 
     public function test_user_can_login(): void

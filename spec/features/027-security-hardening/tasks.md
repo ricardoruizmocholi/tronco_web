@@ -65,7 +65,16 @@ aparte, no se mezcla con una auditoría de seguridad verificable.
    (92 passed / 19 failed, mismo baseline).
 7. [ ] B1 — Middleware de cabeceras de seguridad (revisar orígenes externos
    del frontend antes de escribir la CSP)
-8. [ ] B2 — `Password::uncompromised()` en `RegisterRequest`
+8. [x] B2 — `Password::min(8)->uncompromised()` en `RegisterRequest`;
+   consulta la API de HaveIBeenPwned por k-anonimato (solo se envía un
+   prefijo del hash, nunca la contraseña en claro). `TestCase` base fakea
+   la llamada HTTP por defecto para que el resto de tests no dependan de
+   un tercero externo ni se ralenticen; el test que prueba el rechazo
+   sustituye el `UncompromisedVerifier` del contenedor directamente en vez
+   de pelear con el orden de resolución de `Http::fake()` (el fake por
+   defecto, registrado antes, gana siempre sobre uno más específico
+   registrado después — se descubrió escribiendo el test, no se asumió).
+   2 tests nuevos. Suite completa: 97 passed / 19 failed (mismo baseline).
 9. [ ] Tests de regresión para cada arreglo que lo permita (rate limiting,
    SVG rechazado, nginx no ejecuta `.php` bajo `/storage`) + QA manual +
    commit + push
