@@ -27,9 +27,19 @@ aparte, no se mezcla con una auditoría de seguridad verificable.
    6 tests nuevos (`AuthTest`, `NewsletterTest`, `CheckoutTest`); suite
    completa en 86 passed / 19 failed (los 19 son el baseline preexistente
    sin relación, confirmado antes de empezar).
-3. [ ] H3 — `ImageUploadController` y `ReturnRequestController`: excluir
-   SVG de las subidas de imagen, derivar la extensión del MIME real en vez
-   de `getClientOriginalExtension()`
+3. [x] H3 — `ImageUploadController` y `ReturnRequestController`: regla de
+   validación cambiada de `image` (acepta SVG) a `mimes:jpeg,png,gif,webp`
+   explícito; extensión guardada ahora viene de `$file->extension()` (MIME
+   real detectado) en vez de `getClientOriginalExtension()` (nombre que
+   manda el cliente). De paso, comentario corregido en
+   `ImageUploadController` — la ruta real es `/api/upload-image` (sin
+   prefijo `/admin`, accesible a cualquier usuario autenticado, no solo
+   admin — el comentario decía lo contrario).
+   6 tests nuevos (`ImageUploadTest`, `ReturnRequestImageTest`): SVG
+   rechazado con 422, imagen real aceptada, extensión guardada viene del
+   MIME real y no del nombre de archivo del cliente, invitado sin sesión
+   recibe 401. Suite completa: 92 passed / 19 failed (baseline
+   preexistente sin relación).
 4. [ ] M1 — Documentar/automatizar la checklist de despliegue (¿script de
    verificación pre-deploy, o solo documentación en `docs/`?)
 5. [ ] M2 — Decidir el trade-off de enumeración de email antes de tocar

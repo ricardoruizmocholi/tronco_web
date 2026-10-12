@@ -32,7 +32,9 @@ class ReturnRequestController extends Controller
         $data = $request->validate([
             'reason'                => ['required', 'in:defectuoso,no_corresponde,desistimiento,otro'],
             'description'           => ['nullable', 'string', 'max:1000'],
-            'image'                 => ['required', 'file', 'image', 'max:5120'],
+            // mimes explícito, no la regla genérica "image" — esa acepta SVG,
+            // que puede llevar <script> embebido (Feature 027, hallazgo H3).
+            'image'                 => ['required', 'file', 'mimes:jpeg,png,gif,webp', 'max:5120'],
             'items'                 => ['nullable', 'array', 'min:1'],
             'items.*.order_item_id' => ['required_with:items', 'integer'],
             'items.*.quantity'      => ['required_with:items', 'integer', 'min:1'],
@@ -57,8 +59,10 @@ class ReturnRequestController extends Controller
             }
         }
 
-        $file      = $request->file('image');
-        $filename  = Str::uuid() . '.' . $file->getClientOriginalExtension();
+        $file = $request->file('image');
+        // extension() usa el MIME real detectado del contenido, no el nombre
+        // que mande el cliente — getClientOriginalExtension() es del cliente.
+        $filename = Str::uuid() . '.' . $file->extension();
         $file->storeAs('images', $filename, 'public');
         $imageUrl  = config('app.url') . '/storage/images/' . $filename;
 
