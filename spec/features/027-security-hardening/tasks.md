@@ -51,8 +51,14 @@ aparte, no se mezcla con una auditoría de seguridad verificable.
    config simulando producción (3 tests nuevos,
    `CheckDeployReadinessCommandTest`). Suite completa: 95 passed / 19
    failed (mismo baseline).
-5. [ ] M2 — Decidir el trade-off de enumeración de email antes de tocar
-   `RegisterRequest`
+5. [x] M2 — Decidido: mitigar, no aceptar el trade-off. `unique:users,email`
+   sustituido por una closure de validación con mensaje genérico, mismo
+   campo/forma de respuesta (422, `errors.email`) — el frontend no
+   necesitó cambios. Límite honesto documentado en `spec.md`: sin
+   verificación por email (fuera de alcance), la existencia aún se puede
+   inferir por la aparición del error, solo que ya no se confirma
+   explícitamente. 1 test nuevo (`AuthTest`). Suite completa: 96 passed /
+   19 failed (mismo baseline).
 6. [x] M3 — Borrado `app/Http/Middleware/Authenticate.php` (confirmado sin
    referencias en todo el repo). Verificado: `auth:sanctum` sigue
    devolviendo 401 en rutas protegidas sin él, suite completa sin cambios

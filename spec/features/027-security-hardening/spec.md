@@ -70,12 +70,21 @@ uno de los fallos de configuración de Laravel más comunes y más graves.
 *Archivo:* `src/backend/.env` (no versionado — por eso no hay nada que lo
 fuerce a cambiar antes de un deploy).
 
-**M2 — Enumeración de email en registro.**
-`RegisterRequest` usa `unique:users,email`, así que el mensaje de error de
-validación revela si un email ya tiene cuenta. Es un trade-off común (mejor
-UX a cambio de una fuga de información menor), pero no está decidido
-explícitamente en ningún sitio — vale la pena que sea una decisión, no un
-efecto colateral.
+**M2 — Enumeración de email en registro. [Mitigado]**
+`RegisterRequest` usaba `unique:users,email`, así que el mensaje de error
+de validación confirmaba literalmente "The email has already been taken".
+Decisión: mitigar, no aceptar el trade-off. La regla `unique` se sustituyó
+por una closure de validación que comprueba lo mismo pero devuelve un
+mensaje genérico ("No se pudo completar el registro con ese email. Si ya
+tienes cuenta, inicia sesión en su lugar.") en el mismo campo/forma de
+respuesta (422, `errors.email`), así que el frontend no necesitó ningún
+cambio. **Límite honesto de esta mitigación**: sin un paso de verificación
+por email (que este proyecto no tiene — el usuario queda logueado
+inmediatamente tras registrarse), un atacante todavía puede inferir que un
+email existe por la propia aparición del error, aunque el mensaje ya no lo
+diga con todas las letras. Eliminar el vector por completo requeriría
+añadir confirmación por email antes de dar la cuenta por creada — fuera de
+alcance de este arreglo puntual.
 *Archivo:* `app/Http/Requests/RegisterRequest.php`.
 
 **M3 — Middleware `Authenticate.php` muerto y confuso.**

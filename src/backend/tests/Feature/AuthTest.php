@@ -36,6 +36,28 @@ class AuthTest extends TestCase
         ]);
     }
 
+    // Feature 027 (M2) — la regla unique:users,email por defecto de
+    // Laravel confirma literalmente "ya está en uso". Un mensaje genérico
+    // en el mismo campo/forma de respuesta mitiga la enumeración sin
+    // romper el frontend (sigue siendo 422 + errors.email).
+    public function test_duplicate_email_gets_generic_message_not_confirming_existence(): void
+    {
+        User::factory()->create(['email' => 'existing@example.com']);
+
+        $response = $this->fromBrowser()->postJson('/api/register', [
+            'name'                  => 'Otro',
+            'email'                 => 'existing@example.com',
+            'password'              => 'password123',
+            'password_confirmation' => 'password123',
+        ]);
+
+        $response->assertStatus(422)->assertJsonValidationErrors('email');
+        $this->assertStringNotContainsString(
+            'already been taken',
+            (string) $response->json('errors.email.0')
+        );
+    }
+
     public function test_user_can_login(): void
     {
         $user = User::factory()->create();
