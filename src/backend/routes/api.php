@@ -16,6 +16,7 @@ use App\Http\Controllers\CancellationController;
 use App\Http\Controllers\HeroSlideController;
 use App\Http\Controllers\MaintenanceController;
 use App\Http\Controllers\NewsletterController;
+use App\Http\Controllers\PasswordResetController;
 use App\Http\Controllers\PreorderController;
 use App\Http\Controllers\ReturnRequestController;
 use App\Http\Controllers\ArtistController;
@@ -42,6 +43,11 @@ use Illuminate\Support\Facades\Route;
 Route::middleware('throttle:auth')->group(function () {
     Route::post('/register', [AuthController::class, 'register']);
     Route::post('/login',    [AuthController::class, 'login']);
+
+    // Mismo limitador que login/registro — sin esto, /forgot-password
+    // dejaría enviar emails de reset en bucle a cualquier dirección.
+    Route::post('/forgot-password', [PasswordResetController::class, 'forgotPassword']);
+    Route::post('/reset-password',  [PasswordResetController::class, 'resetPassword']);
 });
 
 // Las rutas de Google OAuth viven en routes/web.php, no aquí — ver el

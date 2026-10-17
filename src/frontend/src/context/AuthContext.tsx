@@ -10,13 +10,15 @@ export interface AuthUser {
 }
 
 interface AuthContextValue {
-  user:        AuthUser | null
-  loading:     boolean
-  login:       (email: string, password: string) => Promise<void>
-  register:    (name: string, email: string, password: string, confirmation: string) => Promise<void>
-  logout:      () => Promise<void>
-  refreshUser: () => Promise<void>
-  setUser:     (user: AuthUser) => void
+  user:           AuthUser | null
+  loading:        boolean
+  login:          (email: string, password: string) => Promise<void>
+  register:       (name: string, email: string, password: string, confirmation: string) => Promise<void>
+  logout:         () => Promise<void>
+  refreshUser:    () => Promise<void>
+  setUser:        (user: AuthUser) => void
+  forgotPassword: (email: string) => Promise<string>
+  resetPassword:  (token: string, email: string, password: string, confirmation: string) => Promise<string>
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null)
@@ -69,8 +71,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
+  async function forgotPassword(email: string): Promise<string> {
+    const { data } = await api.post<{ message: string }>('/api/forgot-password', { email })
+    return data.message
+  }
+
+  async function resetPassword(
+    token: string, email: string, password: string, confirmation: string
+  ): Promise<string> {
+    const { data } = await api.post<{ message: string }>('/api/reset-password', {
+      token,
+      email,
+      password,
+      password_confirmation: confirmation,
+    })
+    return data.message
+  }
+
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, logout, refreshUser, setUser }}>
+    <AuthContext.Provider value={{
+      user, loading, login, register, logout, refreshUser, setUser, forgotPassword, resetPassword,
+    }}>
       {children}
     </AuthContext.Provider>
   )

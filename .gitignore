@@ -1,0 +1,4 @@
+# Volcados de base de datos generados localmente para despliegue —
+# nunca versionados (el de admin incluye un hash de contraseña).
+/schema.sql
+/admin-seed.sql

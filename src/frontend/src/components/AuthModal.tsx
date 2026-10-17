@@ -77,13 +77,18 @@ interface ContentProps {
 }
 
 function AuthModalContent({ defaultTab, closeModal }: ContentProps) {
-  const { login, register } = useAuth()
+  const { login, register, forgotPassword } = useAuth()
   const [tab, setTab] = useState<AuthModalTab>(defaultTab)
+  const [forgotMode, setForgotMode] = useState(false)
 
   const [loginEmail, setLoginEmail]       = useState('')
   const [loginPassword, setLoginPassword] = useState('')
   const [loginError, setLoginError]       = useState('')
   const [loginLoading, setLoginLoading]   = useState(false)
+
+  const [forgotEmail, setForgotEmail]     = useState('')
+  const [forgotMessage, setForgotMessage] = useState('')
+  const [forgotLoading, setForgotLoading] = useState(false)
 
   const [name, setName]                 = useState('')
   const [email, setEmail]               = useState('')
@@ -153,6 +158,23 @@ function AuthModalContent({ defaultTab, closeModal }: ContentProps) {
     }
   }
 
+  async function handleForgotSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    setForgotMessage('')
+    if (!forgotEmail) return
+    setForgotLoading(true)
+    try {
+      const message = await forgotPassword(forgotEmail)
+      setForgotMessage(message)
+    } catch {
+      // El backend siempre responde 200 aquí salvo fallo de validación —
+      // si llega a fallar, el mensaje genérico no delata nada igualmente.
+      setForgotMessage('Si ese email tiene una cuenta, recibirás un enlace para restablecer la contraseña.')
+    } finally {
+      setForgotLoading(false)
+    }
+  }
+
   async function handleGoogleClick() {
     setGoogleError('')
     try {
@@ -187,19 +209,54 @@ function AuthModalContent({ defaultTab, closeModal }: ContentProps) {
 
       <hr className="border-ink/10 my-6" />
 
-      {/* Tabs */}
-      <div className="flex border-b border-ink/10 mb-6">
-        <button type="button" onClick={() => setTab('login')} className={tabCls(tab === 'login')}>
-          Iniciar sesión
-        </button>
-        <button type="button" onClick={() => setTab('register')} className={tabCls(tab === 'register')}>
-          Registrarse
-        </button>
-      </div>
+      {/* Tabs — ocultos en modo "olvidé mi contraseña", es un flujo aparte */}
+      {!forgotMode && (
+        <div className="flex border-b border-ink/10 mb-6">
+          <button type="button" onClick={() => setTab('login')} className={tabCls(tab === 'login')}>
+            Iniciar sesión
+          </button>
+          <button type="button" onClick={() => setTab('register')} className={tabCls(tab === 'register')}>
+            Registrarse
+          </button>
+        </div>
+      )}
 
-      {/* Contenido del tab activo — key={tab} dispara el fade al cambiar */}
-      <div key={tab} className="animate-[fade-in_150ms_ease-in-out]">
-        {tab === 'login' ? (
+      {/* Contenido del tab activo — key dispara el fade al cambiar */}
+      <div key={forgotMode ? 'forgot' : tab} className="animate-[fade-in_150ms_ease-in-out]">
+        {forgotMode ? (
+          <form onSubmit={handleForgotSubmit} noValidate className="space-y-5">
+            <p className="text-sm text-ink/60">
+              Introduce tu email y te enviaremos un enlace para restablecer la contraseña.
+            </p>
+            <div>
+              <label htmlFor="auth-forgot-email" className="label-caps text-ink/50 block mb-1.5">Email</label>
+              <input
+                id="auth-forgot-email"
+                type="email"
+                value={forgotEmail}
+                onChange={e => setForgotEmail(e.target.value)}
+                autoComplete="email"
+                autoFocus
+                className={inputCls}
+              />
+            </div>
+
+            {forgotMessage && (
+              <p className="text-sm text-ink bg-ink/5 px-3 py-2">{forgotMessage}</p>
+            )}
+
+            <button type="submit" disabled={forgotLoading} className="btn-primary w-full">
+              {forgotLoading ? 'Enviando…' : 'Enviar enlace'}
+            </button>
+            <button
+              type="button"
+              onClick={() => { setForgotMode(false); setForgotMessage('') }}
+              className="w-full text-sm text-ink/50 hover:text-ink transition-colors"
+            >
+              Volver a iniciar sesión
+            </button>
+          </form>
+        ) : tab === 'login' ? (
           <form onSubmit={handleLoginSubmit} noValidate className="space-y-5">
             <div>
               <label htmlFor="auth-login-email" className="label-caps text-ink/50 block mb-1.5">Email</label>
@@ -223,6 +280,13 @@ function AuthModalContent({ defaultTab, closeModal }: ContentProps) {
                 autoComplete="current-password"
                 className={inputCls}
               />
+              <button
+                type="button"
+                onClick={() => setForgotMode(true)}
+                className="mt-1.5 text-xs text-ink/50 hover:text-ink transition-colors"
+              >
+                ¿Olvidaste tu contraseña?
+              </button>
             </div>
 
             {loginError && (
@@ -295,26 +359,30 @@ function AuthModalContent({ defaultTab, closeModal }: ContentProps) {
           </form>
         )}
 
-        {/* Separador + Google — común a ambos tabs */}
-        <div className="flex items-center gap-3 my-5">
-          <div className="flex-1 border-t border-ink/10" />
-          <span className="text-xs text-ink/40">— O —</span>
-          <div className="flex-1 border-t border-ink/10" />
-        </div>
+        {/* Separador + Google — común a login/registro, no aplica en modo "olvidé contraseña" */}
+        {!forgotMode && (
+          <>
+            <div className="flex items-center gap-3 my-5">
+              <div className="flex-1 border-t border-ink/10" />
+              <span className="text-xs text-ink/40">— O —</span>
+              <div className="flex-1 border-t border-ink/10" />
+            </div>
 
-        {googleError && (
-          <p className="text-sm text-secondary bg-secondary/10 px-3 py-2 mb-3">{googleError}</p>
+            {googleError && (
+              <p className="text-sm text-secondary bg-secondary/10 px-3 py-2 mb-3">{googleError}</p>
+            )}
+
+            <button
+              type="button"
+              onClick={handleGoogleClick}
+              className="w-full flex items-center justify-center gap-3 border border-ink bg-white text-ink
+                px-8 py-3 text-sm font-medium transition-colors hover:bg-ink/5"
+            >
+              <GoogleIcon />
+              Continuar con Google
+            </button>
+          </>
         )}
-
-        <button
-          type="button"
-          onClick={handleGoogleClick}
-          className="w-full flex items-center justify-center gap-3 border border-ink bg-white text-ink
-            px-8 py-3 text-sm font-medium transition-colors hover:bg-ink/5"
-        >
-          <GoogleIcon />
-          Continuar con Google
-        </button>
       </div>
     </>
   )

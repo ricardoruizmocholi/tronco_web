@@ -14,6 +14,7 @@ import ProtectedRoute from './components/ProtectedRoute'
 import HomePage from './pages/HomePage'
 import LoginPage from './pages/LoginPage'
 import RegisterPage from './pages/RegisterPage'
+import ResetPasswordPage from './pages/ResetPasswordPage'
 import NotFoundPage from './pages/NotFoundPage'
 import MaintenancePage from './pages/MaintenancePage'
 import StorePage from './pages/StorePage'
@@ -107,8 +108,9 @@ function App() {
           </Route>
 
           {/* Sin layout: auth a pantalla completa */}
-          <Route path="/login"    element={<LoginPage />} />
-          <Route path="/register" element={<RegisterPage />} />
+          <Route path="/login"          element={<LoginPage />} />
+          <Route path="/register"       element={<RegisterPage />} />
+          <Route path="/reset-password" element={<ResetPasswordPage />} />
 
           {/* Sin layout: 404 a pantalla completa, con su propio minijuego */}
           <Route path="*" element={<NotFoundPage />} />

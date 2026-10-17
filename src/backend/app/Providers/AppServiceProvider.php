@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
@@ -41,6 +42,15 @@ class AppServiceProvider extends ServiceProvider
 
         RateLimiter::for('newsletter', function (Request $request) {
             return Limit::perMinute(3)->by($request->ip());
+        });
+
+        // El enlace de recuperación de contraseña debe apuntar a una página
+        // real del SPA de React (FRONTEND_URL), no a una ruta de Laravel —
+        // el backend no sirve HTML, solo /api, /sanctum y /auth.
+        ResetPassword::createUrlUsing(function ($user, string $token) {
+            $frontendUrl = rtrim(config('app.frontend_url'), '/');
+
+            return "{$frontendUrl}/reset-password?token={$token}&email=".urlencode($user->email);
         });
     }
 }
