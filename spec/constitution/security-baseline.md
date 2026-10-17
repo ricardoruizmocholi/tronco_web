@@ -46,12 +46,15 @@ el estado real verificado del proyecto, no una aspiración.
       registro masivo (cada alta con éxito le daba al siguiente intento
       una cuenta de límite nueva). Ver
       `spec/features/027-security-hardening/`, hallazgo H1
-- [ ] Política de contraseña: solo `min:8` por ahora, sin comprobación
-      contra contraseñas filtradas (`Password::uncompromised()`) — mejora
-      barata pendiente, no urgente (hallazgo B2)
-- [ ] Enumeración de email en registro: `unique:users,email` revela si un
-      email ya tiene cuenta. Trade-off aceptado por UX, no arreglado
-      (hallazgo M2) — decisión pendiente de confirmar explícitamente
+- [x] Política de contraseña: `Password::min(8)->uncompromised()` rechaza
+      contraseñas filtradas conocidas (API de HaveIBeenPwned, k-anonimato —
+      solo se envía un prefijo del hash) (hallazgo B2)
+- [x] Enumeración de email en registro: mitigada. `unique:users,email`
+      sustituido por una closure de validación con mensaje genérico, mismo
+      campo/forma de respuesta. Límite honesto: sin verificación por email
+      (fuera de alcance), la existencia aún se puede inferir por la
+      aparición del error, solo que ya no se confirma explícitamente
+      (hallazgo M2)
 
 ## 4. API / Backend
 - [x] Validación de entrada con Form Requests de Laravel en los endpoints
@@ -61,12 +64,17 @@ el estado real verificado del proyecto, no una aspiración.
       hay ninguna ruta de admin fuera de ese grupo
 - [x] Rate limiting en endpoints públicos de escritura sensibles (login,
       registro, checkout, newsletter) — ver sección 3
-- [ ] Sin middleware de cabeceras de seguridad (CSP, HSTS, X-Frame-Options,
-      X-Content-Type-Options) todavía — pendiente, revisar qué orígenes
-      externos carga el frontend antes de escribir la CSP (hallazgo B1)
+- [x] Middleware `App\Http\Middleware\SecurityHeaders` (grupo `api`) +
+      `docker/nginx.conf` añaden CSP, `X-Frame-Options`,
+      `X-Content-Type-Options`, `Referrer-Policy` y HSTS condicional a
+      HTTPS. Cubre `/api/*` y el proxy de dev local — la página real de
+      **producción** depende de qué sirva el build estático ahí, todavía
+      sin decidir/configurar en este repo (hallazgo B1)
 - [ ] HTTPS forzado: pendiente de verificar en el deploy real a IONOS
-- [x] CORS restringido a un origen explícito (`config/cors.php`), nunca `*`
-      — actualizar al dominio real antes de desplegar (hallazgo B3)
+- [x] CORS restringido a un origen explícito, leído de `CORS_ALLOWED_ORIGINS`
+      en `.env` (nunca hardcodeado en `config/cors.php`, nunca `*`) —
+      actualizar la variable al dominio real antes de desplegar
+      (hallazgo B3)
 
 ## 5. Subida de archivos
 - [x] Todo archivo subido va a `storage/app/public` vía Laravel Storage,
@@ -99,12 +107,9 @@ el estado real verificado del proyecto, no una aspiración.
       `lockForUpdate()` sobre un contador por serie/año, en la misma
       transacción que crea la factura — no un `MAX(numero)+1` sin bloqueo
 
-## Código muerto a vigilar
-- `app/Http/Middleware/Authenticate.php` tiene un `handle()` que no hace
-  nada (solo pasa la petición) — confirmado por `curl` que no es lo que
-  respalda `auth:sanctum` ahora mismo (las rutas protegidas devuelven 401
-  correctamente sin él), pero el nombre y la ubicación son justo los que
-  esperaría alguien que quisiera personalizar la autenticación. Si algún
-  día se conecta al alias `'auth'` pensando que es una personalización
-  legítima, desactivaría toda la autenticación sin que nadie se diera
-  cuenta. Pendiente de borrar (hallazgo M3)
+## Feature 027 — estado final
+Los 11 hallazgos de la auditoría (H1-H3, M1-M3, B1-B3) están todos
+arreglados y verificados; detalle completo en
+`spec/features/027-security-hardening/{spec.md,tasks.md}`. Lo único
+genuinamente pendiente es el deploy real a producción (HTTPS forzado,
+replicar cabeceras/CSP en el hosting final).
