@@ -101,10 +101,44 @@ autenticación sin darse cuenta.
 
 #### 🟡 Baja
 
-**B1 — Sin cabeceras de seguridad (CSP, X-Frame-Options, HSTS, X-Content-Type-Options).**
-No hay middleware ni configuración de nginx que las añada. No son
-bloqueantes por sí solas, pero son la primera línea de defensa contra
-clickjacking y varios tipos de XSS.
+**B1 — Sin cabeceras de seguridad (CSP, X-Frame-Options, HSTS, X-Content-Type-Options). [Arreglado parcialmente]**
+No había middleware ni configuración de nginx que las añadiera. Añadidas en
+dos sitios, porque Laravel solo sirve `/api/*` — nunca la página HTML del
+frontend:
+- `App\Http\Middleware\SecurityHeaders` en el grupo `api` — `X-Content-Type-Options`,
+  `X-Frame-Options`, `Referrer-Policy`, una CSP mínima (`default-src 'none'`,
+  ya que una respuesta JSON no necesita permitir nada) y HSTS cuando la
+  petición es HTTPS
+- `docker/nginx.conf`, bloque `location /` — las mismas cabeceras más una
+  CSP real para la página, con los orígenes externos que el frontend
+  carga de verdad: `fonts.googleapis.com`/`fonts.gstatic.com` (tipografía),
+  `nominatim.openstreetmap.org` (geocoding), `*.basemaps.cartocdn.com`
+  (tiles del mapa, cubierto por el `https:` amplio de `img-src`),
+  `unpkg.com` (textura del globo), `youtube.com`/`vimeo.com` (embeds de
+  vídeo de artista). `img-src` se dejó ancho a `https:` a propósito: el
+  admin puede pegar cualquier URL externa como avatar/logo/banner/hero
+  (campos de texto libre), y una whitelist estrecha ahí rompería contenido
+  ya configurado sin avisar
+- Verificado en vivo con Playwright contra las 5 páginas que cargan algo
+  externo (home, tienda, mapa, bola, artistas) — 0 violaciones de CSP en
+  consola. Encontró un problema real de paso: la textura del globo
+  (`BolaTroncodriloPage.tsx`) usaba una URL protocol-relative
+  (`//unpkg.com/...`), que en un sitio servido por HTTP resuelve a
+  `http://` y la bloquea un `img-src` que solo permite `https:` — corregido
+  a `https://` explícito en el propio código, no relajando la CSP
+- **Por qué "parcialmente"**: esto cubre `/api/*` (Laravel) y el proxy de
+  desarrollo local (`docker/nginx.conf`, Vite dev server detrás). La
+  página real en **producción** la serviría lo que sea que IONOS use para
+  el build estático (`npm run build`) — todavía sin decidir/configurado en
+  este repo — y esas cabeceras no están replicadas ahí porque ese sitio no
+  existe todavía. Pendiente cuando se decida el mecanismo de despliegue
+  del frontend a IONOS
+- `script-src` necesitó `'unsafe-inline'` — descubierto probando en vivo,
+  no asumido: el dev server de Vite inyecta un script de arranque inline
+  para el HMR, y sin `'unsafe-inline'` la página entera no cargaba en
+  local. El build estático de producción no inyecta scripts inline (solo
+  `<script src="...">`), así que la CSP de lo que sirva el build en IONOS
+  debería poder prescindir de esto y quedar más estricta
 
 **B2 — Política de contraseña mínima.**
 `min:8` sin más — razonable para una tienda de merchandising, no exige

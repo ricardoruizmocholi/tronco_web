@@ -2,6 +2,7 @@
 
 use App\Http\Middleware\CheckMaintenanceMode;
 use App\Http\Middleware\EnsureUserIsAdmin;
+use App\Http\Middleware\SecurityHeaders;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -22,6 +23,7 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
 
         $middleware->prependToGroup('api', EnsureFrontendRequestsAreStateful::class);
+        $middleware->appendToGroup('api', SecurityHeaders::class);
 
         $middleware->redirectGuestsTo(function (Request $request) {
             if ($request->is('api/*')) {

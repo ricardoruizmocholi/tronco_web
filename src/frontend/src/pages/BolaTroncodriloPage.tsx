@@ -7,7 +7,10 @@ import { useAuth } from '../hooks/useAuth'
 import { useAuthModal } from '../context/AuthModalContext'
 import type { Fanfic } from '../types/fanfic'
 
-const GLOBE_IMG = '//unpkg.com/three-globe/example/img/earth-dark.jpg'
+// https:// explícito, no protocol-relative — con la CSP de Feature 027
+// (img-src solo permite https:), una URL "//unpkg.com/..." resolvería a
+// http:// en un sitio servido por http y se bloquearía.
+const GLOBE_IMG = 'https://unpkg.com/three-globe/example/img/earth-dark.jpg'
 
 // Fanfics con lat/lng a menos de este umbral (en grados) se consideran de la misma zona.
 const PROXIMITY_THRESHOLD = 0.5

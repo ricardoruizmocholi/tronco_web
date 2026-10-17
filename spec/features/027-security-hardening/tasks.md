@@ -63,8 +63,22 @@ aparte, no se mezcla con una auditoría de seguridad verificable.
    referencias en todo el repo). Verificado: `auth:sanctum` sigue
    devolviendo 401 en rutas protegidas sin él, suite completa sin cambios
    (92 passed / 19 failed, mismo baseline).
-7. [ ] B1 — Middleware de cabeceras de seguridad (revisar orígenes externos
-   del frontend antes de escribir la CSP)
+7. [x] B1 — `App\Http\Middleware\SecurityHeaders` (grupo `api`) +
+   `docker/nginx.conf` (bloque `location /`, dev local). Orígenes externos
+   investigados por búsqueda en el código antes de escribir la CSP, no
+   adivinados: Google Fonts, Nominatim, Carto, unpkg (textura del globo),
+   YouTube/Vimeo. Verificado en vivo con Playwright en 5 páginas (0
+   violaciones de CSP). Encontró y arregló un bug real de paso: la textura
+   del globo usaba una URL protocol-relative que resolvía a `http://` y la
+   bloqueaba `img-src https:` — corregida a `https://` explícito en el
+   código en vez de relajar la CSP. `script-src` necesitó `'unsafe-inline'`
+   solo por el bootstrap inline del HMR de Vite en dev (descubierto
+   probando, no asumido) — no debería hacer falta en el build de
+   producción. **Pendiente real**: esto cubre `/api/*` y el proxy de dev
+   local, no la página que sirva producción en IONOS — su mecanismo de
+   despliegue todavía no está decidido en este repo. 1 test nuevo
+   (`SecurityHeadersTest`). Suite completa: 98 passed / 19 failed (mismo
+   baseline).
 8. [x] B2 — `Password::min(8)->uncompromised()` en `RegisterRequest`;
    consulta la API de HaveIBeenPwned por k-anonimato (solo se envía un
    prefijo del hash, nunca la contraseña en claro). `TestCase` base fakea
