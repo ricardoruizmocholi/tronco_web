@@ -2,6 +2,9 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { MapContainer, Marker, TileLayer } from 'react-leaflet'
 import MarkerClusterGroup from 'react-leaflet-cluster'
 import type L from 'leaflet'
+// Side-effect: carga la ampliación de tipos de @types/leaflet.markercluster
+// (L.MarkerCluster, L.MarkerClusterGroup) — ver mismo comentario en mapIcons.ts.
+import 'leaflet.markercluster'
 import 'leaflet/dist/leaflet.css'
 // Solo transiciones de animación (fusión/separación de clusters, patas de spiderfy) — no
 // trae el círculo de color por defecto, que se sustituye por completo con iconCreateFunction.

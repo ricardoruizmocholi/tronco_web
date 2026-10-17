@@ -30,13 +30,20 @@ export default function StarField({ azimuth = 0 }: Props) {
   }, [azimuth])
 
   useEffect(() => {
-    const canvas = canvasRef.current
-    if (!canvas) return
-    const parent = canvas.parentElement
+    const canvasOrNull = canvasRef.current
+    if (!canvasOrNull) return
+    const parent = canvasOrNull.parentElement
     if (!parent) return
 
-    const ctx = canvas.getContext('2d')
-    if (!ctx) return
+    const ctxOrNull = canvasOrNull.getContext('2d')
+    if (!ctxOrNull) return
+
+    // Reasignados con tipo explícito no nulo: TS no propaga el narrowing de
+    // los `if` de arriba dentro de las funciones anidadas de más abajo
+    // (drawFrame, el callback de ResizeObserver), así que sin esto seguirían
+    // viéndose como posiblemente null ahí dentro.
+    const canvas: HTMLCanvasElement = canvasOrNull
+    const ctx: CanvasRenderingContext2D = ctxOrNull
 
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
 

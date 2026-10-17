@@ -31,19 +31,31 @@ const STATUS_OPTIONS: { value: string; label: string }[] = [
 ]
 
 const STATUS_BADGE: Record<OrderStatus, string> = {
-  pending:   'bg-amber-100 text-amber-700',
-  paid:      'bg-primary/10 text-primary',
-  shipped:   'bg-blue-100 text-blue-700',
-  failed:    'bg-red-100 text-red-700',
-  cancelled: 'bg-ink/10 text-ink/50',
+  pending:          'bg-amber-100 text-amber-700',
+  paid:             'bg-primary/10 text-primary',
+  shipped:          'bg-blue-100 text-blue-700',
+  failed:           'bg-red-100 text-red-700',
+  cancelled:        'bg-ink/10 text-ink/50',
+  delivered:        'bg-primary/10 text-primary',
+  return_requested: 'bg-secondary/10 text-secondary',
+  return_approved:  'bg-primary/10 text-primary',
+  return_rejected:  'bg-secondary/10 text-secondary',
+  return_received:  'bg-ink/10 text-ink/50',
+  refunded:         'bg-primary/10 text-primary',
 }
 
 const STATUS_LABEL: Record<OrderStatus, string> = {
-  pending:   'Pendiente',
-  paid:      'Pagado',
-  shipped:   'Enviado',
-  failed:    'Fallido',
-  cancelled: 'Cancelado',
+  pending:          'Pendiente',
+  paid:             'Pagado',
+  shipped:          'Enviado',
+  failed:           'Fallido',
+  cancelled:        'Cancelado',
+  delivered:        'Entregado',
+  return_requested: 'Devolución solicitada',
+  return_approved:  'Devolución aprobada',
+  return_rejected:  'Devolución rechazada',
+  return_received:  'Devuelto recibido',
+  refunded:         'Reembolsado',
 }
 
 function StatusBadge({ status }: { status: OrderStatus }) {

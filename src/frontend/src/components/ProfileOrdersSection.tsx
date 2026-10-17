@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { getOrders, cancelOrder } from '../api/orders'
+import { getOrders } from '../api/orders'
 import { useCurrency } from '../hooks/useCurrency'
 import type { Order, OrderStatus } from '../types/order'
 import CancelOrderModal from './CancelOrderModal'
@@ -288,7 +288,6 @@ export default function ProfileOrdersSection() {
           order={cancelTarget}
           onClose={() => setCancelTarget(null)}
           onCancelled={() => handleCancelled(cancelTarget.id)}
-          cancelFn={cancelOrder}
         />
       )}
 

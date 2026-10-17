@@ -6,11 +6,17 @@ import type { Order, OrderStatus } from '../types/order'
 const euros = new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' })
 
 const STATUS_CONFIG: Record<OrderStatus, { label: string; className: string }> = {
-  pending:   { label: 'Pendiente',  className: 'bg-amber-100 text-amber-700' },
-  paid:      { label: 'Pagado',     className: 'bg-primary/10 text-primary' },
-  failed:    { label: 'Fallido',    className: 'bg-secondary/10 text-secondary' },
-  shipped:   { label: 'Enviado',    className: 'bg-blue-100 text-blue-700' },
-  cancelled: { label: 'Cancelado',  className: 'bg-ink/10 text-ink/50' },
+  pending:          { label: 'Pendiente',            className: 'bg-amber-100 text-amber-700' },
+  paid:             { label: 'Pagado',                className: 'bg-primary/10 text-primary' },
+  failed:           { label: 'Fallido',               className: 'bg-secondary/10 text-secondary' },
+  shipped:          { label: 'Enviado',               className: 'bg-blue-100 text-blue-700' },
+  cancelled:        { label: 'Cancelado',             className: 'bg-ink/10 text-ink/50' },
+  delivered:        { label: 'Entregado',             className: 'bg-primary/10 text-primary' },
+  return_requested: { label: 'Devolución solicitada', className: 'bg-secondary/10 text-secondary' },
+  return_approved:  { label: 'Devolución aprobada',   className: 'bg-primary/10 text-primary' },
+  return_rejected:  { label: 'Devolución rechazada',  className: 'bg-secondary/10 text-secondary' },
+  return_received:  { label: 'Devuelto recibido',     className: 'bg-ink/10 text-ink/50' },
+  refunded:         { label: 'Reembolsado',           className: 'bg-primary/10 text-primary' },
 }
 
 function StatusBadge({ status }: { status: OrderStatus }) {

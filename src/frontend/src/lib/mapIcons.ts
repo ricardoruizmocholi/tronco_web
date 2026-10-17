@@ -1,4 +1,9 @@
 import L from 'leaflet'
+// Side-effect: carga la ampliación de tipos de @types/leaflet.markercluster
+// (declare module "leaflet" { class MarkerCluster ... }) — sin este import,
+// TS no la incluye en el programa (tsconfig no tiene "types" globales) y
+// L.MarkerCluster no existe como tipo.
+import 'leaflet.markercluster'
 
 // className: '' anula la clase por defecto de Leaflet (leaflet-div-icon), que pinta un
 // recuadro blanco con borde detrás de cualquier divIcon si no se sobreescribe.

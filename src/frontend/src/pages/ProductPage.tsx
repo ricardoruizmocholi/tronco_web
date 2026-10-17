@@ -97,6 +97,10 @@ export default function ProductPage() {
     )
   }
 
+  // Reasignado con tipo explícito no nulo: TS no propaga el narrowing del
+  // guard de arriba dentro de handleAddToCart (función anidada/closure) —
+  // mismo patrón que en StarField.tsx.
+  const safeProduct: Product = product
   const { name, description, price, stock, category, images } = product
   const isSoldOut      = hasVariants
     ? !activeVariants.some(v => v.stock > 0)
@@ -152,15 +156,15 @@ export default function ProductPage() {
 
   function handleAddToCart() {
     addItem({
-      productId:    product.id,
+      productId:    safeProduct.id,
       variantId:    activeVariant?.id,
       size:         variantCartLabel(activeVariant),
-      name:         product.name,
-      slug:         product.slug,
+      name:         safeProduct.name,
+      slug:         safeProduct.slug,
       price:        displayPrice,
-      stock:        hasVariants ? (activeVariant?.stock ?? 0) : product.stock,
+      stock:        hasVariants ? (activeVariant?.stock ?? 0) : safeProduct.stock,
       image:        images.find(i => i.position === 1)?.url ?? null,
-      categorySlug: product.category?.slug ?? null,
+      categorySlug: safeProduct.category?.slug ?? null,
     })
   }
 

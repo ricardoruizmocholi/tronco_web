@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, type JSX } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { getArtist } from '../api/artists'
 import ProductCard from '../components/ProductCard'
