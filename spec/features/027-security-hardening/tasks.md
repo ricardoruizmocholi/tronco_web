@@ -89,6 +89,14 @@ aparte, no se mezcla con una auditoría de seguridad verificable.
    defecto, registrado antes, gana siempre sobre uno más específico
    registrado después — se descubrió escribiendo el test, no se asumió).
    2 tests nuevos. Suite completa: 97 passed / 19 failed (mismo baseline).
-9. [ ] Tests de regresión para cada arreglo que lo permita (rate limiting,
-   SVG rechazado, nginx no ejecuta `.php` bajo `/storage`) + QA manual +
-   commit + push
+9. [x] B3 — `config/cors.php`: `allowed_origins` estaba hardcodeado en el
+   archivo versionado (`['http://localhost']`), no leía de `.env` como sí
+   hacía `sanctum.php`. Cambiado a `env('CORS_ALLOWED_ORIGINS', 'http://localhost')`.
+   Añadidas a `.env.example` las variables reales del proyecto que faltaban
+   (`SESSION_SECURE_COOKIE`, `SANCTUM_STATEFUL_DOMAINS`,
+   `CORS_ALLOWED_ORIGINS`, `FRONTEND_URL`, `GOOGLE_CLIENT_*`, `STRIPE_*`) —
+   el archivo era el esqueleto genérico de Laravel, nunca actualizado para
+   este proyecto. Suite completa: 98 passed / 19 failed (mismo baseline).
+10. [x] Tests de regresión para cada arreglo que lo permita (rate limiting,
+    SVG rechazado, nginx no ejecuta `.php` bajo `/storage`) + QA manual +
+    commit + push

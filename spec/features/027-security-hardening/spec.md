@@ -145,11 +145,25 @@ frontend:
 complejidad ni descarta contraseñas filtradas (`Password::uncompromised()`).
 No es urgente, pero es una mejora barata.
 
-**B3 — CORS y Sanctum `stateful` solo apuntan a `localhost`.**
-No es una vulnerabilidad — es lo correcto para desarrollo — pero hace falta
-una nota explícita de que `config/cors.php` (`allowed_origins`) y
-`SANCTUM_STATEFUL_DOMAINS` deben actualizarse al dominio real antes de
-desplegar, o el frontend en producción no podrá autenticarse contra la API.
+**B3 — CORS y Sanctum `stateful` solo apuntan a `localhost`. [Arreglado]**
+No era solo una nota pendiente: `config/cors.php` tenía `allowed_origins`
+**hardcodeado** a `['http://localhost']` directamente en el archivo
+versionado, sin pasar por `env()` — a diferencia de `SANCTUM_STATEFUL_DOMAINS`,
+que ya leía de `.env` correctamente. Eso significaba que apuntar a
+producción exigía editar y commitear `config/cors.php` con el dominio real
+(fácil de olvidar, y arriesgado si alguien commitea sin querer el dominio
+de un cliente en texto plano en el repo compartido). Cambiado a
+`env('CORS_ALLOWED_ORIGINS', 'http://localhost')`, mismo patrón que ya
+usaba `sanctum.php`. Añadidas a `.env.example` las variables que antes no
+estaban documentadas ahí (`SESSION_SECURE_COOKIE`, `SANCTUM_STATEFUL_DOMAINS`,
+`CORS_ALLOWED_ORIGINS`, `FRONTEND_URL`, `GOOGLE_CLIENT_*`, `STRIPE_*`) —
+`.env.example` era el esqueleto genérico de Laravel sin actualizar, no
+reflejaba ninguna de las variables reales que usa este proyecto. Verificado:
+suite completa sin cambios (98 passed / 19 failed, mismo baseline); el
+comando `check-deploy-readiness` (M1) sigue comprobando
+`cors.allowed_origins` sin tocar su código, porque sigue leyendo de la
+misma clave de config, ahora correctamente respaldada por `.env`.
+*Archivos:* `config/cors.php`, `.env.example`.
 
 ### Lo que se revisó y salió limpio (para que quede constancia)
 - **IDOR**: `CancellationController`, `ReturnRequestController`,
