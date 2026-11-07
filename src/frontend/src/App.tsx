@@ -34,6 +34,7 @@ import AdminNewsletterPage from './pages/admin/AdminNewsletterPage'
 import AdminInvoicesPage from './pages/admin/AdminInvoicesPage'
 import AdminSettingsPage from './pages/admin/AdminSettingsPage'
 import AdminSocialLinksPage from './pages/admin/AdminSocialLinksPage'
+import ScrollToTop from './components/ScrollToTop'
 import ArtistsPage from './pages/ArtistsPage'
 import BolaTroncodriloPage from './pages/BolaTroncodriloPage'
 import MapaTroncodriloPage from './pages/MapaTroncodriloPage'
@@ -83,6 +84,7 @@ function App() {
       <AuthModalProvider>
       <AdminNotificationsProvider>
       <MaintenanceProvider>
+        <ScrollToTop />
         <AuthCallbackHandler />
         <Routes>
           {/* Sin layout público: shell propio con sidebar — ver Feature 024 —
