@@ -9,6 +9,8 @@ use App\Http\Controllers\AdminMaintenanceController;
 use App\Http\Controllers\AdminNewsletterController;
 use App\Http\Controllers\AdminNotificationController;
 use App\Http\Controllers\AdminOrderController;
+use App\Http\Controllers\AdminSocialLinkController;
+use App\Http\Controllers\SocialLinkController;
 use App\Http\Controllers\AdminPreorderController;
 use App\Http\Controllers\AdminPromotionController;
 use App\Http\Controllers\AdminReturnController;
@@ -124,6 +126,9 @@ Route::post('/newsletter/subscribe', [NewsletterController::class, 'subscribe'])
 
 // Fanfics — globo público
 Route::get('/fanfics', [FanficController::class, 'publicIndex']);
+
+// Redes sociales del footer — público
+Route::get('/social-links', [SocialLinkController::class, 'publicIndex'])->middleware('throttle:public-read');
 
 // Preorders — público (auth opcional via Sanctum)
 Route::post('/preorders', [PreorderController::class, 'store']);
@@ -252,4 +257,14 @@ Route::middleware(['auth:sanctum', 'admin'])->prefix('admin')->group(function ()
     Route::post('/promotions',               [AdminPromotionController::class, 'store']);
     Route::put('/promotions/{promotion}',    [AdminPromotionController::class, 'update']);
     Route::delete('/promotions/{promotion}', [AdminPromotionController::class, 'destroy']);
+
+    // Redes sociales (Feature 028) — /reorder ANTES que {socialLink}
+    Route::middleware('throttle:admin-social')->group(function () {
+        Route::get('/social-links',                       [AdminSocialLinkController::class, 'index']);
+        Route::post('/social-links',                      [AdminSocialLinkController::class, 'store']);
+        Route::put('/social-links/reorder',               [AdminSocialLinkController::class, 'reorder']);
+        Route::put('/social-links/{socialLink}',          [AdminSocialLinkController::class, 'update']);
+        Route::patch('/social-links/{socialLink}/toggle', [AdminSocialLinkController::class, 'toggle']);
+        Route::delete('/social-links/{socialLink}',       [AdminSocialLinkController::class, 'destroy']);
+    });
 });

@@ -44,6 +44,15 @@ class AppServiceProvider extends ServiceProvider
             return Limit::perMinute(3)->by($request->ip());
         });
 
+        // Feature 028: redes sociales del footer (admin y lectura pública).
+        RateLimiter::for('admin-social', function (Request $request) {
+            return Limit::perMinute(60)->by($request->ip());
+        });
+
+        RateLimiter::for('public-read', function (Request $request) {
+            return Limit::perMinute(60)->by($request->ip());
+        });
+
         // El enlace de recuperación de contraseña debe apuntar a una página
         // real del SPA de React (FRONTEND_URL), no a una ruta de Laravel —
         // el backend no sirve HTML, solo /api, /sanctum y /auth.

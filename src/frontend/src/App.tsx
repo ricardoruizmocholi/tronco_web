@@ -33,6 +33,7 @@ import AdminHeroPage from './pages/admin/AdminHeroPage'
 import AdminNewsletterPage from './pages/admin/AdminNewsletterPage'
 import AdminInvoicesPage from './pages/admin/AdminInvoicesPage'
 import AdminSettingsPage from './pages/admin/AdminSettingsPage'
+import AdminSocialLinksPage from './pages/admin/AdminSocialLinksPage'
 import ArtistsPage from './pages/ArtistsPage'
 import BolaTroncodriloPage from './pages/BolaTroncodriloPage'
 import MapaTroncodriloPage from './pages/MapaTroncodriloPage'
@@ -103,6 +104,7 @@ function App() {
               <Route path="/admin/hero"          element={<AdminHeroPage />} />
               <Route path="/admin/newsletter"    element={<AdminNewsletterPage />} />
               <Route path="/admin/facturas"      element={<AdminInvoicesPage />} />
+              <Route path="/admin/redes-sociales" element={<AdminSocialLinksPage />} />
               <Route path="/admin/ajustes"       element={<AdminSettingsPage />} />
             </Route>
           </Route>

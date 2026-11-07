@@ -1,4 +1,9 @@
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { getSocialLinks } from '../api/socialLinks'
+import type { SocialLink } from '../types/socialLink'
+import { SOCIAL_NAMES } from '../lib/socialNames'
+import SocialIcon from './SocialIcon'
 
 const navLinks = [
   { to: '/tienda',           label: 'Tienda' },
@@ -14,7 +19,20 @@ const infoLinks = [
   { to: '/politica-devoluciones', label: 'Política de devoluciones' },
 ]
 
+// Defensa en profundidad: la validación real es la del servidor, pero nunca
+// se pinta un href que no sea http(s) (p. ej. un registro manual en BD).
+const isSafeUrl = (url: string) => /^https?:\/\//i.test(url)
+
 export default function Footer() {
+  const [socialLinks, setSocialLinks] = useState<SocialLink[]>([])
+
+  useEffect(() => {
+    // Si falla, el bloque simplemente no se muestra
+    getSocialLinks().then(setSocialLinks).catch(() => setSocialLinks([]))
+  }, [])
+
+  const visibleLinks = socialLinks.filter(l => isSafeUrl(l.url))
+
   return (
     <footer style={{ backgroundColor: '#1C1F1A' }}>
       <div className="max-w-6xl mx-auto px-4 py-16 grid grid-cols-1 md:grid-cols-3 gap-10">
@@ -26,6 +44,28 @@ export default function Footer() {
           <p className="text-canvas/50 text-sm max-w-xs">
             Merchandising oficial del cocodrilo más icónico del universo conocido.
           </p>
+
+          {visibleLinks.length > 0 && (
+            <ul className="flex flex-wrap -ml-3 mt-1" aria-label="Redes sociales">
+              {visibleLinks.map(link => {
+                const name = link.label || SOCIAL_NAMES[link.platform] || 'Red social'
+                return (
+                  <li key={link.id}>
+                    <a
+                      href={link.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-label={name}
+                      title={name}
+                      className="flex items-center justify-center w-11 h-11 text-canvas/70 hover:text-canvas transition-colors"
+                    >
+                      <SocialIcon platform={link.platform} />
+                    </a>
+                  </li>
+                )
+              })}
+            </ul>
+          )}
         </div>
 
         {/* Navegación */}
