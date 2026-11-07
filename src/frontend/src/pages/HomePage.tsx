@@ -230,7 +230,7 @@ function NewsletterSection() {
   return (
     <section className="w-full py-20 px-4" style={{ backgroundColor: '#1C1F1A' }}>
       <div className="max-w-md mx-auto flex flex-col items-center text-center gap-2">
-        <h2 className="font-editorial text-3xl text-canvas">Únete a la Troco Comunidad</h2>
+        <h2 className="font-editorial text-3xl text-canvas">Únete a la Tronco Comunidad</h2>
         <p className="label-caps text-canvas/60">Novedades, drops exclusivos y más</p>
 
         {status === 'success' ? (
@@ -331,7 +331,7 @@ export default function HomePage() {
         {/* Contenido inferior-izquierda — sin overlay adicional, la imagen habla sola */}
         <div className="absolute z-10 bottom-8 left-8 md:bottom-12 md:left-12 flex flex-col items-start gap-4">
           <p className="text-xs uppercase tracking-widest text-canvas">
-            Bienvenido a la Troco Tienda
+            Bienvenido a la Tronco Tienda
           </p>
           <Link
             to="/tienda"

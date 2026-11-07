@@ -115,7 +115,7 @@ export default function ArtistsPage() {
         <div className="relative z-10">
           <h1 className="label-caps text-canvas">Artistas colaboradores</h1>
           <p className="text-canvas/70 text-sm mt-3">
-            Descubre a los artistas detrás de Troncodrilo
+            Descubre a los artistas que han colaborado con Troncodrilo
           </p>
         </div>
       </div>
